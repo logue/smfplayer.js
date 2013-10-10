@@ -43,6 +43,8 @@ SMF.Player = function() {
   this.sequenceName;
   /** @type {Array.<string>} */
   this.copyright;
+  /** @type {number} */
+  this.length;
 };
 
 /**
@@ -103,6 +105,8 @@ SMF.Player.prototype.init = function() {
   this.sequence = null;
   this.sequenceName = null;
   this.copyright = null;
+  this.length = 0;
+
   clearTimeout(this.timer);
 
   /** @type {SMF.Player} */
@@ -132,7 +136,8 @@ SMF.Player.prototype.play = function() {
   }
 
   if (this.ready) {
-    if (this.track instanceof Array && this.position >= this.track.length) {
+    this.length = this.track.length;
+    if (this.track instanceof Array && this.position >= this.length) {
       this.position = 0;
     }
     this.playSequence();
@@ -342,6 +347,7 @@ SMF.Player.prototype.playSequence = function() {
       );
     } else {
       // loop
+      window.postMessage('endoftrack','*');
       if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
         pos = mark[0]['pos'];
         player.timer = setTimeout(update, 0);
