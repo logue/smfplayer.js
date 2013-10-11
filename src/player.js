@@ -176,7 +176,7 @@ SMF.Player.prototype.sendInitMessage = function() {
 /**
  * @param {string} url WebMidiLink url.
  */
-SMF.Player.prototype.setWebMidiLink = function(url) {
+SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
   /** @type {SMF.Player} */
   var player = this;
   /** @type {HTMLIFrameElement} */
@@ -187,11 +187,14 @@ SMF.Player.prototype.setWebMidiLink = function(url) {
     this.webMidiLink = null;
   }
 
+  if (!attachpoint) attachpoint = document.body;
+
   iframe = this.webMidiLink =
     /** @type {HTMLIFrameElement} */(document.createElement('iframe'));
   iframe.src = url || 'http://www.g200kg.com/en/docs/gmplayer/';
+  iframe.className = 'wml';
 
-  document.body.appendChild(iframe);
+  attachpoint.appendChild(iframe);
 
   window.addEventListener('message', (function(ev) {
     if (ev.data === 'link,ready') {
