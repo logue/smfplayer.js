@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>SMF.Player for MIDI</title>
+	<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
+	<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css" />
+<style type="text/css">
+/*<![CDATA[*/
+	iframe{
+		width: 100%;
+		height: 660px;
+		border:thin;
+	}
+/*]]>*/
+</style>
+<body>
+	<div class="container">
+		<div class="header">
+			<ul class="nav nav-pills pull-right">
+				<li class="active"><a href="#">Sample</a></li>
+				<li><a href="https://github.com/logue/smfplayer.js/">GitHub</a></li>
+				<li><a href="https://github.com/gree/smfplayer.js/">Original Code</a></li>
+			</ul>
+			<h3 class="text-muted">MIDI Player XG</h3>
+		</div>
+		<div class="clearfix"></div>
+		<hr />
+		<div id="info" class="alert alert-warning">Now Loading...</div>
+		
+		<div class="panel panel-primary">
+			<div class="panel-heading">MIDI Player</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-inline">
+							<button class="btn btn-info btn-lg" value="prev" id="prev" disabled="disabled" title="Previous Music"><span class="glyphicon glyphicon-chevron-left"></span></button>
+							<button class="btn btn-primary btn-lg" value="play" id="play" disabled="disabled" title="Play / Pause"><span class="glyphicon glyphicon-play"></span></button>
+							<button class="btn btn-danger btn-lg" value="stop" id="stop" disabled="disabled" title="Stop"><span class="glyphicon glyphicon-stop"></span></button>
+							<button class="btn btn-info btn-lg" value="next" id="next" disabled="disabled" title="Next Music"><span class="glyphicon glyphicon-chevron-right"></span></button>
+						</div>
+					</div>
+					<div class="col-md-4 form-group">
+						<label for="files">MIDI file: </label>
+						<select id="files" class="form-control"></select>
+					</div>
+					<div class="col-md-4 form-group">
+						<label for="zips">Zip archive file: </label>
+						<select id="zips" class="form-control">
+							<option>YAMAHA mididata library.zip</option>
+						</select>
+					</div>
+				</div>
+				<div class="row">
+					<div class="form-group col-md-3">
+						<label>Music Progress</label>
+						<div class="progress" style="margin-bottom:0;" id="music-progress">
+							<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+						</div>
+					</div>
+					<div class="form-group col-md-9">
+						<label for="url">URL for this MIDI :</label>
+						<input id="url" size="100" readonly onclick="this.select()" class="form-control">
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="panel panel-default">
+			<div class="panel-heading">Settings</div>
+			<div class="panel-body row">
+				<div class="col-md-6">
+					<div class="checkbox">
+						<label><input type="checkbox" id="random" checked>Random</label>
+					</div>
+					<div class="checkbox">
+						<input id="playerloop" type="checkbox" onchange="player.setLoop(this.checked);" /><label for="playerloop">Loop</label>
+					</div>
+					<div class="checkbox">
+						<input id="cc111loop" type="checkbox" onchange="player.setCC111Loop(this.checked);" /><label for="cc111loop">CC#111</label>
+					</div>
+					<div class="checkbox">
+						<input id="falcomloop" type="checkbox" onchange="player.setFalcomLoop(this.checked);" /><label for="falcomloop">Marker A-B (Ys2 Eternal)</label>
+					</div>
+					<div class="checkbox">
+						<input id="mfiloop" type="checkbox" onchange="player.setMFiLoop(this.checked);" /><label for="mfiloop">MFi</label>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="form-group">
+						<label for="tempo">Tempo: x<span id="tempo_value" class="badge">1.0</span></label>
+						<input id="tempo" type="range" class="form-control" min="0.1" max="10.0" step="0.1" value="1.0" />
+					</div>
+					<div class="form-group">
+						<label for="volume">Master Volume: <span id="volume_value" class="badge">0.5</span></label>
+						<input id="volume" type="range" class="form-control" min="0" max="1" step="0.01" value="0.5" />
+					</div>
+				</div>
+			</div>
+			<div class="form-group col-md-12">
+				<label for="file">Load standard MIDI file:</label>
+				<input type="file" id="file" name="file" class="form-control" />
+			</div>
+		</div> 
+		
+		<div class="panel panel-default">
+			<div class="panel-heading">Synthesyther</div>
+			<div class="panel-body" id="wml"></div>
+		</div>
+
+		<div class="footer">
+			<address><a href="https://github.com/gree/smfplayer.js">SMF.Player</a> ? 2013 imaya / GREE Inc. Licensed under the MIT License.</address>
+		</div>
+	</div>
+	<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+	<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+	<!--script src="../closure-primitives/base.js"></script>
+	<script src="../export/smf.player.js"></script-->
+	<script src="./js/smfplayer.min.js"></script>
+	<script src="./js/utf8.js"></script>
+	<script src="./js/unzip.min.js"></script>
+	<script type="text/javascript">
+/*<![CDATA[*/
+// インターバル関数用。準備完了フラグ
+var isReady = false;
+// QueryStrings
+var params={};
+location.search.substr(1).split('&').forEach(function(param){
+	var param=decodeURIComponent(param);
+	var p=param.split('=');params[p[0]]=p[1];
+});
+// SMF Player
+var player=new SMF.Player();
+
+/**
+ * メイン処理
+ */
+$(document).ready(function(){
+	// フォームを無効化
+	$('input, select, textarea, button.btn').attr('disabled','disabled');
+	
+	window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
+	if ( typeof(window.AudioContext) === 'undefined'){
+		$('#info').addClass('alert-danger').removeClass('alert-warning').text('お使いのブラウザはWeb Audioをサポートしていないため再生できません。SafariかChromeを使用してください。');
+		return;
+	}
+	
+	if (location.protocol !== 'http:') {	// まさかHTTPSで動かすやつはいないだろう
+		$('#info').addClass('alert-danger').removeClass('alert-warning').text('このプログラムはajaxを多用しているため、サーバーを立てないと動きません。');
+		return;
+	}
+	
+	var zips=document.querySelector('#zips');
+	if(params.zips){
+		zips.value=params.zips;
+	} else{
+		zips.selectedIndex=~~(zips.length*Math.random());
+	}
+	
+	initPlayer();
+	player.setWebMidiLink('./wml.html', document.getElementById('wml'));
+	loadSample();
+	
+	$('#file').change(function(e){
+		handleSelect(this);
+	});
+	$('#file').change(function(e){
+		loadSample(this);
+	});
+	
+	document.addEventListener('drop', function(e) {
+		var dt = e.dataTransfer;
+		var files = dt.files;
+		e.stopPropagation();
+		e.preventDefault();
+
+		handleFile(files[0]);
+	}, false);
+	
+	// テンポ設定
+	$('#tempo').change(function(){
+		var value = $(this).val();
+		player.setTempoRate(value);
+		$('#tempo_value').text(value);
+	});
+
+	// マスターボリューム
+	$('#volume').change(function(){
+		var value = $(this).val();
+		player.setMasterVolume(value * 16383);
+		$('#volume_value').text(value);
+	});
+	
+	// 前に戻るボタン
+	$('#prev').click(function(){
+		// 現在選択中の項目を取得
+		var selected_music = $('#files').prop('selectedIndex');
+		if (selected_music == $('#files option').length){
+			// 末尾の場合、最後の曲へ
+			$('#files').prop('selectedIndex',$('#music option').length);
+		}else{
+			// 選択されている項目の前の項目を選択
+			$('#files').prop('selectedIndex',selected_music-1);
+		}
+		handleSelect(document.getElementById('files'));
+	});
+
+	// 次に進むボタン
+	$('#next').click(function(){
+		var selected_music = $('#files').prop('selectedIndex');
+		if (selected_music == $('#music option').length){
+			// 末尾の場合最初に戻る
+			$('#files').prop('selectedIndex',0);
+		}else{
+			// 今選択されてる項目の次の項目を選択
+			$('#files').prop('selectedIndex',selected_music+1);
+		}
+		handleSelect(document.getElementById('files'));
+	});
+	
+	// 再生／一時停止ボタン
+	$('#play').click(function(){
+		if (player.pause) {			// 停止中
+			// 再生
+			player.play();
+		}else{			// 再生中
+			// 停止
+			player.stop();
+		}
+	});
+
+	// 停止ボタン
+	$('#stop').click(function(){
+		player.stop();
+		isPlay = false;
+		handleSelect(document.getElementById('files'));
+		player.stop();
+	});
+	$('*[title]').tooltip();
+});
+NodeList.prototype.forEach = Array.prototype.forEach;
+
+function initPlayer() {
+	player.setLoop($('#playerloop').is(':checked'));
+	player.setCC111Loop($('#cc111loop').is(':checked'));
+	player.setFalcomLoop($('#falcomloop').is(':checked'));
+	player.setMFiLoop($('#mfiloop').is(':checked'));
+	player.setTempoRate($('#tempo').val());
+	player.setMasterVolume($('#volume').val() * 16383);
+}
+
+function handleFile(file) {
+	var reader = new FileReader();
+
+	reader.onload = function(e) {
+		var input = new Uint8Array(e.target.result);
+		handleInput(file.name, input);
+	};
+	reader.readAsArrayBuffer(file);
+}
+var initialized=false;
+
+
+function loadSample() {
+	var xhr = new XMLHttpRequest();
+	var url = document.querySelector('#zips').value;
+
+	xhr.open('GET', url, true);
+	xhr.addEventListener('load', function(ev) {
+		var input = new Uint8Array(xhr.response);
+
+		var select = document.getElementById('files');
+		while (select.childNodes.length > 0) {
+			select.removeChild(select.firstChild);
+		}
+
+		var zip = select.zip = new Zlib.Unzip(input);
+		var filenames = zip.getFilenames();
+		filenames.forEach(function(name, i) {
+			if (name.substr(-4) !== '.mid') {
+				return;
+			}
+			// console.log(name)
+
+			var option = document.createElement('option');
+			option.textContent = name.split('/').pop();
+			option.setAttribute('data-midiplayer-filename', name);
+			select.appendChild(option);
+		});
+
+		if(document.querySelector('#random').checked==null){
+			select.insertBefore(select.firstChild,document.createElement('option'));
+		}
+		else{
+			if(params.files&&initialized==false){
+				select.value=params.files;
+			}
+			else{
+				var prev=select.selectedIndex;
+				var next=prev;
+				while(prev==next){
+					next=~~(select.length*Math.random());
+				}
+				select.selectedIndex=next;
+			}
+			if(initialized){
+				handleSelect(select);
+			}
+		}
+	});
+	xhr.responseType = 'arraybuffer';
+	xhr.send();
+}
+function handleSelect(select) {
+	var option = select.querySelectorAll("option")[select.selectedIndex];
+	var filename = option.getAttribute('data-midiplayer-filename');
+
+	if (filename) {
+		handleInput(filename, select.zip.decompress(filename));
+
+		var url= location.toString();
+		var queries=[];
+		if(location.search.indexOf('a320u')>0){
+			queries.push('a320u');
+		}
+		queries.push("files="+encodeURI(document.getElementById('files').value));
+		queries.push("zips="+encodeURI(document.getElementById('zips').value));
+		url+='?'+queries.join('&');
+		document.querySelector("#url").value=url;
+
+		var title=document.getElementById('files').value;
+		title=title.substr(0,title.lastIndexOf('.'));
+		document.title=title+' '+document.getElementById('zips').value+' / SMF.Player';
+	}
+}
+function handleInput(filename, buffer) {
+	player.stop();
+	switch (filename.slice(filename.lastIndexOf('.')).toLowerCase()) {
+		case '.mld':
+			player.loadMldFile(buffer);
+			break;
+		case '.mid':
+			player.loadMidiFile(buffer);
+			break;
+	}
+	setTimeout(function(){
+		player.play();
+	},50);//よく分からんが非同期で読み込むらしい
+}
+function randomPlay(){
+	var select=document.getElementById('files');
+	select.selectedIndex=~~(select.length*Math.random());
+	handleSelect(select);
+}
+
+/**
+ * IFRAMEから送られてくるwindow.postMessageを監視
+ */
+$(window).on('message', function(e) {
+	var event = e.originalEvent.data;  // Should work.
+	// 曲一覧の現在選択中の項目番号
+	var selected_music = $('#music').prop('selectedIndex');
+	// 曲が終了したとき（ハッシュで外部MMLを読み込んだ場合を除く）
+	if (event === 'endoftrack') {
+		// 曲は終了しても、player.pauseの値が変化しないので、ここで、再生ボタンにする。
+		$('#play').
+			html('<span class="glyphicon glyphicon-play"></span>').
+			removeClass('btn-success').
+			addClass('btn-primary');
+		if( selected_music !== 0){
+			// ループで最初に戻った場合（player.positionがリセットされた場合）
+			// 次の曲を選択
+			if (selected_music == $('#music option').length){
+				// 末尾の場合最初に戻る
+				$('#files').prop('selectedIndex',1);
+			}else{
+				$('#files').prop('selectedIndex',selected_music+1);
+			}
+			// 曲を変更
+			loadSample();
+		}
+	}
+	// WMLが読み込まれた時
+	if (event === 'link,ready') {
+		isReady=true;
+		if(document.querySelector('#random').checked){
+			handleSelect(document.querySelector('#files'));
+		}
+		$('#info').addClass('alert-success').removeClass('alert-warning').text('Ready.');
+		$('input, select, textarea, button.btn').removeAttr('disabled');
+	}
+});
+
+/**
+ * インターバル関数
+ */
+setInterval(function(){
+	if (isReady) {
+		// player.pauseの値で再生/一時停止ボタンを変化させる
+		// ただし、smfplayer.jsのバグでplayer.loadMidiFile()が実行された直後、
+		// 再生していない状態でもplayer.pauseの値がtrueになってしまうので、
+		// もう一工夫いる。
+		if (player.pause){
+			$('#play').
+				html('<span class="glyphicon glyphicon-play"></span>').
+				removeClass('btn-success').
+				addClass('btn-primary');
+		}else{
+			$('#play').
+				html('<span class="glyphicon glyphicon-pause"></span>').
+				removeClass('btn-primary').
+				addClass('btn-success');
+		}
+		$('#music-progress .progress-bar').css('width',((player.position/player.length)*100)+'%');
+	}
+},100);
+
+/*]]>*/
+ </script>
+</body>
+</html>
