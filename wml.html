@@ -73,46 +73,22 @@
     td.note-on {
       background-color: red;
     }
-
-    #message {
-      display: none;
-    }
-    #message.show {
-      display: block;
-    }
-    div.load {
-      border-top: 1px solid #08f;
-      border-bottom: 1px solid #08f;
-      background-color: #def;
-      margin-top: 1em;
-      margin-bottom: 1em;
-      padding: 0.5em;
-    }
 /*]]>*/
   </style>
 </head>
 <body>
-
-<div id="samples"></div>
-
-<h2>Default SoundFont: Yamaha XG Sound Set.sf2</h2>
-
-<div id="message" class="alert alert-warning show">Loading...</div>
-
-<pre>
-  Copyright 1998 by Yamaha Corp.
-</pre>
-
-<div class="alert alert-info form-inline">
+<h2>SoundFont: <span id="soundfont">Yamaha XG Sound Set.sf2</span></h2>
+<div id="message" class="alert alert-warning">Loading...</div>
+<div class="alert alert-info" id="droparea">
   <div class="form-group">
-    <label for="file">Load SoundFont2 file:</label>
+    <label for="file">Load SoundFont2 file <small>(drag and drop *.sf2 file here to change sound font)</small>:</label>
     <input type="file" id="file" name="file" class="form-control"/>
   </div>
 </div>
-<div class="checkbox">
+<!--div class="checkbox">
   <input type="checkbox" id="reverb" checked /><label for="reverb">Reverb</label>
-</div>
-<script src="./js/sf2synth.min.js"></script>
+</div-->
+<script type="text/javascript" src="./js/sf2synth.min.js"></script>
  <!--
 <script src="../closure-primitives/base.js"></script>
 <script>
@@ -124,10 +100,13 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
  -->
  <script type="text/javascript">
 /*<![CDATA[*/
+    var message = document.getElementById('message');
     var url = 'Yamaha XG Sound Set.sf2';
     var wml = new SoundFont.WebMidiLink();
-    var reverb;
-    wml.setLoadCallback(removeMessage);
+//    var reverb;
+    wml.setLoadCallback(function(){
+      message.style.display = 'none';
+    });
     wml.setup(url);
 
     // local file
@@ -136,31 +115,61 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 
       document.getElementById('file').addEventListener('change', function(event) {
         var file = document.getElementById("file").files[0];
-        var reader = new FileReader();
-
-        removeMessage();
-        wml.cancelLoading();
-
-        reader.onload = function(event) {
-          var data = new Uint8Array(event.target.result);
-          wml.loadSoundFont(data);
-        };
-        reader.readAsArrayBuffer(file);
-
+        handleSoundFont(file);
         event.preventDefault();
       }, false);
+      
+      var droparea = document.getElementById('droparea');
+      droparea.addEventListener('dragover', function(e) {
+        droparea.className = "alert alert-danger";
+        e.preventDefault();
+      }, true);
+      droparea.addEventListener('drop', function(e) {
+        document.getElementById('droparea').className = "alert alert-info";
+        var dt = e.dataTransfer;
+        var files = dt.files;
+        e.stopPropagation();
+        e.preventDefault();
+        handleSoundFont(files[0]);
+      }, true);
+      
+      droparea.addEventListener('dragleave', function(e) {
+        document.getElementById('droparea').className = "alert alert-info";
+      }, true);
+    
 
-      reverb = document.getElementById('reverb');
-      reverb.addEventListener('change', function(event) {
-        wml.setReverb(event.target.checked);
-      }, false);
+//      reverb = document.getElementById('reverb');
+//      reverb.addEventListener('change', function(event) {
+//        wml.setReverb(event.target.checked);
+//      }, false);
     }, false);
 
-    function removeMessage() {
-      var message = document.getElementById('message');
-      message.textContent = '';
-      message.classList.remove('show');
-      wml.setReverb(reverb.checked);
+    // Load sound font
+    function handleSoundFont(file){
+      var reader = new FileReader();
+
+//    wml.cancelLoading();
+
+      reader.readAsArrayBuffer(file);
+
+      reader.onload = function(e) {
+        var data = new Uint8Array(e.target.result);
+        wml.loadSoundFont(data);
+        document.getElementById('soundfont').innerText = file.name;
+        message.style.display = 'none';
+      };
+      
+      reader.onloadstart = function(e) {
+        message.style.display = 'block';
+      };
+      
+      reader.onprogress = function(e) {
+        if (e.lengthComputable) {
+          var percentLoaded = Math.round((e.loaded / e.total) * 100);
+          message.innerText = 'Now Loading...' + percentLoaded + '%';
+        }
+      }
+        
     }
 /*]]>*/
  </script>

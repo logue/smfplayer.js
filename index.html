@@ -9,7 +9,7 @@
 /*<![CDATA[*/
 	iframe{
 		width: 100%;
-		height: 660px;
+		height: 512px;
 		border:thin;
 	}
 /*]]>*/
@@ -28,8 +28,8 @@
 		<hr />
 		<div id="info" class="alert alert-warning">Now Loading...</div>
 		
-		<div class="panel panel-primary">
-			<div class="panel-heading">MIDI Player</div>
+		<div class="panel panel-info" id="player">
+			<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play your file.)</small></div>
 			<div class="panel-body">
 				<div class="row">
 					<div class="col-md-4">
@@ -48,6 +48,7 @@
 						<label for="zips">Zip archive file: </label>
 						<select id="zips" class="form-control">
 							<option>YAMAHA mididata library.zip</option>
+							<option>適当詰め合わせ.zip</option>
 						</select>
 					</div>
 				</div>
@@ -96,10 +97,6 @@
 					</div>
 				</div>
 			</div>
-			<div class="form-group col-md-12">
-				<label for="file">Load standard MIDI file:</label>
-				<input type="file" id="file" name="file" class="form-control" />
-			</div>
 		</div> 
 		
 		<div class="panel panel-default">
@@ -113,8 +110,14 @@
 	</div>
 	<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
 	<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-	<!--script src="../closure-primitives/base.js"></script>
-	<script src="../export/smf.player.js"></script-->
+	<!--script src="../smfplayer.js/closure-primitives/base.js"></script>
+	<script type="text/javascript">
+/*<![CDATA[*/
+var USE_TYPEDARRAY = true;
+Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
+  goog.require(name);
+});
+/*]]>*/</script-->
 	<script src="./js/smfplayer.min.js"></script>
 	<script src="./js/utf8.js"></script>
 	<script src="./js/unzip.min.js"></script>
@@ -140,12 +143,12 @@ $(document).ready(function(){
 	
 	window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
 	if ( typeof(window.AudioContext) === 'undefined'){
-		$('#info').addClass('alert-danger').removeClass('alert-warning').text('お使いのブラウザはWeb Audioをサポートしていないため再生できません。SafariかChromeを使用してください。');
+		$('#info').addClass('alert-danger').removeClass('alert-warning').text('Your browser has not supported AudioContent function. Please use Webkit based browser. (such as Chrome)');
 		return;
 	}
 	
 	if (location.protocol !== 'http:') {	// まさかHTTPSで動かすやつはいないだろう
-		$('#info').addClass('alert-danger').removeClass('alert-warning').text('このプログラムはajaxを多用しているため、サーバーを立てないと動きません。');
+		$('#info').addClass('alert-danger').removeClass('alert-warning').text('This program require runs by server.');
 		return;
 	}
 	
@@ -160,22 +163,33 @@ $(document).ready(function(){
 	player.setWebMidiLink('./wml.html', document.getElementById('wml'));
 	loadSample();
 	
-	$('#file').change(function(e){
+	$('#files').change(function(e){
 		handleSelect(this);
 	});
-	$('#file').change(function(e){
-		loadSample(this);
-	});
 	
-	document.addEventListener('drop', function(e) {
-		var dt = e.dataTransfer;
-		var files = dt.files;
-		e.stopPropagation();
+	// MIDIファイルのドラッグアンドドロップ
+	$('#player *').on('drop',function(e){
+		if(e.originalEvent.dataTransfer){
+			if(e.originalEvent.dataTransfer.files.length) {
+				e.preventDefault();
+				e.stopPropagation();
+				/*UPLOAD FILES HERE*/
+				handleFile(e.originalEvent.dataTransfer.files[0]);
+			}
+		}
+		$('#player').removeClass('panel-danger').addClass('panel-info');
+	}).
+	on('dragover', function(e){
 		e.preventDefault();
+		e.stopPropagation();
+		$('#player').removeClass('panel-info').addClass('panel-danger');
+	}).
+	on('dragleave', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		$('#player').removeClass('panel-danger').addClass('panel-info');
+	});
 
-		handleFile(files[0]);
-	}, false);
-	
 	// テンポ設定
 	$('#tempo').change(function(){
 		var value = $(this).val();
@@ -376,7 +390,7 @@ $(window).on('message', function(e) {
 				$('#files').prop('selectedIndex',selected_music+1);
 			}
 			// 曲を変更
-			loadSample();
+			handleSelect(document.getElementById('files'));
 		}
 	}
 	// WMLが読み込まれた時
