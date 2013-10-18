@@ -187,14 +187,14 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
     this.webMidiLink = null;
   }
 
-  if (!attachpoint) attachpoint = document.body;
+  var dom = !attachpoint ? document.body : document.getElementById(attachpoint);
 
   iframe = this.webMidiLink =
     /** @type {HTMLIFrameElement} */(document.createElement('iframe'));
   iframe.src = url || 'http://www.g200kg.com/en/docs/gmplayer/';
   iframe.className = 'wml';
 
-  attachpoint.appendChild(iframe);
+  dom.appendChild(iframe);
 
   window.addEventListener('message', (function(ev) {
     if (ev.data === 'link,ready') {
