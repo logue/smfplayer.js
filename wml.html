@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
 <head>
   <title>Web Midi Link</title>
   <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
@@ -81,7 +81,7 @@
 <div id="message" class="alert alert-warning">Loading...</div>
 <div class="alert alert-info" id="droparea">
   <div class="form-group">
-    <label for="file">Load SoundFont2 file <small>(drag and drop *.sf2 file here to change sound font)</small>:</label>
+    <label for="file">Load SoundFont2 file <small>(drag and drop here *.sf2 file to change sound font)</small>:</label>
     <input type="file" id="file" name="file" class="form-control"/>
   </div>
 </div>
@@ -89,15 +89,13 @@
   <input type="checkbox" id="reverb" checked /><label for="reverb">Reverb</label>
 </div-->
 <script type="text/javascript" src="./js/sf2synth.min.js"></script>
- <!--
-<script src="../closure-primitives/base.js"></script>
+<!--script src="../sf2synth.js/closure-primitives/base.js"></script>
 <script>
 var USE_TYPEDARRAY = true;
 Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
   goog.require(name);
 });
-</script>
- -->
+</script-->
  <script type="text/javascript">
 /*<![CDATA[*/
     var message = document.getElementById('message');
@@ -165,7 +163,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
       
       reader.onprogress = function(e) {
         if (e.lengthComputable) {
-          var percentLoaded = Math.round((e.loaded / e.total) * 100);
+          var percentLoaded = Math.round((e.loaded / e.total) * 10000);
           message.innerText = 'Now Loading...' + percentLoaded + '%';
         }
       }

@@ -1,127 +1,127 @@
 <!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8"/>
-	<title>SMF.Player for MIDI</title>
-	<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
-	<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css" />
-<style type="text/css">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+	<head>
+		<meta charset="utf-8"/>
+		<title>SMF.Player for MIDI</title>
+		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
+		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css" />
+		<style type="text/css">
 /*<![CDATA[*/
-	iframe{
-		width: 100%;
-		height: 512px;
-		border:thin;
-	}
+iframe{
+	width: 100%;
+	height: 512px;
+	border:thin;
+}
 /*]]>*/
-</style>
-<body>
-	<div class="container">
-		<div class="header">
-			<ul class="nav nav-pills pull-right">
-				<li class="active"><a href="#">Sample</a></li>
-				<li><a href="https://github.com/logue/smfplayer.js/">GitHub</a></li>
-				<li><a href="https://github.com/gree/smfplayer.js/">Original Code</a></li>
-			</ul>
-			<h3 class="text-muted">MIDI Player XG</h3>
-		</div>
-		<div class="clearfix"></div>
-		<hr />
-		<div id="info" class="alert alert-warning">Now Loading...</div>
-		
-		<div class="panel panel-info" id="player">
-			<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play your file.)</small></div>
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-md-4">
-						<div class="form-inline">
-							<button class="btn btn-info btn-lg" value="prev" id="prev" disabled="disabled" title="Previous Music"><span class="glyphicon glyphicon-chevron-left"></span></button>
-							<button class="btn btn-primary btn-lg" value="play" id="play" disabled="disabled" title="Play / Pause"><span class="glyphicon glyphicon-play"></span></button>
-							<button class="btn btn-danger btn-lg" value="stop" id="stop" disabled="disabled" title="Stop"><span class="glyphicon glyphicon-stop"></span></button>
-							<button class="btn btn-info btn-lg" value="next" id="next" disabled="disabled" title="Next Music"><span class="glyphicon glyphicon-chevron-right"></span></button>
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<div class="header">
+				<ul class="nav nav-pills pull-right">
+					<li class="active"><a href="#">Sample</a></li>
+					<li><a href="https://github.com/logue/smfplayer.js/">GitHub</a></li>
+					<li><a href="https://github.com/gree/smfplayer.js/">Original Code</a></li>
+				</ul>
+				<h3 class="text-muted">MIDI Player XG</h3>
+			</div>
+			<div class="clearfix"></div>
+			<hr />
+			<div id="info" class="alert alert-warning">Now Loading...</div>
+			
+			<div class="panel panel-info" id="player">
+				<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play your file.)</small></div>
+				<div class="panel-body">
+					<div class="row">
+						<div class="col-md-4">
+							<div class="form-inline">
+								<button class="btn btn-info btn-lg" value="prev" id="prev" disabled="disabled" title="Previous Music"><span class="glyphicon glyphicon-chevron-left"></span></button>
+								<button class="btn btn-primary btn-lg" value="play" id="play" disabled="disabled" title="Play / Pause"><span class="glyphicon glyphicon-play"></span></button>
+								<button class="btn btn-danger btn-lg" value="stop" id="stop" disabled="disabled" title="Stop"><span class="glyphicon glyphicon-stop"></span></button>
+								<button class="btn btn-info btn-lg" value="next" id="next" disabled="disabled" title="Next Music"><span class="glyphicon glyphicon-chevron-right"></span></button>
+							</div>
+						</div>
+						<div class="col-md-4 form-group">
+							<label for="files">MIDI file: </label>
+							<select id="files" class="form-control"></select>
+						</div>
+						<div class="col-md-4 form-group">
+							<label for="zips">Zip archive file: </label>
+							<select id="zips" class="form-control">
+								<option>YAMAHA mididata library.zip</option>
+								<option>適当詰め合わせ.zip</option>
+							</select>
 						</div>
 					</div>
-					<div class="col-md-4 form-group">
-						<label for="files">MIDI file: </label>
-						<select id="files" class="form-control"></select>
-					</div>
-					<div class="col-md-4 form-group">
-						<label for="zips">Zip archive file: </label>
-						<select id="zips" class="form-control">
-							<option>YAMAHA mididata library.zip</option>
-							<option>適当詰め合わせ.zip</option>
-						</select>
-					</div>
-				</div>
-				<div class="row">
-					<div class="form-group col-md-3">
-						<label>Music Progress</label>
-						<div class="progress" style="margin-bottom:0;" id="music-progress">
-							<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+					<div class="row">
+						<div class="form-group col-md-3">
+							<label>Music Progress</label>
+							<div class="progress" style="margin-bottom:0;" id="music-progress">
+								<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+							</div>
 						</div>
-					</div>
-					<div class="form-group col-md-9">
-						<label for="url">URL for this MIDI :</label>
-						<input id="url" size="100" readonly onclick="this.select()" class="form-control">
+						<div class="form-group col-md-9">
+							<label for="url">URL for this MIDI :</label>
+							<input id="url" size="100" readonly="readonly" onclick="this.select()" class="form-control" />
+						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-		<div class="panel panel-default">
-			<div class="panel-heading">Settings</div>
-			<div class="panel-body row">
-				<div class="col-md-6">
-					<div class="checkbox">
-						<label><input type="checkbox" id="random" checked>Random</label>
+			<div class="panel panel-default">
+				<div class="panel-heading">Settings</div>
+				<div class="panel-body row">
+					<div class="col-md-6">
+						<div class="checkbox">
+							<label><input type="checkbox" id="random" />Random</label>
+						</div>
+						<div class="checkbox">
+							<input id="playerloop" type="checkbox" onchange="player.setLoop(this.checked);" /><label for="playerloop">Loop</label>
+						</div>
+						<div class="checkbox">
+							<input id="cc111loop" type="checkbox" onchange="player.setCC111Loop(this.checked);" /><label for="cc111loop">CC#111</label>
+						</div>
+						<div class="checkbox">
+							<input id="falcomloop" type="checkbox" onchange="player.setFalcomLoop(this.checked);" /><label for="falcomloop">Marker A-B (Ys2 Eternal)</label>
+						</div>
+						<div class="checkbox">
+							<input id="mfiloop" type="checkbox" onchange="player.setMFiLoop(this.checked);" /><label for="mfiloop">MFi</label>
+						</div>
 					</div>
-					<div class="checkbox">
-						<input id="playerloop" type="checkbox" onchange="player.setLoop(this.checked);" /><label for="playerloop">Loop</label>
-					</div>
-					<div class="checkbox">
-						<input id="cc111loop" type="checkbox" onchange="player.setCC111Loop(this.checked);" /><label for="cc111loop">CC#111</label>
-					</div>
-					<div class="checkbox">
-						<input id="falcomloop" type="checkbox" onchange="player.setFalcomLoop(this.checked);" /><label for="falcomloop">Marker A-B (Ys2 Eternal)</label>
-					</div>
-					<div class="checkbox">
-						<input id="mfiloop" type="checkbox" onchange="player.setMFiLoop(this.checked);" /><label for="mfiloop">MFi</label>
+					<div class="col-md-6">
+						<div class="form-group">
+							<label for="tempo">Tempo: x<span id="tempo_value" class="badge">1.0</span></label>
+							<input id="tempo" type="range" class="form-control" min="0.1" max="10.0" step="0.1" value="1.0" />
+						</div>
+						<div class="form-group">
+							<label for="volume">Master Volume: <span id="volume_value" class="badge">0.5</span></label>
+							<input id="volume" type="range" class="form-control" min="0" max="1" step="0.01" value="0.5" />
+						</div>
 					</div>
 				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label for="tempo">Tempo: x<span id="tempo_value" class="badge">1.0</span></label>
-						<input id="tempo" type="range" class="form-control" min="0.1" max="10.0" step="0.1" value="1.0" />
-					</div>
-					<div class="form-group">
-						<label for="volume">Master Volume: <span id="volume_value" class="badge">0.5</span></label>
-						<input id="volume" type="range" class="form-control" min="0" max="1" step="0.01" value="0.5" />
-					</div>
-				</div>
+			</div> 
+			
+			<div class="panel panel-default">
+				<div class="panel-heading">Synthesyther</div>
+				<div class="panel-body" id="wml"></div>
 			</div>
-		</div> 
-		
-		<div class="panel panel-default">
-			<div class="panel-heading">Synthesyther</div>
-			<div class="panel-body" id="wml"></div>
-		</div>
 
-		<div class="footer">
-			<address><a href="https://github.com/gree/smfplayer.js">SMF.Player</a> ? 2013 imaya / GREE Inc. Licensed under the MIT License.</address>
+			<div class="footer">
+				<address><a href="https://github.com/gree/smfplayer.js">SMF.Player</a> ? 2013 imaya / GREE Inc. Licensed under the MIT License.</address>
+			</div>
 		</div>
-	</div>
-	<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
-	<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-	<!--script src="../smfplayer.js/closure-primitives/base.js"></script>
-	<script type="text/javascript">
+		<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+		<script src="./js/smfplayer.min.js"></script>
+		<!--script src="../smfplayer.js/closure-primitives/base.js"></script>
+		<script type="text/javascript">
 /*<![CDATA[*/
 var USE_TYPEDARRAY = true;
 Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
   goog.require(name);
 });
 /*]]>*/</script-->
-	<script src="./js/smfplayer.min.js"></script>
-	<script src="./js/utf8.js"></script>
-	<script src="./js/unzip.min.js"></script>
-	<script type="text/javascript">
+		<script src="./js/unzip.min.js"></script>
+		<script type="text/javascript">
 /*<![CDATA[*/
 // インターバル関数用。準備完了フラグ
 var isReady = false;
@@ -159,12 +159,23 @@ $(document).ready(function(){
 		zips.selectedIndex=~~(zips.length*Math.random());
 	}
 	
-	initPlayer();
-	player.setWebMidiLink('./wml.html', document.getElementById('wml'));
+	// smfplayer.jsの初期化
+	player.setLoop($('#playerloop').is(':checked'));
+	player.setCC111Loop($('#cc111loop').is(':checked'));
+	player.setFalcomLoop($('#falcomloop').is(':checked'));
+	player.setMFiLoop($('#mfiloop').is(':checked'));
+	player.setTempoRate($('#tempo').val());
+	player.setMasterVolume($('#volume').val() * 16383);
+	player.setWebMidiLink('./wml.html', 'wml');
+
 	loadSample();
-	
+
 	$('#files').change(function(e){
 		handleSelect(this);
+	});
+	
+	$('#zips').change(function(e){
+		loadSample();
 	});
 	
 	// MIDIファイルのドラッグアンドドロップ
@@ -210,7 +221,7 @@ $(document).ready(function(){
 		var selected_music = $('#files').prop('selectedIndex');
 		if (selected_music == $('#files option').length){
 			// 末尾の場合、最後の曲へ
-			$('#files').prop('selectedIndex',$('#music option').length);
+			$('#files').prop('selectedIndex',$('#files option').length);
 		}else{
 			// 選択されている項目の前の項目を選択
 			$('#files').prop('selectedIndex',selected_music-1);
@@ -221,7 +232,7 @@ $(document).ready(function(){
 	// 次に進むボタン
 	$('#next').click(function(){
 		var selected_music = $('#files').prop('selectedIndex');
-		if (selected_music == $('#music option').length){
+		if (selected_music == $('#files option').length){
 			// 末尾の場合最初に戻る
 			$('#files').prop('selectedIndex',0);
 		}else{
@@ -244,40 +255,48 @@ $(document).ready(function(){
 
 	// 停止ボタン
 	$('#stop').click(function(){
-		player.stop();
-		isPlay = false;
 		handleSelect(document.getElementById('files'));
-		player.stop();
+		setTimeout(function(){
+			player.stop();
+		},51);//よく分からんが非同期で読み込むらしい
 	});
 	$('*[title]').tooltip();
 });
-NodeList.prototype.forEach = Array.prototype.forEach;
 
-function initPlayer() {
-	player.setLoop($('#playerloop').is(':checked'));
-	player.setCC111Loop($('#cc111loop').is(':checked'));
-	player.setFalcomLoop($('#falcomloop').is(':checked'));
-	player.setMFiLoop($('#mfiloop').is(':checked'));
-	player.setTempoRate($('#tempo').val());
-	player.setMasterVolume($('#volume').val() * 16383);
-}
-
+/**
+ * ファイルを読み込む
+ */
 function handleFile(file) {
 	var reader = new FileReader();
 
 	reader.onload = function(e) {
 		var input = new Uint8Array(e.target.result);
 		handleInput(file.name, input);
+		$('#info').text = 'Ready.';
+		$('#info').removeClass('alert-warning').addClass('alert-success');
 	};
+	reader.onloadstart = function(e) {
+		$('#info').removeClass('alert-success').addClass('alert-warning');
+	};
+      
+	reader.onprogress = function(e) {
+		if (e.lengthComputable) {
+			var percentLoaded = Math.round((e.loaded / e.total) * 100);
+			$('#info').text = 'Now Loading...' + percentLoaded + '%';
+		}
+	}
 	reader.readAsArrayBuffer(file);
 }
 var initialized=false;
 
-
+/**
+ * Zipファイルの内容を取得し、selectタグに割り当てる
+ */
 function loadSample() {
 	var xhr = new XMLHttpRequest();
 	var url = document.querySelector('#zips').value;
 
+	// ZipファイルをXHRで読み込む
 	xhr.open('GET', url, true);
 	xhr.addEventListener('load', function(ev) {
 		var input = new Uint8Array(xhr.response);
@@ -287,15 +306,18 @@ function loadSample() {
 			select.removeChild(select.firstChild);
 		}
 
+		// Zipファイルからファイル名一覧を取得
 		var zip = select.zip = new Zlib.Unzip(input);
 		var filenames = zip.getFilenames();
+		
 		filenames.forEach(function(name, i) {
 			if (name.substr(-4) !== '.mid') {
 				return;
 			}
-			// console.log(name)
 
 			var option = document.createElement('option');
+			//console.log(name);
+			
 			option.textContent = name.split('/').pop();
 			option.setAttribute('data-midiplayer-filename', name);
 			select.appendChild(option);
@@ -320,10 +342,26 @@ function loadSample() {
 				handleSelect(select);
 			}
 		}
+		$('#info').text = 'Ready.';
+		$('#info').removeClass('alert-warning').addClass('alert-success');
 	});
 	xhr.responseType = 'arraybuffer';
+	xhr.onloadstart = function(e) {
+		$('#info').removeClass('alert-success').addClass('alert-warning');
+	};
+      
+	xhr.onprogress = function(e) {
+		if (e.lengthComputable) {
+			var percentLoaded = Math.round((e.loaded / e.total) * 10000);
+			$('#info').text = 'Now Loading...' + percentLoaded + '%';
+		}
+	}
 	xhr.send();
 }
+/**
+ * 選択されたファイルを解凍
+ * @param dom select 対象のselectタグ
+ */
 function handleSelect(select) {
 	var option = select.querySelectorAll("option")[select.selectedIndex];
 	var filename = option.getAttribute('data-midiplayer-filename');
@@ -331,6 +369,7 @@ function handleSelect(select) {
 	if (filename) {
 		handleInput(filename, select.zip.decompress(filename));
 
+		// このファイルのURLを生成
 		var url= location.toString();
 		var queries=[];
 		if(location.search.indexOf('a320u')>0){
@@ -341,11 +380,17 @@ function handleSelect(select) {
 		url+='?'+queries.join('&');
 		document.querySelector("#url").value=url;
 
+		// ページのタイトルを反映
 		var title=document.getElementById('files').value;
 		title=title.substr(0,title.lastIndexOf('.'));
 		document.title=title+' '+document.getElementById('zips').value+' / SMF.Player';
 	}
 }
+/**
+ * MIDI/MLDファイルを読み込ませる
+ * @param string filename ファイル名
+ * @param array buffer ファイルの中身
+ */
 function handleInput(filename, buffer) {
 	player.stop();
 	switch (filename.slice(filename.lastIndexOf('.')).toLowerCase()) {
@@ -360,10 +405,54 @@ function handleInput(filename, buffer) {
 		player.play();
 	},50);//よく分からんが非同期で読み込むらしい
 }
+
+/**
+ * ランダム再生
+ */
 function randomPlay(){
 	var select=document.getElementById('files');
 	select.selectedIndex=~~(select.length*Math.random());
 	handleSelect(select);
+}
+
+/**
+ * StringをArrybufferに変換
+ * @param string str
+ * @return array
+ */
+function str2ab(str) {
+  var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
+  var bufView = new Uint16Array(buf);
+  for (var i=0, strLen=str.length; i<strLen; i++) {
+    bufView[i] = str.charCodeAt(i);
+  }
+  return buf;
+}
+function unicode2utf8_array(str){
+    var n = str.length,
+        idx = -1,
+        bytes = [],
+        i, j, c;
+
+    for(i = 0; i < n; ++i){
+        c = str.charCodeAt(i);
+        if(c <= 0x7F){
+            bytes[++idx] = c;
+        } else if(c <= 0x7FF){
+            bytes[++idx] = 0xC0 | (c >>> 6);
+            bytes[++idx] = 0x80 | (c & 0x3F);
+        } else if(c <= 0xFFFF){
+            bytes[++idx] = 0xE0 | (c >>> 12);
+            bytes[++idx] = 0x80 | ((c >>> 6) & 0x3F);
+            bytes[++idx] = 0x80 | (c & 0x3F);
+        } else {
+            bytes[++idx] = 0xF0 | (c >>> 18);
+            bytes[++idx] = 0x80 | ((c >>> 12) & 0x3F);
+            bytes[++idx] = 0x80 | ((c >>> 6) & 0x3F);
+            bytes[++idx] = 0x80 | (c & 0x3F);
+        }
+    }
+    return bytes;
 }
 
 /**
@@ -380,17 +469,22 @@ $(window).on('message', function(e) {
 			html('<span class="glyphicon glyphicon-play"></span>').
 			removeClass('btn-success').
 			addClass('btn-primary');
-		if( selected_music !== 0){
-			// ループで最初に戻った場合（player.positionがリセットされた場合）
-			// 次の曲を選択
-			if (selected_music == $('#music option').length){
-				// 末尾の場合最初に戻る
-				$('#files').prop('selectedIndex',1);
-			}else{
-				$('#files').prop('selectedIndex',selected_music+1);
+		if ($('#random').is(':checked')){
+			randomPlay();
+		}else{
+			var selected_music = $('#files').prop('selectedIndex');
+			if( selected_music !== 0){
+				// ループで最初に戻った場合（player.positionがリセットされた場合）
+				// 次の曲を選択
+				if (selected_music == $('#files option').length){
+					// 末尾の場合最初に戻る
+					$('#files').prop('selectedIndex',0);
+				}else{
+					$('#files').prop('selectedIndex',selected_music+1);
+				}
+				// 曲を変更
+				handleSelect(document.getElementById('files'));
 			}
-			// 曲を変更
-			handleSelect(document.getElementById('files'));
 		}
 	}
 	// WMLが読み込まれた時
@@ -428,7 +522,9 @@ setInterval(function(){
 	}
 },100);
 
+
+
 /*]]>*/
- </script>
-</body>
+		</script>
+	</body>
 </html>
