@@ -19,11 +19,12 @@ iframe{
 		<div class="container">
 			<div class="header">
 				<ul class="nav nav-pills pull-right">
-					<li class="active"><a href="#">Sample</a></li>
+					<li class="active"><a href="#">SMF Player</a></li>
+					<li><a href="./debug/">SoundFont Test</a></li>
 					<li><a href="https://github.com/logue/smfplayer.js/">GitHub</a></li>
 					<li><a href="https://github.com/gree/smfplayer.js/">Original Code</a></li>
 				</ul>
-				<h3 class="text-muted">MIDI Player XG</h3>
+				<h3 class="text-muted">SMF Player for XG</h3>
 			</div>
 			<div class="clearfix"></div>
 			<hr />
@@ -416,46 +417,6 @@ function randomPlay(){
 }
 
 /**
- * StringをArrybufferに変換
- * @param string str
- * @return array
- */
-function str2ab(str) {
-  var buf = new ArrayBuffer(str.length*2); // 2 bytes for each char
-  var bufView = new Uint16Array(buf);
-  for (var i=0, strLen=str.length; i<strLen; i++) {
-    bufView[i] = str.charCodeAt(i);
-  }
-  return buf;
-}
-function unicode2utf8_array(str){
-    var n = str.length,
-        idx = -1,
-        bytes = [],
-        i, j, c;
-
-    for(i = 0; i < n; ++i){
-        c = str.charCodeAt(i);
-        if(c <= 0x7F){
-            bytes[++idx] = c;
-        } else if(c <= 0x7FF){
-            bytes[++idx] = 0xC0 | (c >>> 6);
-            bytes[++idx] = 0x80 | (c & 0x3F);
-        } else if(c <= 0xFFFF){
-            bytes[++idx] = 0xE0 | (c >>> 12);
-            bytes[++idx] = 0x80 | ((c >>> 6) & 0x3F);
-            bytes[++idx] = 0x80 | (c & 0x3F);
-        } else {
-            bytes[++idx] = 0xF0 | (c >>> 18);
-            bytes[++idx] = 0x80 | ((c >>> 12) & 0x3F);
-            bytes[++idx] = 0x80 | ((c >>> 6) & 0x3F);
-            bytes[++idx] = 0x80 | (c & 0x3F);
-        }
-    }
-    return bytes;
-}
-
-/**
  * IFRAMEから送られてくるwindow.postMessageを監視
  */
 $(window).on('message', function(e) {
@@ -522,8 +483,12 @@ setInterval(function(){
 	}
 },100);
 
-
-
+$.getScript(('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js',function(){
+	try {
+		var pageTracker = _gat._getTracker("UA-33600926-1");
+		pageTracker._trackPageview();
+	} catch(err) {}
+});
 /*]]>*/
 		</script>
 	</body>
