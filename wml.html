@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
 <head>
   <title>Web Midi Link</title>
-  <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
   <style type="text/css">
 /*<![CDATA[*/
     table {
@@ -19,7 +19,7 @@
     }
     th:first-child,
     td:first-child {
-      width: 128px;
+      width: 146px;
       overflow: hidden;
       white-space: nowrap;
     }
@@ -50,6 +50,9 @@
       overflow: hidden;
       white-space: nowrap;
       text-align: right;
+    }
+    th:nth-child(6){
+      text-align:right;
     }
     /*
     td:nth-child(65) {
@@ -82,26 +85,28 @@
 <div class="alert alert-info" id="droparea">
   <div class="form-group">
     <label for="file">Load SoundFont2 file <small>(drag and drop here *.sf2 file to change sound font)</small>:</label>
-    <input type="file" id="file" name="file" class="form-control"/>
+    <input type="file" id="file" name="file" class="form-control" />
   </div>
 </div>
-<!--div class="checkbox">
-  <input type="checkbox" id="reverb" checked /><label for="reverb">Reverb</label>
-</div-->
+<div class="checkbox">
+  <input type="checkbox" id="reverb" checked="checked" /><label for="reverb">Reverb</label>
+</div>
 <script type="text/javascript" src="./js/sf2synth.min.js"></script>
 <!--script src="../sf2synth.js/closure-primitives/base.js"></script>
 <script>
+/*<![CDATA[*/
 var USE_TYPEDARRAY = true;
 Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
   goog.require(name);
 });
+/*]]>*/
 </script-->
  <script type="text/javascript">
 /*<![CDATA[*/
     var message = document.getElementById('message');
     var url = 'Yamaha XG Sound Set.sf2';
     var wml = new SoundFont.WebMidiLink();
-//    var reverb;
+    var reverb;
     wml.setLoadCallback(function(){
       message.style.display = 'none';
     });
@@ -136,10 +141,10 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
       }, true);
     
 
-//      reverb = document.getElementById('reverb');
-//      reverb.addEventListener('change', function(event) {
-//        wml.setReverb(event.target.checked);
-//      }, false);
+      reverb = document.getElementById('reverb');
+      reverb.addEventListener('change', function(event) {
+        wml.setReverb(event.target.checked);
+      }, false);
     }, false);
 
     // Load sound font
