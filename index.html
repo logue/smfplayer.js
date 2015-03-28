@@ -39,8 +39,8 @@ iframe{
 			</header>
 			<hr />
 			<aside class="pull-right">
-				<a href="https://twitter.com/share" class="twitter-share-button" data-url="//logue.github.io/smfplayer.js" data-count="vertical" data-via="logue256" data-lang="ja" data-count="vertica">ツイート</a>
-				<div class="g-plusone" data-size="tall" data-href="//logue.github.io/smfplayer.js"></div>
+				<a href="https://twitter.com/share" class="twitter-share-button" data-url="https://logue.github.io/smfplayer.js" data-count="vertical" data-via="logue256" data-lang="ja" data-count="vertica">ツイート</a>
+				<div class="g-plusone" data-size="tall" data-href="https://logue.github.io/smfplayer.js"></div>
 				<iframe src="//www.facebook.com/plugins/like.php?href=https%3A%2F%2Flogue.github.io%2Fsmfplayer.js&amp;width=70&amp;height=65&amp;colorscheme=light&amp;layout=box_count&amp;action=like&amp;show_faces=true&amp;send=true&amp;appId=249014621810580" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:70px; height:65px;" allowTransparency="true"></iframe>
 			</aside>
 			<div id="info" class="alert alert-warning">Now Loading...</div>
@@ -159,7 +159,7 @@ $(document).ready(function(){
 	// AudioContextが使用可能化のチェック
 	window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
 	if ( typeof(window.AudioContext) === 'undefined'){
-		$('#info').addClass('alert-danger').removeClass('alert-warning').text('Your browser has not supported AudioContent function. Please use Webkit based browser. (such as Chrome)');
+		$('#info').addClass('alert-danger').removeClass('alert-warning').text('Your browser has not supported AudioContent function. Please use Firefox or Blink based browser. (such as Chrome)');
 		return;
 	}
 
@@ -167,8 +167,8 @@ $(document).ready(function(){
 	if (location.protocol === 'file:') {
 		$('#info').addClass('alert-danger').removeClass('alert-warning').text('This program require runs by server.');
 		return;
-	}else if (location.protocol === 'http:') {
-		location.href = 'https://logue.github.io/smfplayer.js';
+//	}else if (location.protocol === 'http:') {
+//		location.href = 'https://logue.github.io/smfplayer.js';
 	}
 	
 
