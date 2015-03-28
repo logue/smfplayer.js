@@ -2,34 +2,49 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
 	<head>
 		<meta charset="utf-8"/>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="description" content="Web Soundfont2 based MIDI Player written in JavaScript." />
+		<meta name="author" content="Logue" />
 		<title>SMF.Player for MIDI</title>
-		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css" />
-		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap-theme.min.css" />
+		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
+		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css" />
 		<style type="text/css">
 /*<![CDATA[*/
+body {
+	padding-top: 20px;
+	padding-bottom: 20px;
+}
+
 iframe{
 	width: 100%;
-	height: 620px;
+	height: 560px;
 	border:thin;
 }
+
 /*]]>*/
 		</style>
 	</head>
 	<body>
 		<div class="container">
-			<div class="header">
-				<ul class="nav nav-pills pull-right">
-					<li class="active"><a href="#">Sample</a></li>
-					<li><a href="https://github.com/logue/smfplayer.js/">smfplayer.js</a></li>
-					<li><a href="https://github.com/logue/sf2synth.js/">sf2synth.js</a></li>
-				</ul>
+			<header class="header clearfix">
+				<nav>
+					<ul class="nav nav-pills pull-right">
+						<li role="presentation" class="active"><a href="#">Sample</a></li>
+						<li role="presentation" ><a href="//github.com/logue/smfplayer.js/">smfplayer.js</a></li>
+						<li role="presentation" ><a href="//github.com/logue/sf2synth.js/">sf2synth.js</a></li>
+					</ul>
+				</nav>
 				<h3 class="text-muted">MIDI Player XG</h3>
-			</div>
-			<div class="clearfix"></div>
+			</header>
 			<hr />
+			<aside class="pull-right">
+				<a href="https://twitter.com/share" class="twitter-share-button" data-url="//logue.github.io/smfplayer.js" data-count="vertical" data-via="logue256" data-lang="ja" data-count="vertica">ツイート</a>
+				<div class="g-plusone" data-size="tall" data-href="//logue.github.io/smfplayer.js"></div>
+				<iframe src="//www.facebook.com/plugins/like.php?href=https%3A%2F%2Flogue.github.io%2Fsmfplayer.js&amp;width=70&amp;height=65&amp;colorscheme=light&amp;layout=box_count&amp;action=like&amp;show_faces=true&amp;send=true&amp;appId=249014621810580" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:70px; height:65px;" allowTransparency="true"></iframe>
+			</aside>
 			<div id="info" class="alert alert-warning">Now Loading...</div>
-			
-			<div class="panel panel-info" id="player">
+			<div class="panel panel-info clearfix" id="player">
 				<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play your file.)</small></div>
 				<div class="panel-body">
 					<div class="row">
@@ -46,7 +61,7 @@ iframe{
 							<select id="files" class="form-control"></select>
 						</div>
 						<div class="col-md-4 form-group">
-							<label for="zips">Zip archive file: </label>
+							<label for="zips">Zip archive file:</label>
 							<select id="zips" class="form-control">
 								<option>YAMAHA mididata library.zip</option>
 								<option>適当詰め合わせ.zip</option>
@@ -67,24 +82,24 @@ iframe{
 					</div>
 				</div>
 			</div>
-			<div class="panel panel-default">
+			<main class="panel panel-default">
 				<div class="panel-heading">Settings</div>
 				<div class="panel-body row">
 					<div class="col-md-6">
 						<div class="checkbox">
-							<label><input type="checkbox" id="random" />Random</label>
+							<label for="random"><input type="checkbox" id="random" />Random</label>
 						</div>
 						<div class="checkbox">
-							<input id="playerloop" type="checkbox" onchange="player.setLoop(this.checked);" /><label for="playerloop">Loop</label>
+							<label for="playerloop"><input id="playerloop" type="checkbox" onchange="player.setLoop(this.checked);" />Loop</label>
 						</div>
 						<div class="checkbox">
-							<input id="cc111loop" type="checkbox" onchange="player.setCC111Loop(this.checked);" /><label for="cc111loop">CC#111</label>
+							<label for="cc111loop"><input id="cc111loop" type="checkbox" onchange="player.setCC111Loop(this.checked);" />CC#111</label>
 						</div>
 						<div class="checkbox">
-							<input id="falcomloop" type="checkbox" onchange="player.setFalcomLoop(this.checked);" /><label for="falcomloop">Marker A-B (Ys2 Eternal)</label>
+							<label for="falcomloop"><input id="falcomloop" type="checkbox" onchange="player.setFalcomLoop(this.checked);" />Marker A-B (Ys2 Eternal)</label>
 						</div>
 						<div class="checkbox">
-							<input id="mfiloop" type="checkbox" onchange="player.setMFiLoop(this.checked);" /><label for="mfiloop">MFi</label>
+							<label for="mfiloop"><input id="mfiloop" type="checkbox" onchange="player.setMFiLoop(this.checked);" />MFi</label>
 						</div>
 					</div>
 					<div class="col-md-6">
@@ -98,28 +113,28 @@ iframe{
 						</div>
 					</div>
 				</div>
-			</div> 
+			</main> 
 			
 			<div class="panel panel-default">
 				<div class="panel-heading">Synthesyther</div>
 				<div class="panel-body" id="wml"></div>
 			</div>
 
-			<div class="footer">
-				<address><a href="https://github.com/gree/smfplayer.js">SMF.Player</a> (c) 2013 imaya / GREE Inc. Modified by <a href="http://logue.be/">Logue</a>. Licensed under the MIT License.</address>
-			</div>
+			<footer class="footer">
+				<address><a href="//github.com/gree/smfplayer.js">SMF.Player</a> (c) 2013 imaya / GREE Inc. Modified by <a href="//logue.be/">Logue</a>. Licensed under the <a href="http://opensource.org/licenses/mit-license.php">MIT License</a>.</address>
+			</footer>
 		</div>
-		<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
-		<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+		<script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
+		<script src="//netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 		<script src="./js/smfplayer.min.js"></script>
-		<!--script src="../smfplayer.js/closure-primitives/base.js"></script>
+		<!-- script src="../smfplayer.js/closure-primitives/base.js"></script>
 		<script type="text/javascript">
 /*<![CDATA[*/
 var USE_TYPEDARRAY = true;
 Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
   goog.require(name);
 });
-/*]]>*/</script-->
+/*]]>*/</script -->
 		<script src="./js/unzip.min.js"></script>
 		<script type="text/javascript">
 /*<![CDATA[*/
@@ -139,19 +154,25 @@ var player=new SMF.Player();
  */
 $(document).ready(function(){
 	// フォームを無効化
-	$('input, select, textarea, button.btn').attr('disabled','disabled');
+	$(':input').attr('disabled','disabled');
 	
+	// AudioContextが使用可能化のチェック
 	window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
 	if ( typeof(window.AudioContext) === 'undefined'){
 		$('#info').addClass('alert-danger').removeClass('alert-warning').text('Your browser has not supported AudioContent function. Please use Webkit based browser. (such as Chrome)');
 		return;
 	}
-	
-	if (location.protocol !== 'http:') {	// まさかHTTPSで動かすやつはいないだろう
+
+	// fileプロトコルは使用不可。（Ajaxを使うため）
+	if (location.protocol === 'file:') {
 		$('#info').addClass('alert-danger').removeClass('alert-warning').text('This program require runs by server.');
 		return;
+	}else if (location.protocol === 'http:') {
+		location.href = 'https://logue.github.io/smfplayer.js';
 	}
 	
+
+	// Zipファイルの取得
 	var zips=document.querySelector('#zips');
 	if(params.zips){
 		zips.value=params.zips;
@@ -166,6 +187,7 @@ $(document).ready(function(){
 	player.setMFiLoop($('#mfiloop').is(':checked'));
 	player.setTempoRate($('#tempo').val());
 	player.setMasterVolume($('#volume').val() * 16383);
+	// WebMidiLink設定
 	player.setWebMidiLink('./wml.html', 'wml');
 
 	loadSample();
@@ -494,7 +516,7 @@ $(window).on('message', function(e) {
 			handleSelect(document.querySelector('#files'));
 		}
 		$('#info').addClass('alert-success').removeClass('alert-warning').text('Ready.');
-		$('input, select, textarea, button.btn').removeAttr('disabled');
+		$(':input').removeAttr('disabled');
 	}
 });
 
@@ -522,8 +544,18 @@ setInterval(function(){
 	}
 },100);
 
+$.getScript('//connect.facebook.net/ja_JP/all.js#xfbml=1&appId=129144050466298',function(){
+	$('body').append('<div id="fb-root"></div>');
+});
+$.getScript('//apis.google.com/js/plusone.js');
+$.getScript('//platform.twitter.com/widgets.js');
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-
+ga('create', 'UA-33600926-1', 'auto');
+ga('send', 'pageview');
 /*]]>*/
 		</script>
 	</body>
