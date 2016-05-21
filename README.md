@@ -31,7 +31,7 @@ window.addEventListener('DOMContentLoaded', function() {
   player.setMFiLoop(mfi); // MFi Loop
   player.setTempoRate(tempo); // Playback tempo rate
   player.setMasterVolume(volume); // Master Volume
-  player.setWebMidiLink('http://www.g200kg.com/en/docs/gmplayer/');
+  player.setWebMidiLink('https://cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html');
 
   // load standard MIDI file
   loadSMF('hoge.mid');
@@ -63,7 +63,7 @@ function loadSMF(url) {
 - Firefox 7+
 - Google Chrome 7+
 - Safari 5.1+
-
+- Edge
 
 ## WebMidiLink 対応
 
@@ -73,4 +73,5 @@ sf2synth.js は WebMidiLink の Link Level 1 にのみ対応しています。
 ## ライセンス
 
 Copyright &copy; 2013 imaya / GREE Inc.
+Modified by Logue
 Licensed under the MIT License.

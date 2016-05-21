@@ -45,6 +45,8 @@ SMF.Player = function() {
   this.copyright;
   /** @type {number} */
   this.length;
+  /** @type {Window} */
+  this.window = window;
 };
 
 /**
@@ -114,7 +116,7 @@ SMF.Player.prototype.init = function() {
   if (this.ready) {
     this.sendInitMessage();
   } else {
-    window.addEventListener('message', (function(ev) {
+    this.window.addEventListener('message', (function(ev) {
       if (ev.data === 'link,ready') {
         player.sendInitMessage();
       }
@@ -142,7 +144,7 @@ SMF.Player.prototype.play = function() {
     }
     this.playSequence();
   } else {
-    window.addEventListener('message', (function(ev) {
+    this.window.addEventListener('message', (function(ev) {
       if (ev.data === 'link,ready') {
         player.ready = true;
         player.playSequence();
@@ -191,12 +193,12 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
 
   iframe = this.webMidiLink =
     /** @type {HTMLIFrameElement} */(document.createElement('iframe'));
-  iframe.src = url || 'http://www.g200kg.com/en/docs/gmplayer/';
+  iframe.src = url || 'https://cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html';
   iframe.className = 'wml';
 
   dom.appendChild(iframe);
 
-  window.addEventListener('message', (function(ev) {
+  this.window.addEventListener('message', (function(ev) {
     if (ev.data === 'link,ready') {
       player.ready = true;
       player.setMasterVolume(player.masterVolume);
@@ -350,7 +352,7 @@ SMF.Player.prototype.playSequence = function() {
       );
     } else {
       // loop
-      window.postMessage('endoftrack','*');
+      this.window.postMessage('endoftrack','*');
       if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
         pos = mark[0]['pos'];
         player.timer = setTimeout(update, 0);

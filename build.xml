@@ -56,12 +56,11 @@
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--source_map_format=V3"/>
-      <arg line="--output_wrapper='${license}(function() {%output%}).call(this); //@ sourceMappingURL=${basename}.map'"/>
+      <arg line="--output_wrapper='${license}(function() {%output%}).call(this); //# sourceMappingURL=${basename}.map'"/>
       <arg line="--js_output_file=${outfile}"/>
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${def}/typedarray/hybrid.js"/>
       <arg line="${srcfiles}"/>
       <arg line="${exportfiles}"/>
     </java>
@@ -70,7 +69,7 @@
   <target name="player" depends="deps,prebuild">
     <!-- 出力ファイル名 -->
     <local name="basename"/>
-    <property name="basename" value="smfplayer.min.js"/>
+    <property name="basename" value="smf.player.min.js"/>
     <local name="outfile"/>
     <property name="outfile" value="${bin}/${basename}"/>
     <!-- ビルド(出力先は一時ファイル) -->
@@ -82,12 +81,36 @@
       <arg line="--summary_detail_level=3"/>
       <arg line="--language_in=ECMASCRIPT5_STRICT"/>
       <arg line="--source_map_format=V3"/>
-      <arg line="--output_wrapper='${license}(function() {%output%}).call(this); //@ sourceMappingURL=${basename}.map'"/>
+      <arg line="--output_wrapper='${license}(function() {%output%}).call(this); //# sourceMappingURL=${basename}.map'"/>
       <arg line="--js_output_file=${outfile}"/>
       <arg line="--create_source_map=${outfile}.map"/>
       <arg line="--manage_closure_dependencies"/>
       <arg line="--js=${closure_primitives}"/>
-      <arg line="--js=${def}/typedarray/hybrid.js"/>
+      <arg line="${srcfiles}"/>
+      <arg line="${exportfiles}"/>
+    </java>
+  </target>
+
+  <target name="worker" depends="deps,prebuild">
+    <!-- 出力ファイル名 -->
+    <local name="basename"/>
+    <property name="basename" value="smf.worker.min.js"/>
+    <local name="outfile"/>
+    <property name="outfile" value="${bin}/${basename}"/>
+    <!-- ビルド(出力先は一時ファイル) -->
+    <java jar="${compiler}" fork="true" failonerror="true">
+      <arg line="--compilation_level=${level}"/>
+      <arg line="--warning_level=VERBOSE"/>
+      <arg line="--define=goog.DEBUG=false"/>
+      <arg line="--define=SMF_WORKER_EXPORT=true"/>
+      <arg line="--summary_detail_level=3"/>
+      <arg line="--language_in=ECMASCRIPT5_STRICT"/>
+      <arg line="--source_map_format=V3"/>
+      <arg line="--output_wrapper='${license}(function() {%output%}).call(this); //# sourceMappingURL=${basename}.map'"/>
+      <arg line="--js_output_file=${outfile}"/>
+      <arg line="--create_source_map=${outfile}.map"/>
+      <arg line="--manage_closure_dependencies"/>
+      <arg line="--js=${closure_primitives}"/>
       <arg line="${srcfiles}"/>
       <arg line="${exportfiles}"/>
     </java>
@@ -101,7 +124,7 @@
   </target>
 
   <!-- 全て作成 -->
-  <target name="all" depends="parser,player"/>
+  <target name="all" depends="parser,player,worker"/>
 
   <!--  削除 -->
   <target name="clean">

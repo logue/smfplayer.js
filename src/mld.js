@@ -85,9 +85,7 @@ Mld.Parser.prototype.parseDataInformation = function() {
       case 'prot':
         dataInformation[type] = String.fromCharCode.apply(
           null,
-          USE_TYPEDARRAY ?
-            input.subarray(ip, ip += size) :
-            input.slice(ip, ip += size)
+          input.subarray(ip, ip += size)
         );
         break;
       case 'sorc':
@@ -98,8 +96,7 @@ Mld.Parser.prototype.parseDataInformation = function() {
         break;
       case 'exst': /* FALLTHROUGH */
       default:
-        dataInformation[type] = USE_TYPEDARRAY ?
-          input.subarray(ip, ip += size) : input.slice(ip, ip += size);
+        dataInformation[type] = input.subarray(ip, ip += size);
         break;
 
     }
@@ -444,9 +441,7 @@ Mld.Parser.prototype.parseTracks = function() {
     }
 
     return {
-      'data': USE_TYPEDARRAY ?
-        input.subarray(ip, ip += limit - ip) :
-        input.slice(ip, ip += limit - ip)
+      'data': input.subarray(ip, ip += limit - ip)
     };
   }
 
@@ -858,11 +853,7 @@ Mld.Parser.prototype.toSMF = function(plainTracks) {
     result = result.concat(trackHeader, trackData);
   }
 
-  if (USE_TYPEDARRAY) {
-    result = new Uint8Array(result);
-  }
-
-  return result;
+  return new Uint8Array(result);
 };
 
 /**

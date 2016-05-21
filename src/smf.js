@@ -3,7 +3,6 @@ goog.provide('SMF.Parser');
 goog.require('Typedef');
 goog.require('Riff.Parser');
 goog.require('Midi.Event');
-goog.require('USE_TYPEDARRAY');
 
 
 goog.scope(function() {
@@ -182,18 +181,14 @@ SMF.Parser.prototype.parseTrackChunk = function() {
             }
             event = new Midi.SystemExclusiveEvent(
               'SystemExclusive', deltaTime, totalTime,
-              USE_TYPEDARRAY ?
-                data.subarray(ip, (ip += tmp) - 1) :
-                data.slice(ip, (ip += tmp) - 1)
+              data.subarray(ip, (ip += tmp) - 1)
             );
             break;
           case 0x7:
             tmp = readNumber();
             event = new Midi.SystemExclusiveEvent(
               'SystemExclusive(F7)', deltaTime, totalTime,
-              USE_TYPEDARRAY ?
-                data.subarray(ip, (ip += tmp)) :
-                data.slice(ip, (ip += tmp))
+              data.subarray(ip, (ip += tmp))
             );
             break;
           // meta event
@@ -210,50 +205,43 @@ SMF.Parser.prototype.parseTrackChunk = function() {
               case 0x01: // text event
                 event = new Midi.MetaEvent(
                   'TextEvent', deltaTime, totalTime,
-                  [String.fromCharCode.apply(null, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp))]
+                  [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                 );
                 break;
               case 0x02: // copyright notice
                 event = new Midi.MetaEvent(
                   'CopyrightNotice', deltaTime, totalTime,
-                  [String.fromCharCode.apply(null, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp))]
+                  [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                 );
                 break;
               case 0x03: // sequence/track name
                 event = new Midi.MetaEvent(
                   'SequenceTrackName', deltaTime, totalTime,
-                  [String.fromCharCode.apply(null, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp))]
+                  [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                 );
                 break;
               case 0x04: // instrument name
                 event = new Midi.MetaEvent(
                   'InstrumentName', deltaTime, totalTime,
-                  [String.fromCharCode.apply(null, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp))]
+                  [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                 );
                 break;
               case 0x05: // lyrics
                 event = new Midi.MetaEvent(
                   'Lyrics', deltaTime, totalTime,
-                  [String.fromCharCode.apply(null, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp))]
+                  [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                 );
                 break;
               case 0x06: // marker
                 event = new Midi.MetaEvent(
                   'Marker', deltaTime, totalTime,
-                  [String.fromCharCode.apply(null, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp))]
+                  [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                 );
                 break;
               case 0x07: // cue point
                 event = new Midi.MetaEvent(
                   'CuePoint', deltaTime, totalTime,
-                  [String.fromCharCode.apply(null, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp))]
+                  [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                 );
                 break;
               case 0x20: // midi channel prefix
@@ -295,15 +283,13 @@ SMF.Parser.prototype.parseTrackChunk = function() {
               case 0x7f: // sequencer specific
                 event = new Midi.MetaEvent(
                   'SequencerSpecific', deltaTime, totalTime,
-                  [USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp)]
+                  [data.subarray(ip, ip += tmp)]
                 );
                 break;
               default: // unknown
                 event = new Midi.MetaEvent(
                   'Unknown', deltaTime, totalTime,
-                  [eventType, USE_TYPEDARRAY ?
-                    data.subarray(ip, ip += tmp) : data.slice(ip, ip += tmp)]
+                  [eventType, data.subarray(ip, ip += tmp)]
                 );
             }
             break;
@@ -318,9 +304,7 @@ SMF.Parser.prototype.parseTrackChunk = function() {
 
     // plain queue
     length = ip - offset;
-    plainBytes =  USE_TYPEDARRAY ?
-      data.subarray(offset, offset + length) :
-      data.slice(offset, offset + length);
+    plainBytes =  data.subarray(offset, offset + length);
     plainBytes[0] = status;
     if (
       event instanceof Midi.ChannelEvent &&
@@ -328,10 +312,7 @@ SMF.Parser.prototype.parseTrackChunk = function() {
       /** @type {Midi.ChannelEvent} */(event).parameter2 === 0
     ) {
       event.subtype = table[8];
-      plainBytes = [0x80 | event.channel, event.parameter1, event.parameter2];
-      if (USE_TYPEDARRAY) {
-        plainBytes = new Uint8Array(plainBytes);
-      }
+      plainBytes = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
     }
     plainQueue.push(plainBytes);
 
