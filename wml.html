@@ -3,7 +3,7 @@
 <head>
   <meta name="robots" content="noindex" />
   <title>Web Midi Link</title>
-  <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
   <style type="text/css">
 /*<![CDATA[*/
     table {
@@ -88,15 +88,15 @@
 <div class="alert alert-info" id="droparea">
   <div class="form-group">
     <label for="file">Load SoundFont2 file <small>(drag and drop here *.sf2 file to change sound font)</small>:</label>
-    <input type="file" id="file" name="file" class="form-control" />
+    <input type="file" id="file" name="file" class="form-control" accept="audio/x-soundfont" />
   </div>
 </div>
-<!--div class="checkbox">
+<!--div class="checkbox-inline">
   <input type="checkbox" id="reverb" checked="checked" /><label for="reverb">Reverb</label>
 </div-->
 <script type="text/javascript" src="./js/sf2synth.min.js"></script>
-<!--script src="../sf2synth.js/closure-primitives/base.js"></script>
-<script>
+<!--script type="text/javascript" src="../sf2synth.js/closure-primitives/base.js"></script>
+<script type="text/javascript">
 /*<![CDATA[*/
 var USE_TYPEDARRAY = true;
 Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
@@ -104,12 +104,19 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 });
 /*]]>*/
 </script-->
+ <script type="text/javascript" src="./js/waapisim.min.js"></script>
  <script type="text/javascript">
 /*<![CDATA[*/
     var message = document.getElementById('message');
-    var url = 'Yamaha XG Sound Set.sf2';
-    var wml = new SoundFont.WebMidiLink();
+    var url = '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/Yamaha%20XG%20Sound%20Set.sf2';
+    var qs = window.location.search;
+    var option = {};
+    if (qs === 'disableDrawSynth') {
+      option.disableDrawSynth = true;
+    }
+    var wml = new SoundFont.WebMidiLink(option);
     var reverb;
+
     wml.setLoadCallback(function(){
       message.style.display = 'none';
     });
@@ -177,14 +184,6 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
         }
       }
     }
-
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-33600926-1', 'auto');
-  ga('send', 'pageview');
 /*]]>*/
  </script>
 </body>

@@ -7,8 +7,8 @@
 		<meta name="description" content="Web Soundfont2 based MIDI Player written in JavaScript." />
 		<meta name="author" content="Logue" />
 		<title>SMF.Player for MIDI</title>
-		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" />
-		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css" />
+		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+		<link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" />
 		<style type="text/css">
 /*<![CDATA[*/
 body {
@@ -18,7 +18,7 @@ body {
 
 iframe{
 	width: 100%;
-	height: 560px;
+	height: 580px;
 	border:thin;
 }
 
@@ -31,8 +31,8 @@ iframe{
 				<nav>
 					<ul class="nav nav-pills pull-right">
 						<li role="presentation" class="active"><a href="#">Sample</a></li>
-						<li role="presentation" ><a href="//github.com/logue/smfplayer.js/">smfplayer.js</a></li>
-						<li role="presentation" ><a href="//github.com/logue/sf2synth.js/">sf2synth.js</a></li>
+						<li role="presentation"><a href="//github.com/logue/smfplayer.js/">smfplayer.js</a></li>
+						<li role="presentation"><a href="//github.com/logue/sf2synth.js/">sf2synth.js</a></li>
 					</ul>
 				</nav>
 				<h3 class="text-muted">MIDI Player XG</h3>
@@ -63,8 +63,11 @@ iframe{
 						<div class="col-md-4 form-group">
 							<label for="zips">Zip archive file:</label>
 							<select id="zips" class="form-control">
-								<option>YAMAHA mididata library.zip</option>
-								<option>適当詰め合わせ.zip</option>
+								<option value="midifiles/YAMAHA mididata library.zip">YAMAHA mididata library.zip</option>
+								<option value="midifiles/適当詰め合わせ.zip">適当詰め合わせ.zip</option>
+								<option value="midifiles/Midi01.zip">Midi01.zip</option>
+								<option value="midifiles/Midi03.zip">Midi03.zip</option>
+								<option value="midifiles/Midi04.zip">Midi04.zip</option>
 							</select>
 						</div>
 					</div>
@@ -124,9 +127,9 @@ iframe{
 				<address><a href="//github.com/gree/smfplayer.js">SMF.Player</a> (c) 2013 imaya / GREE Inc. Modified by <a href="//logue.be/">Logue</a>. Licensed under the <a href="http://opensource.org/licenses/mit-license.php">MIT License</a>.</address>
 			</footer>
 		</div>
-		<script src="//code.jquery.com/jquery-2.1.3.min.js"></script>
-		<script src="//netdna.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-		<script src="./js/smfplayer.min.js"></script>
+		<script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+		<script type="text/javascript" src="//netdna.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+		<script type="text/javascript" src="./js/smf.player.min.js"></script>
 		<!-- script src="../smfplayer.js/closure-primitives/base.js"></script>
 		<script type="text/javascript">
 /*<![CDATA[*/
@@ -135,7 +138,8 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
   goog.require(name);
 });
 /*]]>*/</script -->
-		<script src="./js/unzip.min.js"></script>
+		<script type="text/javascript" src="./js/unzip.min.js"></script>
+		<script type="text/javascript" src="./js/encoding.min.js"></script>
 		<script type="text/javascript">
 /*<![CDATA[*/
 // インターバル関数用。準備完了フラグ
@@ -155,14 +159,12 @@ var player=new SMF.Player();
 $(document).ready(function(){
 	// フォームを無効化
 	$(':input').attr('disabled','disabled');
-	
 	// AudioContextが使用可能化のチェック
 	window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
 	if ( typeof(window.AudioContext) === 'undefined'){
 		$('#info').addClass('alert-danger').removeClass('alert-warning').text('Your browser has not supported AudioContent function. Please use Firefox or Blink based browser. (such as Chrome)');
 		return;
 	}
-
 	// fileプロトコルは使用不可。（Ajaxを使うため）
 	if (location.protocol === 'file:') {
 		$('#info').addClass('alert-danger').removeClass('alert-warning').text('This program require runs by server.');
@@ -188,7 +190,8 @@ $(document).ready(function(){
 	player.setTempoRate($('#tempo').val());
 	player.setMasterVolume($('#volume').val() * 16383);
 	// WebMidiLink設定
-	player.setWebMidiLink('./wml.html', 'wml');
+	//player.setWebMidiLink('//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html', 'wml');
+	player.setWebMidiLink('wml.html', 'wml');
 
 	loadSample();
 
@@ -338,9 +341,11 @@ function loadSample() {
 			}
 
 			var option = document.createElement('option');
-			//console.log(name);
+			// 文字化け対策
+			var ret = Encoding.convert(name, 'UNICODE', 'SJIS');
 			
-			option.textContent = name.split('/').pop();
+			//option.textContent = name.split('/').pop();
+			option.textContent = ret;
 			option.setAttribute('data-midiplayer-filename', name);
 			select.appendChild(option);
 		});
