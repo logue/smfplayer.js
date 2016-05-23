@@ -44,6 +44,10 @@ SMF.Worker = function() {
   this.sequenceName;
   /** @type {Array.<string>} */
   this.copyright;
+  /** @type {number} */
+  this.length;
+  /** @type {Window} */
+  this.window = window;
 };
 
 /**
@@ -101,7 +105,9 @@ SMF.Worker.prototype.init = function() {
   this.sequence = null;
   this.sequenceName = null;
   this.copyright = null;
-  clearTimeout(this.timer);
+  this.length = 0;
+  
+  this.window.clearTimeout(this.timer);
 
   /** @type {SMF.Worker} */
   var player = this;
@@ -119,6 +125,7 @@ SMF.Worker.prototype.init = function() {
 SMF.Worker.prototype.initSequence = function() {
   this.tempo = 500000;
   this.position = 0;
+  this.sendInitMessage();
 };
 
 SMF.Worker.prototype.play = function() {
@@ -130,6 +137,7 @@ SMF.Worker.prototype.play = function() {
   }
 
   if (this.ready) {
+    this.length = this.track.length;
     if (this.track instanceof Array && this.position >= this.track.length) {
       this.position = 0;
     }
@@ -221,13 +229,13 @@ SMF.Worker.prototype.playSequence = function() {
   var mark = [];
 
   if (!this.pause) {
-    this.timer = setTimeout(
+    this.timer = this.window.setTimeout(
       update,
       this.tempo / 1000 * timeDivision * this.track[0]['time']
     );
   } else {
     // resume
-    this.timer = setTimeout(
+    this.timer = this.window.setTimeout(
       update,
       this.resume
     );
@@ -277,7 +285,7 @@ SMF.Worker.prototype.playSequence = function() {
         if (event.data[0] === 'B' && player.enableFalcomLoop &&
             mark[0] && typeof mark[0]['pos'] === 'number') {
           pos = mark[0]['pos'];
-          player.timer = setTimeout(update, 0);
+          player.timer = this.window.setTimeout(update, 0);
           player.position = pos;
           return;
         }
@@ -301,7 +309,7 @@ SMF.Worker.prototype.playSequence = function() {
                 tmp['count']--;
               }
               pos = tmp['pos'];
-              player.timer = setTimeout(update, 0);
+              player.timer = this.window.setTimeout(update, 0);
               player.position = pos;
               return;
             } else { // loop end
@@ -317,15 +325,16 @@ SMF.Worker.prototype.playSequence = function() {
 
     if (pos < length) {
       procTime = Date.now() - procTime;
-      player.timer = setTimeout(
+      player.timer = this.window.setTimeout(
         update,
         player.tempo / (1000 * timeDivision) * (mergedTrack[pos]['time'] - time - procTime) * (1 / player.tempoRate)
       );
     } else {
+      this.window.postMessage('endoftrack','*');
       // loop
       if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
         pos = mark[0]['pos'];
-        player.timer = setTimeout(update, 0);
+        player.timer = this.window.setTimeout(update, 0);
       } else if (player.enableLoop) {
         player.initSequence();
         player.playSequence();

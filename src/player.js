@@ -127,6 +127,7 @@ SMF.Player.prototype.init = function() {
 SMF.Player.prototype.initSequence = function() {
   this.tempo = 500000;
   this.position = 0;
+  this.sendInitMessage();
 };
 
 SMF.Player.prototype.play = function() {
@@ -185,15 +186,15 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
   var iframe;
 
   if (this.webMidiLink) {
-    document.body.removeChild(this.webMidiLink);
+    this.window.document.body.removeChild(this.webMidiLink);
     this.webMidiLink = null;
   }
 
-  var dom = !attachpoint ? document.body : document.getElementById(attachpoint);
+  var dom = !attachpoint ? this.window.document.body : this.window.document.getElementById(attachpoint);
 
   iframe = this.webMidiLink =
-    /** @type {HTMLIFrameElement} */(document.createElement('iframe'));
-  iframe.src = url || 'https://cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html';
+    /** @type {HTMLIFrameElement} */(this.window.document.createElement('iframe'));
+  iframe.src = url || '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html';
   iframe.className = 'wml';
 
   dom.appendChild(iframe);
@@ -210,13 +211,11 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
  * @param {number} volume
  */
 SMF.Player.prototype.setMasterVolume = function(volume) {
-  var window;
 
   this.masterVolume = volume;
 
   if (this.webMidiLink) {
-    window = this.webMidiLink.contentWindow;
-    window.postMessage(
+    this.webMidiLink.contentWindow.postMessage(
       'midi,f0,7f,7f,04,01,' +
       [
         ('0' + ((volume     ) & 0x7f).toString(16)).substr(-2),
@@ -250,13 +249,13 @@ SMF.Player.prototype.playSequence = function() {
   var mark = [];
 
   if (!this.pause) {
-    this.timer = setTimeout(
+    this.timer = this.window.setTimeout(
       update,
       this.tempo / 1000 * timeDivision * this.track[0]['time']
     );
   } else {
     // resume
-    this.timer = setTimeout(
+    this.timer = this.window.setTimeout(
       update,
       this.resume
     );
@@ -306,7 +305,7 @@ SMF.Player.prototype.playSequence = function() {
         if (event.data[0] === 'B' && player.enableFalcomLoop &&
             mark[0] && typeof mark[0]['pos'] === 'number') {
           pos = mark[0]['pos'];
-          player.timer = setTimeout(update, 0);
+          player.timer = this.window.setTimeout(update, 0);
           player.position = pos;
           return;
         }
@@ -330,7 +329,7 @@ SMF.Player.prototype.playSequence = function() {
                 tmp['count']--;
               }
               pos = tmp['pos'];
-              player.timer = setTimeout(update, 0);
+              player.timer = this.window.setTimeout(update, 0);
               player.position = pos;
               return;
             } else { // loop end
@@ -346,7 +345,7 @@ SMF.Player.prototype.playSequence = function() {
 
     if (pos < length) {
       procTime = Date.now() - procTime;
-      player.timer = setTimeout(
+      player.timer = this.window.setTimeout(
         update,
         player.tempo / (1000 * timeDivision) * (mergedTrack[pos]['time'] - time - procTime) * (1 / player.tempoRate)
       );
@@ -355,7 +354,7 @@ SMF.Player.prototype.playSequence = function() {
       this.window.postMessage('endoftrack','*');
       if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
         pos = mark[0]['pos'];
-        player.timer = setTimeout(update, 0);
+        player.timer = this.window.setTimeout(update, 0);
       } else if (player.enableLoop) {
         player.initSequence();
         player.playSequence();
