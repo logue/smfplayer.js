@@ -109,7 +109,7 @@ SMF.Player.prototype.init = function() {
   this.copyright = null;
   this.length = 0;
 
-  clearTimeout(this.timer);
+  this.window.clearTimeout(this.timer);
 
   /** @type {SMF.Player} */
   var player = this;
@@ -161,6 +161,8 @@ SMF.Player.prototype.sendInitMessage = function() {
   var i;
 
   for (i = 0; i < 16; ++i) {
+    // all sound off
+    window.postMessage('midi,b' + i.toString(16) + ',128,0', '*');
     // volume
     window.postMessage('midi,b' + i.toString(16) + ',07,64', '*');
     // panpot
