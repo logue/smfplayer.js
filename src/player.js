@@ -108,6 +108,7 @@ SMF.Player.prototype.init = function() {
   this.sequenceName = null;
   this.copyright = null;
   this.length = 0;
+  this.position = 0;
 
   this.window.clearTimeout(this.timer);
 
@@ -182,17 +183,20 @@ SMF.Player.prototype.sendInitMessage = function() {
  * @param {string} url WebMidiLink url.
  */
 SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
+  if (!attachpoint){
+    attachpoint = 'wml';
+  }
   /** @type {SMF.Player} */
   var player = this;
   /** @type {HTMLIFrameElement} */
   var iframe;
+  /** @type {Element} **/
+  var dom = this.window.document.getElementById(attachpoint);
 
   if (this.webMidiLink) {
-    this.window.document.body.removeChild(this.webMidiLink);
+    dom.innerHTML = null;
     this.webMidiLink = null;
   }
-
-  var dom = !attachpoint ? this.window.document.body : this.window.document.getElementById(attachpoint);
 
   iframe = this.webMidiLink =
     /** @type {HTMLIFrameElement} */(this.window.document.createElement('iframe'));
@@ -476,4 +480,17 @@ SMF.Player.prototype.getCopyright = function() {
   return this.copyright;
 };
 
+/**
+ * @return {number}
+ */
+SMF.Player.prototype.getPosition = function() {
+  return this.position;
+}
+
+/**
+ * @return {number}
+ */
+SMF.Player.prototype.getLength = function() {
+  return this.length;
+}
 });

@@ -19,4 +19,6 @@ if (SMF_WORKER_EXPORT) {
   goog.exportSymbol('SMF.Worker.prototype.setMasterVolume', SMF.Worker.prototype.setMasterVolume);
   goog.exportSymbol('SMF.Worker.prototype.getCopyright', SMF.Worker.prototype.getCopyright);
   goog.exportSymbol('SMF.Worker.prototype.getSequenceName', SMF.Worker.prototype.getSequenceName);
+  goog.exportSymbol('SMF.Worker.prototype.getLength', SMF.Player.prototype.getLength);
+  goog.exportSymbol('SMF.Worker.prototype.getPosition', SMF.Player.prototype.getPosition);
 }

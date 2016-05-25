@@ -454,4 +454,17 @@ SMF.Worker.prototype.getCopyright = function() {
   return this.copyright;
 };
 
+/**
+ * @return {number}
+ */
+SMF.Worker.prototype.getPosition = function() {
+  return this.position;
+}
+
+/**
+ * @return {number}
+ */
+SMF.Worker.prototype.getLength = function() {
+  return this.length;
+}
 });
