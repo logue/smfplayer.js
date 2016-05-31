@@ -43,7 +43,7 @@ iframe{
 				<div class="g-plusone" data-size="tall" data-href="https://logue.github.io/smfplayer.js"></div>
 				<iframe src="//www.facebook.com/plugins/like.php?href=https%3A%2F%2Flogue.github.io%2Fsmfplayer.js&amp;width=70&amp;height=65&amp;colorscheme=light&amp;layout=box_count&amp;action=like&amp;show_faces=true&amp;send=true&amp;appId=249014621810580" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:70px; height:65px;" allowTransparency="true"></iframe>
 			</aside>
-			<div id="info" class="alert alert-warning">Now Loading...</div>
+			<div id="info" class="alert alert-warning">Initializing...</div>
 			<div class="panel panel-info clearfix" id="player">
 				<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play your file.)</small></div>
 				<div class="panel-body">
@@ -54,13 +54,14 @@ iframe{
 								<button class="btn btn-primary btn-lg" value="play" id="play" disabled="disabled" title="Play / Pause"><span class="glyphicon glyphicon-play"></span></button>
 								<button class="btn btn-danger btn-lg" value="stop" id="stop" disabled="disabled" title="Stop"><span class="glyphicon glyphicon-stop"></span></button>
 								<button class="btn btn-info btn-lg" value="next" id="next" disabled="disabled" title="Next Music"><span class="glyphicon glyphicon-chevron-right"></span></button>
+								<button class="btn btn-default btn-lg" value="panic" id="panic" disabled="disabled" title="Random"><span class="glyphicon glyphicon-remove-circle"></span></button>
 							</div>
 						</div>
-						<div class="col-md-4 form-group">
+						<div class="col-md-5 form-group">
 							<label for="files">MIDI file: </label>
 							<select id="files" class="form-control"></select>
 						</div>
-						<div class="col-md-4 form-group">
+						<div class="col-md-3 form-group">
 							<label for="zips">Zip archive file:</label>
 							<select id="zips" class="form-control">
 								<option value="midifiles/YAMAHA mididata library.zip">YAMAHA mididata library.zip</option>
@@ -89,7 +90,7 @@ iframe{
 				<div class="panel-heading">Settings</div>
 				<div class="panel-body">
 					<div class="form-group">
-						<label for="synth">Select <a href="">WebMidiLink</a> based synthesizer</label>
+						<label for="synth">Select <a href="http://www.g200kg.com/en/docs/webmidilink/" target="_blank">WebMidiLink<span class="glyphicon glyphicon-new-window"></span></a> based synthesizer</label>
 						<select id="synth" class="form-control">
 							<option value="//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html" selected="selected">Yamaha XG Sound Set.sf2</option>
 							<option value="//www.g200kg.com/webmidilink/gmplayer/">GMPlayer</option>
@@ -296,9 +297,13 @@ $(document).ready(function(){
 			player.stop();
 		},51);//よく分からんが非同期で読み込むらしい
 	});
-
-	// WebMidiLinkセレクタ
 /*
+	// パニックボタン
+	$('#panic').click(function(){
+		player.getWebMidiLink().contentWindow.postMessage('midi, b0, 78,0');
+	});
+*/
+	// WebMidiLinkセレクタ
 	// うーん、デッドリンクだったり仕様が違ったりで全然使えないじゃん・・・。
 	$.ajax({
 		type: 'GET',
@@ -306,6 +311,8 @@ $(document).ready(function(){
 		dataType: 'jsonp',
 		jsonpCallback: 'SynthListCallback',
 		success: function(json){
+			var $synths = $('#synth');
+			$synths.html('');
 			json.forEach(function(line){
 				var $option = $('<option>')
 					.val(line.url)
@@ -313,11 +320,11 @@ $(document).ready(function(){
 				if (line.name == 'Yamaha XG Sound Set.sf2'){
 					$option.prop('selected', true);
 				}
+//				if (line.name.match
 				$('#synth').append($option);
 			});
 		}
 	});
-*/
 	$('#synth').change(function(e){
 		player.setWebMidiLink($(this).val(), 'wml');
 	});
@@ -359,8 +366,9 @@ function loadSample() {
 
 	// ZipファイルをXHRで読み込む
 	xhr.open('GET', url, true);
-	xhr.addEventListener('load', function(ev) {
-		var input = new Uint8Array(xhr.response);
+	xhr.responseType = "arraybuffer";
+	xhr.onload = function() {
+		var input = new Uint8Array(this.response);
 
 		var select = document.getElementById('files');
 		while (select.childNodes.length > 0) {
@@ -406,9 +414,9 @@ function loadSample() {
 				handleSelect(select);
 			}
 		}
-		$('#info').text = 'Ready.';
+		$('#info').html('Ready.');
 		$('#info').removeClass('alert-warning').addClass('alert-success');
-	});
+	};
 	xhr.responseType = 'arraybuffer';
 	xhr.onloadstart = function(e) {
 		$('#info').removeClass('alert-success').addClass('alert-warning');
@@ -417,9 +425,9 @@ function loadSample() {
 	xhr.onprogress = function(e) {
 		if (e.lengthComputable) {
 			var percentLoaded = Math.round((e.loaded / e.total) * 10000);
-			$('#info').text = 'Now Loading...' + percentLoaded + '%';
+			$('#info').html('Now loading... <br /><div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + percentLoaded + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentLoaded + '%;">' + percentLoaded + '%</div></div>');
 		}
-	}
+	};
 	xhr.send();
 }
 /**
@@ -439,8 +447,8 @@ function handleSelect(select) {
 		if(location.search.indexOf('a320u')>0){
 			queries.push('a320u');
 		}
-		queries.push("files="+encodeURI(document.getElementById('files').value));
-		queries.push("zips="+encodeURI(document.getElementById('zips').value));
+		queries.push("files="+encodeURIComponent(document.getElementById('files').value));
+		queries.push("zips="+encodeURIComponent(document.getElementById('zips').value));
 		url+='?'+queries.join('&');
 		document.querySelector("#url").value=url;
 
@@ -456,7 +464,12 @@ function handleSelect(select) {
  * @param array buffer ファイルの中身
  */
 function handleInput(filename, buffer) {
+	// 再生中のMIDIを停止。
 	player.stop();
+
+	// なんかボリュームが書き換わってしまうことがあるため
+	player.setMasterVolume($('#volume').val() * 16383);
+
 	switch (filename.slice(filename.lastIndexOf('.')).toLowerCase()) {
 		case '.mld':
 		case '.midi':
@@ -466,9 +479,13 @@ function handleInput(filename, buffer) {
 			player.loadMidiFile(buffer);
 			break;
 	}
+	// マスターボリュームが低いままになるので
+	player.setMasterVolume($('#volume').val() * 16383);
+
+	//よく分からんが非同期で読み込むらしい
 	setTimeout(function(){
 		player.play();
-	},50);//よく分からんが非同期で読み込むらしい
+	},50);
 }
 
 /**
@@ -485,41 +502,47 @@ function randomPlay(){
  */
 $(window).on('message', function(e) {
 	var event = e.originalEvent.data;  // Should work.
-	// 曲一覧の現在選択中の項目番号
-	var selected_music = $('#music').prop('selectedIndex');
-	// 曲が終了したとき
-	if (event === 'endoftrack') {
-		// 曲は終了しても、player.pauseの値が変化しないので、ここで、再生ボタンにする。
-		$('#play').
-			html('<span class="glyphicon glyphicon-play"></span>').
-			removeClass('btn-success').
-			addClass('btn-primary');
-		if ($('#random').is(':checked')){
-			randomPlay();
-		}else{
-			var selected_music = $('#files').prop('selectedIndex');
-			if( selected_music !== 0){
-				// ループで最初に戻った場合（player.positionがリセットされた場合）
-				// 次の曲を選択
-				if (selected_music == $('#files option').length){
-					// 末尾の場合最初に戻る
-					$('#files').prop('selectedIndex',0);
-				}else{
-					$('#files').prop('selectedIndex',selected_music+1);
+
+	switch (event) {
+		case 'endoftrack':
+			// 曲が終了したとき
+			// 曲一覧の現在選択中の項目番号
+			var selected_music = $('#music').prop('selectedIndex');
+			
+			player.stop();
+
+			// 曲は終了しても、player.pauseの値が変化しないので、ここで、再生ボタンにする。
+			$('#play').
+				html('<span class="glyphicon glyphicon-play"></span>').
+				removeClass('btn-success').
+				addClass('btn-primary');
+			if ($('#random').is(':checked')){
+				randomPlay();
+			}else{
+				var selected_music = $('#files').prop('selectedIndex');
+				if( selected_music !== 0){
+					// ループで最初に戻った場合（player.positionがリセットされた場合）
+					// 次の曲を選択
+					if (selected_music == $('#files option').length){
+						// 末尾の場合最初に戻る
+						$('#files').prop('selectedIndex',0);
+					}else{
+						$('#files').prop('selectedIndex',selected_music+1);
+					}
+					// 曲を変更
+					handleSelect(document.getElementById('files'));
 				}
-				// 曲を変更
-				handleSelect(document.getElementById('files'));
 			}
-		}
-	}
-	// WMLが読み込まれた時
-	if (event === 'link,ready') {
-		isReady=true;
-		if(document.querySelector('#random').checked){
-			handleSelect(document.querySelector('#files'));
-		}
-		$('#info').addClass('alert-success').removeClass('alert-warning').text('Ready.');
-		$(':input').removeAttr('disabled');
+			break;
+		case 'link,ready':
+			// WMLが読み込まれた時
+			isReady=true;
+			if(document.querySelector('#random').checked){
+				handleSelect(document.querySelector('#files'));
+			}
+			$('#info').addClass('alert-success').removeClass('alert-warning').text('Ready.');
+			$(':input').prop('disabled', false);
+			break;
 	}
 });
 
