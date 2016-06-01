@@ -462,6 +462,13 @@ SMF.Worker.prototype.getPosition = function() {
 }
 
 /**
+ * @param {number} pos
+ */
+SMF.Worker.prototype.setPosition = function(pos) {
+  this.position = pos;
+}
+
+/**
  * @return {number}
  */
 SMF.Worker.prototype.getLength = function() {

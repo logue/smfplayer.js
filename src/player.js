@@ -16,7 +16,7 @@ SMF.Player = function() {
   /** @type {number} */
   this.resume;
   /** @type {boolean} */
-  this.pause;
+  this.pause = true;;
   /** @type {boolean} */
   this.ready = false;
   /** @type {number} */
@@ -45,8 +45,6 @@ SMF.Player = function() {
   this.copyright;
   /** @type {number} */
   this.length;
-  /** @type {Window} */
-  this.window = window;
 };
 
 /**
@@ -101,7 +99,7 @@ SMF.Player.prototype.getWebMidiLink = function() {
 SMF.Player.prototype.init = function() {
   this.stop();
   this.initSequence();
-  this.pause = false;
+  this.pause = true;
   this.track = null;
   this.resume = -1;
   this.sequence = null;
@@ -110,14 +108,14 @@ SMF.Player.prototype.init = function() {
   this.length = 0;
   this.position = 0;
 
-  this.window.clearTimeout(this.timer);
+  goog.global.window.clearTimeout(this.timer);
 
   /** @type {SMF.Player} */
   var player = this;
   if (this.ready) {
     this.sendInitMessage();
   } else {
-    this.window.addEventListener('message', (function(ev) {
+    goog.global.window.addEventListener('message', (function(ev) {
       if (ev.data === 'link,ready') {
         player.sendInitMessage();
       }
@@ -129,6 +127,7 @@ SMF.Player.prototype.initSequence = function() {
   this.tempo = 500000;
   this.position = 0;
   this.sendInitMessage();
+  this.pause = false;
 };
 
 SMF.Player.prototype.play = function() {
@@ -146,7 +145,7 @@ SMF.Player.prototype.play = function() {
     }
     this.playSequence();
   } else {
-    this.window.addEventListener('message', (function(ev) {
+    goog.global.window.addEventListener('message', (function(ev) {
       if (ev.data === 'link,ready') {
         player.ready = true;
         player.playSequence();
@@ -191,7 +190,7 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
   /** @type {HTMLIFrameElement} */
   var iframe;
   /** @type {Element} **/
-  var dom = this.window.document.getElementById(attachpoint);
+  var dom = goog.global.window.document.getElementById(attachpoint);
 
   if (this.webMidiLink) {
     dom.innerHTML = null;
@@ -199,16 +198,25 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
   }
 
   iframe = this.webMidiLink =
-    /** @type {HTMLIFrameElement} */(this.window.document.createElement('iframe'));
+    /** @type {HTMLIFrameElement} */(goog.global.window.document.createElement('iframe'));
   iframe.src = url || '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html';
   iframe.className = 'wml';
 
   dom.appendChild(iframe);
 
-  this.window.addEventListener('message', (function(ev) {
-    if (ev.data === 'link,ready') {
-      player.ready = true;
-      player.setMasterVolume(player.masterVolume);
+  goog.global.window.addEventListener('message', (function(ev) {
+    if (typeof ev.data === 'string' ) {
+      var msg = ev.data.split(',');
+      
+      if (msg[0] === 'link') {
+        goog.global.console.log(ev.data);
+        if (msg[1] === 'ready'){
+          player.ready = true;
+          player.setMasterVolume(player.masterVolume);
+        }else if (msg[1] === 'progress'){
+          goog.global.console.log(msg[2]);
+        }
+      }
     }
   }), false);
 };
@@ -255,13 +263,13 @@ SMF.Player.prototype.playSequence = function() {
   var mark = [];
 
   if (!this.pause) {
-    this.timer = this.window.setTimeout(
+    this.timer = goog.global.window.setTimeout(
       update,
       this.tempo / 1000 * timeDivision * this.track[0]['time']
     );
   } else {
     // resume
-    this.timer = this.window.setTimeout(
+    this.timer = goog.global.window.setTimeout(
       update,
       this.resume
     );
@@ -311,7 +319,7 @@ SMF.Player.prototype.playSequence = function() {
         if (event.data[0] === 'B' && player.enableFalcomLoop &&
             mark[0] && typeof mark[0]['pos'] === 'number') {
           pos = mark[0]['pos'];
-          player.timer = this.window.setTimeout(update, 0);
+          player.timer = goog.global.window.setTimeout(update, 0);
           player.position = pos;
           return;
         }
@@ -335,7 +343,7 @@ SMF.Player.prototype.playSequence = function() {
                 tmp['count']--;
               }
               pos = tmp['pos'];
-              player.timer = this.window.setTimeout(update, 0);
+              player.timer = goog.global.window.setTimeout(update, 0);
               player.position = pos;
               return;
             } else { // loop end
@@ -351,16 +359,17 @@ SMF.Player.prototype.playSequence = function() {
 
     if (pos < length) {
       procTime = Date.now() - procTime;
-      player.timer = this.window.setTimeout(
+      player.timer = goog.global.window.setTimeout(
         update,
         player.tempo / (1000 * timeDivision) * (mergedTrack[pos]['time'] - time - procTime) * (1 / player.tempoRate)
       );
     } else {
       // loop
-      this.window.postMessage('endoftrack','*');
+      goog.global.window.postMessage('endoftrack','*');
+      this.pause = true;
       if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
         pos = mark[0]['pos'];
-        player.timer = this.window.setTimeout(update, 0);
+        player.timer = goog.global.window.setTimeout(update, 0);
       } else if (player.enableLoop) {
         player.initSequence();
         player.playSequence();
@@ -485,6 +494,13 @@ SMF.Player.prototype.getCopyright = function() {
  */
 SMF.Player.prototype.getPosition = function() {
   return this.position;
+}
+
+/**
+ * @param {number} pos
+ */
+SMF.Player.prototype.setPosition = function(pos) {
+  this.position = pos;
 }
 
 /**
