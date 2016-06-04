@@ -1,0 +1,12 @@
+CACHE MANIFEST
+#version 1
+
+Yamaha%20XG%20Sound%20Set.sf2
+./js/encoding.min.js
+./js/unzip.min.js
+./js/waapisim.min.js
+./js/waapisim.swf
+https://cdn.rawgit.com/logue/smfplayer.js/gh-pages/Yamaha%20XG%20Sound%20Set.sf2
+
+NETWORK:
+*

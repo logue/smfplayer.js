@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="ja">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="ja" manifest="smfplayer.appcache">
 <head>
   <meta name="robots" content="noindex" />
   <title>Web Midi Link</title>
-  <link type="text/css" rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+  <link type="text/css" rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
   <style type="text/css">
 /*<![CDATA[*/
     table {
@@ -109,7 +109,8 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
  <script type="text/javascript">
 /*<![CDATA[*/
     var message = document.getElementById('message');
-    var url = '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/Yamaha%20XG%20Sound%20Set.sf2';
+   // var url = '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/Yamaha%20XG%20Sound%20Set.sf2';
+    var url = 'Yamaha%20XG%20Sound%20Set.sf2';
     var qs = window.location.search;
     var option = {};
     if (qs === 'disableDrawSynth') {
