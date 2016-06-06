@@ -170,6 +170,7 @@ SMF.Worker.prototype.sendInitMessage = function() {
     this.webMidiLink.postMessage('midi,b' + i.toString(16) + ',26,00');
 
   }
+  this.sendGmReset();
 };
 
 /**
@@ -473,5 +474,17 @@ SMF.Worker.prototype.setPosition = function(pos) {
  */
 SMF.Worker.prototype.getLength = function() {
   return this.length;
+}
+
+SMF.Worker.prototype.sendGmReset = function() {
+  if (this.webMidiLink) {
+    // F0 7E 7F 09 01 F7
+    this.webMidiLink.contentWindow.postMessage('midi,F0,7E,7F,09,01,F7','*');
+  }
+}
+SMF.Worker.prototype.sendAllSoundOff = function() {
+  if (this.webMidiLink) {
+    this.webMidiLink.contentWindow.postMessage('midi,b0,78,0','*');
+  }
 }
 });

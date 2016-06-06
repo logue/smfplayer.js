@@ -22,4 +22,6 @@ if (SMF_PLAYER_EXPORT) {
   goog.exportSymbol('SMF.Player.prototype.getLength', SMF.Player.prototype.getLength);
   goog.exportSymbol('SMF.Player.prototype.setPosition', SMF.Player.prototype.setPosition);
   goog.exportSymbol('SMF.Player.prototype.getPosition', SMF.Player.prototype.getPosition);
+  goog.exportSymbol('SMF.Player.prototype.sendGmReset', SMF.Player.prototype.sendGmReset);
+  goog.exportSymbol('SMF.Player.prototype.sendAllSoundOff', SMF.Player.prototype.sendAllSoundOff);
 }

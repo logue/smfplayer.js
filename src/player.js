@@ -174,8 +174,8 @@ SMF.Player.prototype.sendInitMessage = function() {
     window.postMessage('midi,b' + i.toString(16) + ',65,00', '*');
     window.postMessage('midi,b' + i.toString(16) + ',06,02', '*');
     window.postMessage('midi,b' + i.toString(16) + ',26,00', '*');
-
   }
+  this.sendGmReset();
 };
 
 /**
@@ -209,7 +209,7 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
       var msg = ev.data.split(',');
       
       if (msg[0] === 'link') {
-        goog.global.console.log(ev.data);
+//        goog.global.console.log(ev.data);
         if (msg[1] === 'ready'){
           player.ready = true;
           player.setMasterVolume(player.masterVolume);
@@ -508,5 +508,18 @@ SMF.Player.prototype.setPosition = function(pos) {
  */
 SMF.Player.prototype.getLength = function() {
   return this.length;
+}
+
+SMF.Player.prototype.sendGmReset = function() {
+  if (this.webMidiLink.contentWindow) {
+    // F0 7E 7F 09 01 F7
+    this.webMidiLink.contentWindow.postMessage('midi,F0,7E,7F,09,01,F7','*');
+  }
+}
+
+SMF.Player.prototype.sendAllSoundOff = function() {
+  if (this.webMidiLink.contentWindow) {
+    this.webMidiLink.contentWindow.postMessage('midi,b0,78,0','*');
+  }
 }
 });
