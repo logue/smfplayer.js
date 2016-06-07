@@ -113,7 +113,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
     var url = 'Yamaha%20XG%20Sound%20Set.sf2';
     var qs = window.location.search;
     var option = {};
-    if (qs === 'disableDrawSynth') {
+    if (qs === '?disableDrawSynth') {
       option.disableDrawSynth = true;
     }
     var wml = new SoundFont.WebMidiLink(option);

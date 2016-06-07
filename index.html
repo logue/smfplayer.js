@@ -43,7 +43,12 @@ iframe{
 				<div class="g-plusone" data-size="tall" data-href="https://logue.github.io/smfplayer.js"></div>
 				<iframe src="//www.facebook.com/plugins/like.php?href=https%3A%2F%2Flogue.github.io%2Fsmfplayer.js&amp;width=70&amp;height=65&amp;colorscheme=light&amp;layout=box_count&amp;action=like&amp;show_faces=true&amp;send=true&amp;appId=249014621810580" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:70px; height:65px;" allowTransparency="true"></iframe>
 			</aside>
-			<div id="info" class="alert alert-warning">Initializing...</div>
+			<div id="info" class="alert alert-warning">
+				<p>Initializing...</p>
+				<div class="progress hide" id="progress">
+					<div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width:0%;">0%</div>
+				</div>
+			</div>
 			<div class="panel panel-info clearfix" id="player">
 				<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play your file.)</small></div>
 				<div class="panel-body">
@@ -54,7 +59,7 @@ iframe{
 								<button class="btn btn-primary btn-lg" value="play" id="play" disabled="disabled" title="Play / Pause"><span class="glyphicon glyphicon-play"></span></button>
 								<button class="btn btn-danger btn-lg" value="stop" id="stop" disabled="disabled" title="Stop"><span class="glyphicon glyphicon-stop"></span></button>
 								<button class="btn btn-info btn-lg" value="next" id="next" disabled="disabled" title="Next Music"><span class="glyphicon glyphicon-chevron-right"></span></button>
-								<!--button class="btn btn-default btn-lg" value="panic" id="panic" disabled="disabled" title="Random"><span class="glyphicon glyphicon-remove-circle"></span></button-->
+								<button class="btn btn-default btn-lg" value="panic" id="panic" disabled="disabled" title="Panic"><span class="glyphicon glyphicon-remove-circle"></span></button>
 							</div>
 						</div>
 						<div class="col-md-5 form-group">
@@ -92,7 +97,8 @@ iframe{
 					<div class="form-group">
 						<label for="synth">Select <a href="http://www.g200kg.com/en/docs/webmidilink/" target="_blank">WebMidiLink<span class="glyphicon glyphicon-new-window"></span></a> based synthesizer</label>
 						<select id="synth" class="form-control">
-							<option value="//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html" selected="selected">Yamaha XG Sound Set.sf2</option>
+							<option value="./wml.html" selected="selected">Yamaha XG Sound Set.sf2</option>
+							<!--option value="./wml.html?disableDrawSynth">Yamaha XG Sound Set.sf2 (Disable Keyboard)</option-->
 							<option value="//www.g200kg.com/webmidilink/gmplayer/">GMPlayer</option>
 							<option value="//imaya.github.io/demo/sf2.js/wml.html">A320U.sf2</option>
 						</select>
@@ -297,14 +303,15 @@ $(document).ready(function(){
 			player.stop();
 		},51);//よく分からんが非同期で読み込むらしい
 	});
-/*
+
 	// パニックボタン
 	$('#panic').click(function(){
-		player.getWebMidiLink().contentWindow.postMessage('midi, b0, 78,0');
+		player.sendAllSoundOff();
 	});
-*/
+
 	// WebMidiLinkセレクタ
 	// うーん、デッドリンクだったり仕様が違ったりで全然使えないじゃん・・・。
+/*
 	$.ajax({
 		type: 'GET',
 		url: 'http://www.g200kg.com/webmidilink/synthlist.js',
@@ -320,16 +327,19 @@ $(document).ready(function(){
 				if (line.name == 'Yamaha XG Sound Set.sf2'){
 					$option.prop('selected', true);
 				}
-//				if (line.name.match
 				$('#synth').append($option);
 			});
 		}
 	});
+*/
 	$('#synth').change(function(e){
+		player.stop();
 		player.setWebMidiLink($(this).val(), 'wml');
 	});
 	$('*[title]').tooltip();
 });
+
+var $info = $('#info');
 
 /**
  * ファイルを読み込む
@@ -363,8 +373,9 @@ var initialized=false;
 function loadSample() {
 	var xhr = new XMLHttpRequest();
 	var url = document.querySelector('#zips').value;
+	
 
-	// ZipファイルをXHRで読み込む
+	// ZipファイルをXHRで読み込む（※jqueryのajax命令はarraybuffer非対応なため使えない）
 	xhr.open('GET', url, true);
 	xhr.responseType = "arraybuffer";
 	xhr.onload = function() {
@@ -380,8 +391,11 @@ function loadSample() {
 		var filenames = zip.getFilenames();
 		
 		filenames.forEach(function(name, i) {
+			var percentLoaded = Math.round((i / filenames.length) * 10000);
+			$('#info').html('Parsing zip file...');
+
 			var ext = name.slice(name.lastIndexOf('.')).toLowerCase();
-			if (ext === '/'){
+			if (ext === '/' || !ext === 'mid' || !ext === 'midi' || !ext === 'mld'){
 				return;
 			}
 
