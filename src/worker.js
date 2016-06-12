@@ -47,7 +47,7 @@ SMF.Worker = function() {
   /** @type {number} */
   this.length;
   /** @type {Window} */
-  this.window = window;
+  this.window = goog.global.window;
 };
 
 /**

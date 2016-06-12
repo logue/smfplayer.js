@@ -43,8 +43,12 @@ SMF.Player = function() {
   this.sequenceName;
   /** @type {Array.<string>} */
   this.copyright;
+  /** @type {HTMLIFrameElement} */
+  this.webMidiLink;
   /** @type {number} */
   this.length;
+  /** @type {number} */
+  this.loaded;
 };
 
 /**
@@ -87,7 +91,7 @@ SMF.Player.prototype.stop = function() {
   if (this.webMidiLink) {
     window = this.webMidiLink.contentWindow;
     for (i = 0; i < 16; ++i) {
-      window.postMessage('midi,b' + i.toString(16) + ',78,0', '*');
+      goog.global.postMessage('midi,b' + i.toString(16) + ',78,0', '*');
     }
   }
 };
@@ -126,6 +130,7 @@ SMF.Player.prototype.init = function() {
 SMF.Player.prototype.initSequence = function() {
   this.tempo = 500000;
   this.position = 0;
+
   this.sendInitMessage();
   this.pause = false;
 };
@@ -139,11 +144,15 @@ SMF.Player.prototype.play = function() {
   }
 
   if (this.ready) {
-    this.length = this.track.length;
-    if (this.track instanceof Array && this.position >= this.length) {
-      this.position = 0;
+    if (this.track){
+      this.length = this.track.length;
+      if (this.track instanceof Array && this.position >= this.length) {
+        this.position = 0;
+      }
+      this.playSequence();
+    }else{
+      goog.global.console.warn('Midi file is not loaded.');
     }
-    this.playSequence();
   } else {
     goog.global.window.addEventListener('message', (function(ev) {
       if (ev.data === 'link,ready') {
@@ -156,24 +165,24 @@ SMF.Player.prototype.play = function() {
 
 SMF.Player.prototype.sendInitMessage = function() {
   /** @type {Window} */
-  var window = this.webMidiLink.contentWindow;
+  var win = this.webMidiLink.contentWindow;
   /** @type {number} */
   var i;
 
   for (i = 0; i < 16; ++i) {
     // all sound off
-    window.postMessage('midi,b' + i.toString(16) + ',128,0', '*');
+    win.postMessage('midi,b' + i.toString(16) + ',128,0', '*');
     // volume
-    window.postMessage('midi,b' + i.toString(16) + ',07,64', '*');
+    win.postMessage('midi,b' + i.toString(16) + ',07,64', '*');
     // panpot
-    window.postMessage('midi,b' + i.toString(16) + ',0a,40', '*');
+    win.postMessage('midi,b' + i.toString(16) + ',0a,40', '*');
     // pitch bend
-    window.postMessage('midi,e' + i.toString(16) + ',00,40', '*');
+    win.postMessage('midi,e' + i.toString(16) + ',00,40', '*');
     // pitch bend range
-    window.postMessage('midi,b' + i.toString(16) + ',64,00', '*');
-    window.postMessage('midi,b' + i.toString(16) + ',65,00', '*');
-    window.postMessage('midi,b' + i.toString(16) + ',06,02', '*');
-    window.postMessage('midi,b' + i.toString(16) + ',26,00', '*');
+    win.postMessage('midi,b' + i.toString(16) + ',64,00', '*');
+    win.postMessage('midi,b' + i.toString(16) + ',65,00', '*');
+    win.postMessage('midi,b' + i.toString(16) + ',06,02', '*');
+    win.postMessage('midi,b' + i.toString(16) + ',26,00', '*');
   }
   this.sendGmReset();
 };
@@ -212,9 +221,11 @@ SMF.Player.prototype.setWebMidiLink = function(url, attachpoint) {
 //        goog.global.console.log(ev.data);
         if (msg[1] === 'ready'){
           player.ready = true;
+          player.loaded = 100;
           player.setMasterVolume(player.masterVolume);
         }else if (msg[1] === 'progress'){
-          goog.global.console.log(msg[2]);
+//          goog.global.console.log(msg[2]);
+          player.loaded = Math.round((msg[2] / msg[3]) * 10000);
         }
       }
     }
@@ -261,15 +272,17 @@ SMF.Player.prototype.playSequence = function() {
   var pos = this.position || 0;
   /** @type {Array.<?{pos: number}>} */
   var mark = [];
+  /** @type {Window} */
+  var win = goog.global.window;
 
   if (!this.pause) {
-    this.timer = goog.global.window.setTimeout(
+    this.timer = win.setTimeout(
       update,
       this.tempo / 1000 * timeDivision * this.track[0]['time']
     );
   } else {
     // resume
-    this.timer = goog.global.window.setTimeout(
+    this.timer = win.setTimeout(
       update,
       this.resume
     );
@@ -319,7 +332,7 @@ SMF.Player.prototype.playSequence = function() {
         if (event.data[0] === 'B' && player.enableFalcomLoop &&
             mark[0] && typeof mark[0]['pos'] === 'number') {
           pos = mark[0]['pos'];
-          player.timer = goog.global.window.setTimeout(update, 0);
+          player.timer = win.setTimeout(update, 0);
           player.position = pos;
           return;
         }
@@ -343,7 +356,7 @@ SMF.Player.prototype.playSequence = function() {
                 tmp['count']--;
               }
               pos = tmp['pos'];
-              player.timer = goog.global.window.setTimeout(update, 0);
+              player.timer = win.setTimeout(update, 0);
               player.position = pos;
               return;
             } else { // loop end
@@ -359,7 +372,7 @@ SMF.Player.prototype.playSequence = function() {
 
     if (pos < length) {
       procTime = Date.now() - procTime;
-      player.timer = goog.global.window.setTimeout(
+      player.timer = win.setTimeout(
         update,
         player.tempo / (1000 * timeDivision) * (mergedTrack[pos]['time'] - time - procTime) * (1 / player.tempoRate)
       );
@@ -369,7 +382,7 @@ SMF.Player.prototype.playSequence = function() {
       this.pause = true;
       if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
         pos = mark[0]['pos'];
-        player.timer = goog.global.window.setTimeout(update, 0);
+        player.timer = win.setTimeout(update, 0);
       } else if (player.enableLoop) {
         player.initSequence();
         player.playSequence();
@@ -511,14 +524,14 @@ SMF.Player.prototype.getLength = function() {
 }
 
 SMF.Player.prototype.sendGmReset = function() {
-  if (this.webMidiLink.contentWindow) {
+  if (this.webMidiLink) {
     // F0 7E 7F 09 01 F7
     this.webMidiLink.contentWindow.postMessage('midi,F0,7E,7F,09,01,F7','*');
   }
 }
 
 SMF.Player.prototype.sendAllSoundOff = function() {
-  if (this.webMidiLink.contentWindow) {
+  if (this.webMidiLink) {
     this.webMidiLink.contentWindow.postMessage('midi,b0,78,0','*');
   }
 }
