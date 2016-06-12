@@ -84,7 +84,7 @@
 </head>
 <body>
 <h2 class="page-header" style="margin:0;">SoundFont: <span id="soundfont">Yamaha XG Sound Set.sf2</span></h2>
-<p class="text-right"><small>By <a href="https://logue.be/" target="_blank">Logue</a> / Last Modified: 2016/06/05</small></p>
+<p class="text-right"><small>By <a href="https://logue.be/" target="_blank">Logue</a> / Last Modified: 2016/06/12</small></p>
 <div id="message" class="alert alert-warning">Loading...</div>
 <div class="alert alert-info" id="droparea">
   <div class="form-group">
@@ -92,9 +92,9 @@
     <input type="file" id="file" name="file" class="form-control" accept="audio/x-soundfont" />
   </div>
 </div>
-<!--div class="checkbox-inline">
+<div class="checkbox-inline">
   <input type="checkbox" id="reverb" checked="checked" /><label for="reverb">Reverb</label>
-</div-->
+</div>
 <script type="text/javascript" src="./js/sf2synth.min.js"></script>
 <!--script type="text/javascript" src="../sf2synth.js/closure-primitives/base.js"></script>
 <script type="text/javascript">
@@ -133,7 +133,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
         handleSoundFont(file);
         event.preventDefault();
       }, false);
-      
+
       var droparea = document.getElementById('droparea');
       droparea.addEventListener('dragover', function(e) {
         droparea.className = "alert alert-danger";
@@ -147,17 +147,15 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
         e.preventDefault();
         handleSoundFont(files[0]);
       }, true);
-      
+
       droparea.addEventListener('dragleave', function(e) {
         document.getElementById('droparea').className = "alert alert-info";
       }, true);
-    
-/*
+
       reverb = document.getElementById('reverb');
       reverb.addEventListener('change', function(event) {
         wml.setReverb(event.target.checked);
       }, false);
-*/
     }, false);
 
     // Load sound font
@@ -174,11 +172,11 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
         document.getElementById('soundfont').innerText = file.name;
         message.style.display = 'none';
       };
-      
+
       reader.onloadstart = function(e) {
         message.style.display = 'block';
       };
-      
+
       reader.onprogress = function(e) {
         if (e.lengthComputable) {
           var percentLoaded = Math.round((e.loaded / e.total) * 10000);
