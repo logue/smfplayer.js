@@ -80,8 +80,6 @@ SMF.Player.prototype.setLoop = function(enable) {
 };
 
 SMF.Player.prototype.stop = function() {
-  /** @type {Window} */
-  var window;
   /** @type {number} */
   var i;
 
@@ -89,9 +87,8 @@ SMF.Player.prototype.stop = function() {
   this.resume = Date.now();
 
   if (this.webMidiLink) {
-    window = this.webMidiLink.contentWindow;
     for (i = 0; i < 16; ++i) {
-      goog.global.postMessage('midi,b' + i.toString(16) + ',78,0', '*');
+      this.webMidiLink.contentWindow.postMessage('midi,b' + i.toString(16) + ',78,0', '*');
     }
   }
 };
