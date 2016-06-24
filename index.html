@@ -7,8 +7,8 @@
 		<meta name="description" content="Web Soundfont2 based MIDI Player written in JavaScript." />
 		<meta name="author" content="Logue" />
 		<title>SMF.Player for MIDI</title>
-		<link type="text/css" rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
-		<link type="text/css" rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" />
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 		<style type="text/css">
 /*<![CDATA[*/
 body {
@@ -62,7 +62,15 @@ iframe{
 								<button class="btn btn-default btn-lg" value="panic" id="panic" disabled="disabled" title="Panic"><span class="glyphicon glyphicon-remove-circle"></span></button>
 							</div>
 						</div>
-						<div class="col-md-5 form-group">
+						<div class="form-group col-md-8">
+							<label>Music Progress</label>
+							<div class="progress" style="margin-bottom:0;" id="music-progress">
+								<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-9 form-group">
 							<label for="files">MIDI file: </label>
 							<select id="files" class="form-control"></select>
 						</div>
@@ -78,11 +86,13 @@ iframe{
 						</div>
 					</div>
 					<div class="row">
-						<div class="form-group col-md-3">
-							<label>Music Progress</label>
-							<div class="progress" style="margin-bottom:0;" id="music-progress">
-								<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
-							</div>
+						<div class="col-md-8 form-group">
+							<label for="music_title">Title</label>
+							<input type="text" class="form-control" id="music_title" readonly="readonly" />
+						</div>
+						<div class="col-md-4 form-group">
+							<label for="copyright">Copyright</label>
+							<input type="text" class="form-control" id="copyright" readonly="readonly" />
 						</div>
 					</div>
 				</div>
@@ -141,8 +151,8 @@ iframe{
 			</footer>
 		</div>
 		<aside><a href="https://github.com/logue/smfplayer.js"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a></aside>
-		<script type="text/javascript" src="https:////code.jquery.com/jquery-2.2.4.min.js"></script>
-		<script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+		<script src="https://code.jquery.com/jquery-2.1.4.min.js" integrity="sha384-R4/ztc4ZlRqWjqIuvf6RX5yb/v90qNGx6fS48N0tRxiGkqveZETq72KgDVJCp2TC" crossorigin="anonymous"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 		<script type="text/javascript" src="./js/smf.player.min.js"></script>
 		<!-- script src="../smfplayer.js/closure-primitives/base.js"></script>
 		<script type="text/javascript">
@@ -157,7 +167,6 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 		<script type="text/javascript">
 /*<![CDATA[*/
 // フォームを無効化
-$(':input').attr('disabled','disabled');
 
 // インターバル関数用。準備完了フラグ
 var isReady = false;
@@ -165,7 +174,8 @@ var isReady = false;
 var params={};
 location.hash.substr(1).split('&').forEach(function(param){
 	var param=decodeURIComponent(param);
-	var p=param.split('=');params[p[0]]=p[1];
+	var p=param.split('=');
+	params[p[0]]=p[1];
 });
 // SMF Player
 var player=new SMF.Player();
@@ -177,6 +187,7 @@ var $progress = $('#progress');
  * メイン処理
  */
 $(document).ready(function(){
+	$(':input').attr('disabled','disabled');
 /*
 	// AudioContextが使用可能かのチェック
 	window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
@@ -214,7 +225,7 @@ $(document).ready(function(){
 		loadSample($(this).val());
 	});
 
-	if(params.zip){
+	if(params.zip && !initialized){
 		// クエリからZipファイルを選択
 		$('#zips').val(params.zip);
 		loadSample(params.zip);
@@ -340,12 +351,6 @@ $(document).ready(function(){
 	});
 
 	$('*[title]').tooltip();
-/*
-	if (params.file){
-		handleSelect(document.getElementById('files'));
-		player.play();
-	}
-*/
 });
 
 var $info = $('#info');
@@ -397,8 +402,9 @@ function loadSample(zipfile) {
 		var zip = select.zip = new Zlib.Unzip(input);
 		var filenames = zip.getFilenames();
 
-		$('#info div').removeClass('progress-warning').addClass('progress-info');
+		$('#info div').removeClass('progress-warning').addClass('progress-info').show();
 
+		// ファイル名一覧をセレクトボックスに流し込む
 		filenames.forEach(function(name, i) {
 			var ext = name.slice(name.lastIndexOf('.')).toLowerCase();
 			var percentLoaded = Math.round((i / filenames.length) * 10000);
@@ -406,26 +412,29 @@ function loadSample(zipfile) {
 			$('#info p').text('Parsing zip file...');
 			$('#info div div').css('width', percentLoaded).text(percentLoaded + '%');
 
+			// 拡張子がmid、midi、mldでない場合はスキップ
 			if (ext === '/' || !ext === 'mid' || !ext === 'midi' || !ext === 'mld'){
 				return;
 			}
 
 			var option = document.createElement('option');
+			// 項目名
 			option.textContent = Encoding.convert(name, 'UNICODE', 'SJIS');
+			// 実際のファイル名
 			option.setAttribute('data-midiplayer-filename', name);
+			// selectタグに流し込む
 			select.appendChild(option);
 		});
 
-
-		if ($('#random:checked').val()) {
-			var prev=select.selectedIndex;
-			var next=prev;
-			while(prev==next){
-				next=~~(select.length*Math.random());
-			}
-			select.selectedIndex=next;
+		// 初期値が一番上の項目になるとつまらないのでランダム化
+		var prev=select.selectedIndex;
+		var next=prev;
+		while(prev==next){
+			next=~~(select.length*Math.random());
 		}
-		if (params.file){
+		select.selectedIndex=next;
+		
+		if (params.file && !initialized){
 			// クエリにファイル名が含まれている場合、それを選択
 			$('#files').val(params.file);
 		}
@@ -433,15 +442,38 @@ function loadSample(zipfile) {
 		$('#info p').text('Ready.');
 		$('#info div').removeClass('progress-info').hide();
 		$('#info').removeClass('alert-warning').addClass('alert-success');
-		handleSelect(select);
+		initialized = true;
+		$(':input').removeAttr("disabled");
 	};
+	
+	// ArrayBuffer形式でZipファイルを読み込む
 	xhr.responseType = 'arraybuffer';
+	
+	// ローディング開始時
 	xhr.onloadstart = function(e) {
 		$('#info').removeClass('alert-success').addClass('alert-warning');
 		$('#info div').addClass('progress-warning').show();
 		$('#info div div').css('width',0);
+		$(':input').attr('disabled','disabled');
 	};
+	
+	// エラー処理
+	xhr.onerror = function(e){
+		switch(e.target.error.code) {
+			case e.target.error.NOT_FOUND_ERR:
+				alert('File Not Found!');
+				break;
+			case e.target.error.NOT_READABLE_ERR:
+				alert('File is not readable');
+				break;
+			case e.target.error.ABORT_ERR:
+				break; // noop
+			default:
+				alert('An error occurred reading this file.');
+		};
+	}
       
+	// ローディング中
 	xhr.onprogress = function(e) {
 		if (e.lengthComputable) {
 			var percentLoaded = Math.round((e.loaded / e.total) * 10000);
@@ -450,6 +482,8 @@ function loadSample(zipfile) {
 			$('#info div div').css('width', percentLoaded).text(percentLoaded + '%');
 		}
 	};
+	
+	// xhr開始
 	xhr.send();
 }
 /**
@@ -457,16 +491,20 @@ function loadSample(zipfile) {
  */
 function handleSelect(select) {
 	var option = select.querySelectorAll("option")[select.selectedIndex];
-	var filename = option.value;
+	var filename = option.dataset.midiplayerFilename;
 
 	if (filename) {
-		handleInput(filename,select.zip.decompress(filename));
+		handleInput(filename, select.zip.decompress(filename));
 
 		// ページのタイトルを反映
 		var title=document.getElementById('files').value;
 		title=title.substr(0,title.lastIndexOf('.'));
 		document.title=title+' '+document.getElementById('zips').value+' / SMF.Player';
-		
+
+		$('#music_title').val(Encoding.convert(player.getSequenceName(1), 'UNICODE', 'SJIS'));
+		$('#copyright').val(Encoding.convert(player.getCopyright()[0], 'UNICODE', 'SJIS'));
+
+		// pushstateを使用
 		if(window.history && window.history.pushState) {
 			window.history.pushState(document.title, null, '#zip=' + encodeURIComponent($('#zips').val()) + '&file=' + encodeURIComponent(filename));
 			return false;
