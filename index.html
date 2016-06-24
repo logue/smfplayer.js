@@ -46,7 +46,7 @@ iframe{
 			<div id="info" class="alert alert-warning">
 				<p>Initializing...</p>
 				<div class="progress hide" id="progress">
-					<div class="progress-bar progress-bar-success" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width:0%;">0%</div>
+					<div class="progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" style="width:0%;">0%</div>
 				</div>
 			</div>
 			<div class="panel panel-info clearfix" id="player">
@@ -71,9 +71,9 @@ iframe{
 							<select id="zips" class="form-control">
 								<option value="midifiles/YAMAHA mididata library.zip">YAMAHA mididata library.zip</option>
 								<option value="midifiles/適当詰め合わせ.zip">適当詰め合わせ.zip</option>
-								<option value="midifiles/Midi01.zip">Midi01.zip</option>
+								<!--option value="midifiles/Midi01.zip">Midi01.zip</option>
 								<option value="midifiles/Midi03.zip">Midi03.zip</option>
-								<option value="midifiles/Midi04.zip">Midi04.zip</option>
+								<option value="midifiles/Midi04.zip">Midi04.zip</option-->
 							</select>
 						</div>
 					</div>
@@ -83,10 +83,6 @@ iframe{
 							<div class="progress" style="margin-bottom:0;" id="music-progress">
 								<div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%;"></div>
 							</div>
-						</div>
-						<div class="form-group col-md-9">
-							<label for="url">URL for this MIDI :</label>
-							<input id="url" size="100" readonly="readonly" onclick="this.select()" class="form-control" />
 						</div>
 					</div>
 				</div>
@@ -160,24 +156,29 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 		<script type="text/javascript" src="./js/encoding.min.js"></script>
 		<script type="text/javascript">
 /*<![CDATA[*/
+// フォームを無効化
+$(':input').attr('disabled','disabled');
+
 // インターバル関数用。準備完了フラグ
 var isReady = false;
 // QueryStrings
 var params={};
-location.search.substr(1).split('&').forEach(function(param){
+location.hash.substr(1).split('&').forEach(function(param){
 	var param=decodeURIComponent(param);
 	var p=param.split('=');params[p[0]]=p[1];
 });
 // SMF Player
 var player=new SMF.Player();
 
+var $progress = $('#progress');
+
+
 /**
  * メイン処理
  */
 $(document).ready(function(){
-	// フォームを無効化
-	$(':input').attr('disabled','disabled');
-	// AudioContextが使用可能化のチェック
+/*
+	// AudioContextが使用可能かのチェック
 	window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
 	if ( typeof(window.AudioContext) === 'undefined'){
 		$('#info').addClass('alert-danger').removeClass('alert-warning').text('Your browser has not supported AudioContent function. Please use Firefox or Blink based browser. (such as Chrome)');
@@ -190,16 +191,8 @@ $(document).ready(function(){
 //	}else if (location.protocol === 'http:') {
 //		location.href = 'https://logue.github.io/smfplayer.js';
 	}
-	
+*/
 
-	// Zipファイルの取得
-	var zips=document.querySelector('#zips');
-	if(params.zips){
-		zips.value=params.zips;
-	} else{
-		zips.selectedIndex=~~(zips.length*Math.random());
-	}
-	
 	// smfplayer.jsの初期化
 	player.setLoop($('#playerloop').is(':checked'));
 	player.setCC111Loop($('#cc111loop').is(':checked'));
@@ -207,19 +200,28 @@ $(document).ready(function(){
 	player.setMFiLoop($('#mfiloop').is(':checked'));
 	player.setTempoRate($('#tempo').val());
 	player.setMasterVolume($('#volume').val() * 16383);
+	// player.setMasterChannel(new TimerMasterChannel(TimerMasterChannel.MODE_DEFAULT));
 	// WebMidiLink設定
 	//player.setWebMidiLink('//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html', 'wml');
 	player.setWebMidiLink('wml.html', 'wml');
 
-	loadSample();
-
+	// Zipファイルの取得
 	$('#files').change(function(e){
 		handleSelect(this);
 	});
-	
+
 	$('#zips').change(function(e){
-		loadSample();
+		loadSample($(this).val());
 	});
+
+	if(params.zip){
+		// クエリからZipファイルを選択
+		$('#zips').val(params.zip);
+		loadSample(params.zip);
+	} else{
+		zips.selectedIndex=~~($('#zips').length * Math.random());
+		loadSample($('#zips').val());
+	}
 	
 	// MIDIファイルのドラッグアンドドロップ
 	$('#player *').on('drop',function(e){
@@ -301,7 +303,7 @@ $(document).ready(function(){
 		handleSelect(document.getElementById('files'));
 		setTimeout(function(){
 			player.stop();
-		},51);//よく分からんが非同期で読み込むらしい
+		},51);// よく分からんが非同期で止めるらしい
 	});
 
 	// パニックボタン
@@ -336,7 +338,14 @@ $(document).ready(function(){
 		player.stop();
 		player.setWebMidiLink($(this).val(), 'wml');
 	});
+
 	$('*[title]').tooltip();
+/*
+	if (params.file){
+		handleSelect(document.getElementById('files'));
+		player.play();
+	}
+*/
 });
 
 var $info = $('#info');
@@ -350,7 +359,7 @@ function handleFile(file) {
 	reader.onload = function(e) {
 		var input = new Uint8Array(e.target.result);
 		handleInput(file.name, input);
-		$('#info').text = 'Ready.';
+		$('#info p').text = 'Ready.';
 		$('#info').removeClass('alert-warning').addClass('alert-success');
 	};
 	reader.onloadstart = function(e) {
@@ -360,7 +369,7 @@ function handleFile(file) {
 	reader.onprogress = function(e) {
 		if (e.lengthComputable) {
 			var percentLoaded = Math.round((e.loaded / e.total) * 100);
-			$('#info').html('<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + percentLoaded + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentLoaded + '%;">' + percentLoaded + '%</div></div>');
+			$('#info div div').css('width', percentLoaded + '%').text(percentLoaded + '%');
 		}
 	}
 	reader.readAsArrayBuffer(file);
@@ -370,18 +379,16 @@ var initialized=false;
 /**
  * Zipファイルの内容を取得し、selectタグに割り当てる
  */
-function loadSample() {
+function loadSample(zipfile) {
 	var xhr = new XMLHttpRequest();
-	var url = document.querySelector('#zips').value;
-	
 
 	// ZipファイルをXHRで読み込む（※jqueryのajax命令はarraybuffer非対応なため使えない）
-	xhr.open('GET', url, true);
+	xhr.open('GET', zipfile, true);
 	xhr.responseType = "arraybuffer";
 	xhr.onload = function() {
 		var input = new Uint8Array(this.response);
-
 		var select = document.getElementById('files');
+
 		while (select.childNodes.length > 0) {
 			select.removeChild(select.firstChild);
 		}
@@ -389,87 +396,81 @@ function loadSample() {
 		// Zipファイルからファイル名一覧を取得
 		var zip = select.zip = new Zlib.Unzip(input);
 		var filenames = zip.getFilenames();
-		
-		filenames.forEach(function(name, i) {
-			var percentLoaded = Math.round((i / filenames.length) * 10000);
-			$('#info').html('Parsing zip file...');
 
+		$('#info div').removeClass('progress-warning').addClass('progress-info');
+
+		filenames.forEach(function(name, i) {
 			var ext = name.slice(name.lastIndexOf('.')).toLowerCase();
+			var percentLoaded = Math.round((i / filenames.length) * 10000);
+
+			$('#info p').text('Parsing zip file...');
+			$('#info div div').css('width', percentLoaded).text(percentLoaded + '%');
+
 			if (ext === '/' || !ext === 'mid' || !ext === 'midi' || !ext === 'mld'){
 				return;
 			}
 
 			var option = document.createElement('option');
-			// 文字化け対策
-			var ret = Encoding.convert(name, 'UNICODE', 'SJIS');
-			
-			//option.textContent = name.split('/').pop();
-			option.textContent = ret;
+			option.textContent = Encoding.convert(name, 'UNICODE', 'SJIS');
 			option.setAttribute('data-midiplayer-filename', name);
 			select.appendChild(option);
 		});
 
-		if(document.querySelector('#random').checked==null){
-			select.insertBefore(select.firstChild,document.createElement('option'));
+
+		if ($('#random:checked').val()) {
+			var prev=select.selectedIndex;
+			var next=prev;
+			while(prev==next){
+				next=~~(select.length*Math.random());
+			}
+			select.selectedIndex=next;
 		}
-		else{
-			if(params.files&&initialized==false){
-				select.value=params.files;
-			}
-			else{
-				var prev=select.selectedIndex;
-				var next=prev;
-				while(prev==next){
-					next=~~(select.length*Math.random());
-				}
-				select.selectedIndex=next;
-			}
-			if(initialized){
-				handleSelect(select);
-			}
+		if (params.file){
+			// クエリにファイル名が含まれている場合、それを選択
+			$('#files').val(params.file);
 		}
-		$('#info').html('Ready.');
+
+		$('#info p').text('Ready.');
+		$('#info div').removeClass('progress-info').hide();
 		$('#info').removeClass('alert-warning').addClass('alert-success');
+		handleSelect(select);
 	};
 	xhr.responseType = 'arraybuffer';
 	xhr.onloadstart = function(e) {
 		$('#info').removeClass('alert-success').addClass('alert-warning');
+		$('#info div').addClass('progress-warning').show();
+		$('#info div div').css('width',0);
 	};
       
 	xhr.onprogress = function(e) {
 		if (e.lengthComputable) {
 			var percentLoaded = Math.round((e.loaded / e.total) * 10000);
-			$('#info').html('Now loading... <br /><div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + percentLoaded + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentLoaded + '%;">' + percentLoaded + '%</div></div>');
+			$('#info p').text('Now loading zip file...');
+			
+			$('#info div div').css('width', percentLoaded).text(percentLoaded + '%');
 		}
 	};
 	xhr.send();
 }
 /**
  * 選択されたファイルを解凍
- * @param dom select 対象のselectタグ
  */
 function handleSelect(select) {
 	var option = select.querySelectorAll("option")[select.selectedIndex];
-	var filename = option.getAttribute('data-midiplayer-filename');
+	var filename = option.value;
 
 	if (filename) {
-		handleInput(filename, select.zip.decompress(filename));
-
-		// このファイルのURLを生成
-		var url= location.toString();
-		var queries=[];
-		if(location.search.indexOf('a320u')>0){
-			queries.push('a320u');
-		}
-		queries.push("files="+encodeURIComponent(document.getElementById('files').value));
-		queries.push("zips="+encodeURIComponent(document.getElementById('zips').value));
-		url+='?'+queries.join('&');
-		document.querySelector("#url").value=url;
+		handleInput(filename,select.zip.decompress(filename));
 
 		// ページのタイトルを反映
 		var title=document.getElementById('files').value;
 		title=title.substr(0,title.lastIndexOf('.'));
 		document.title=title+' '+document.getElementById('zips').value+' / SMF.Player';
+		
+		if(window.history && window.history.pushState) {
+			window.history.pushState(document.title, null, '#zip=' + encodeURIComponent($('#zips').val()) + '&file=' + encodeURIComponent(filename));
+			return false;
+		}
 	}
 }
 /**
@@ -486,10 +487,10 @@ function handleInput(filename, buffer) {
 
 	switch (filename.slice(filename.lastIndexOf('.')).toLowerCase()) {
 		case '.mld':
-		case '.midi':
 			player.loadMldFile(buffer);
 			break;
 		case '.mid':
+		case '.midi':
 			player.loadMidiFile(buffer);
 			break;
 	}
@@ -547,6 +548,9 @@ $(window).on('message', function(e) {
 					handleSelect(document.getElementById('files'));
 				}
 			}
+			break;
+		case 'progress':
+			$('#info p').text('Loading soundfont...');
 			break;
 		case 'link,ready':
 			// WMLが読み込まれた時
