@@ -4,7 +4,7 @@
 		<meta charset="utf-8"/>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content="Web Soundfont2 based MIDI Player written in JavaScript." />
+		<meta name="description" content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file." />
 		<meta name="author" content="Logue" />
 		<title>SMF.Player for MIDI</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
@@ -50,7 +50,7 @@ iframe{
 				</div>
 			</div>
 			<div class="panel panel-info clearfix" id="player">
-				<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play your file.)</small></div>
+				<div class="panel-heading">MIDI Player <small>(drag and drop midi file here to play local midi file.)</small></div>
 				<div class="panel-body">
 					<div class="row">
 						<div class="col-md-4">
@@ -59,7 +59,7 @@ iframe{
 								<button class="btn btn-primary btn-lg" value="play" id="play" disabled="disabled" title="Play / Pause"><span class="glyphicon glyphicon-play"></span></button>
 								<button class="btn btn-danger btn-lg" value="stop" id="stop" disabled="disabled" title="Stop"><span class="glyphicon glyphicon-stop"></span></button>
 								<button class="btn btn-info btn-lg" value="next" id="next" disabled="disabled" title="Next Music"><span class="glyphicon glyphicon-chevron-right"></span></button>
-								<button class="btn btn-default btn-lg" value="panic" id="panic" disabled="disabled" title="Panic"><span class="glyphicon glyphicon-remove-circle"></span></button>
+								<!--button class="btn btn-default btn-lg" value="panic" id="panic" disabled="disabled" title="Panic"><span class="glyphicon glyphicon-remove-circle"></span></button-->
 							</div>
 						</div>
 						<div class="form-group col-md-8">
@@ -72,7 +72,12 @@ iframe{
 					<div class="row">
 						<div class="col-md-9 form-group">
 							<label for="files">MIDI file: </label>
-							<select id="files" class="form-control"></select>
+							<div class="input-group">
+								<select id="files" class="form-control"></select>
+								<span class="input-group-btn">
+									<button class="btn btn-default" type="button" title="Download" id="download"><span class="glyphicon glyphicon-download-alt"></span></button>
+								</span>
+							</div>
 						</div>
 						<div class="col-md-3 form-group">
 							<label for="zips">Zip archive file:</label>
@@ -107,7 +112,7 @@ iframe{
 							<!--option value="./wml.html?disableDrawSynth">Yamaha XG Sound Set.sf2 (Disable Keyboard)</option-->
 							<option value="//www.g200kg.com/webmidilink/gmplayer/">GMPlayer</option>
 							<option value="//imaya.github.io/demo/sf2.js/wml.html">A320U.sf2</option>
-							<option value="//logue.github.io/Wml2WebMidiApi/wml.html">Web MIDI API</option>
+							<option value="//logue.github.io/Wml2WebMidiApi/wml.html">Web MIDI API (Experimental)</option>
 						</select>
 					</div>
 					<div class="row">
@@ -183,7 +188,7 @@ var player=new SMF.Player();
 
 var $progress = $('#progress');
 
-
+window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
 /**
  * メイン処理
  */
@@ -218,11 +223,11 @@ $(document).ready(function(){
 	player.setWebMidiLink('wml.html', 'wml');
 
 	// Zipファイルの取得
-	$('#files').change(function(e){
+	$('#files').on('change',function(e){
 		handleSelect(this);
 	});
 
-	$('#zips').change(function(e){
+	$('#zips').on('change', function(e){
 		loadSample($(this).val());
 	});
 
@@ -259,21 +264,21 @@ $(document).ready(function(){
 	});
 
 	// テンポ設定
-	$('#tempo').change(function(){
+	$('#tempo').on('change', function(){
 		var value = $(this).val();
 		player.setTempoRate(value);
 		$('#tempo_value').text(value);
 	});
 
 	// マスターボリューム
-	$('#volume').change(function(){
+	$('#volume').on('change', function(){
 		var value = $(this).val();
 		player.setMasterVolume(value * 16383);
 		$('#volume_value').text(value);
 	});
 	
 	// 前に戻るボタン
-	$('#prev').click(function(){
+	$('#prev').on('click', function(){
 		// 現在選択中の項目を取得
 		var selected_music = $('#files').prop('selectedIndex');
 		if (selected_music == $('#files option').length){
@@ -287,7 +292,7 @@ $(document).ready(function(){
 	});
 
 	// 次に進むボタン
-	$('#next').click(function(){
+	$('#next').on('click', function(){
 		var selected_music = $('#files').prop('selectedIndex');
 		if (selected_music == $('#files option').length){
 			// 末尾の場合最初に戻る
@@ -300,7 +305,7 @@ $(document).ready(function(){
 	});
 	
 	// 再生／一時停止ボタン
-	$('#play').click(function(){
+	$('#play').on('click', function(){
 		if (player.pause) {
 			// 再生
 			player.play();
@@ -311,7 +316,7 @@ $(document).ready(function(){
 	});
 
 	// 停止ボタン
-	$('#stop').click(function(){
+	$('#stop').on('click', function(){
 		handleSelect(document.getElementById('files'));
 		setTimeout(function(){
 			player.stop();
@@ -319,8 +324,27 @@ $(document).ready(function(){
 	});
 
 	// パニックボタン
-	$('#panic').click(function(){
+	$('#panic').on('click', function(){
 		player.sendAllSoundOff();
+	});
+	
+	// MIDIファイルのダウンロード
+	$('#download').on('click', function(){
+		// 選択状態を取得
+		var select = document.getElementById('files');
+		var option = select.querySelectorAll("option")[select.selectedIndex];
+		var filename = option.dataset.midiplayerFilename;
+
+		// arraybufferをbase64に変換
+		var binary = '';
+		var bytes = new Uint8Array( select.zip.decompress(filename) );
+		var len = bytes.byteLength;
+		for (var i = 0; i < len; i++) {
+			binary += String.fromCharCode( bytes[ i ] );
+		}
+
+		// この方法は泥臭い
+		window.location.href = 'data:audio/midi;base64,' + window.btoa(binary);
 	});
 
 	// WebMidiLinkセレクタ
@@ -346,12 +370,20 @@ $(document).ready(function(){
 		}
 	});
 */
-	$('#synth').change(function(e){
+	$('#synth').on('change', function(e){
 		player.stop();
 		player.setWebMidiLink($(this).val(), 'wml');
 	});
 
 	$('*[title]').tooltip();
+
+/*
+	// 曲の位置を変更。将来実装予定・・・。
+	$('#music-progress').on('click', function(e){
+		var progress_bar_percentage = e.offsetX / $(this).width();
+		player.setPosition( player.getLength() * progress_bar_percentage);
+	});
+*/
 });
 
 var $info = $('#info');
@@ -502,6 +534,7 @@ function handleSelect(select) {
 		title=title.substr(0,title.lastIndexOf('.'));
 		document.title=title+' '+document.getElementById('zips').value+' / SMF.Player';
 
+		// MIDIファイルに埋め込まれたメタデータを取得
 		$('#music_title').val(Encoding.convert(player.getSequenceName(1), 'UNICODE', 'SJIS'));
 		$('#copyright').val(Encoding.convert(player.getCopyright()[0], 'UNICODE', 'SJIS'));
 
