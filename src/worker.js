@@ -99,13 +99,16 @@ goog.scope(function () {
   SMF.Worker.prototype.init = function () {
     this.stop();
     this.initSequence();
-    this.pause = false;
+    this.pause = true;
     this.track = null;
     this.resume = -1;
     this.sequence = null;
     this.sequenceName = null;
     this.copyright = null;
     this.length = 0;
+    this.position = 0;
+    this.time = 0;
+    this.timeTotal = 0;
 
     this.window.clearTimeout(this.timer);
 
@@ -346,6 +349,7 @@ goog.scope(function () {
       }
 
       player.position = pos;
+      player.time = time;
     }
   };
 
@@ -440,6 +444,8 @@ goog.scope(function () {
         0;
     });
 
+    // トータルの演奏時間
+    this.timeTotal = mergedTrack.slice(-1)[0].time;
     this.sequence = midi;
   };
 
@@ -481,12 +487,29 @@ goog.scope(function () {
   SMF.Worker.prototype.sendGmReset = function () {
     if (this.webMidiLink) {
       // F0 7E 7F 09 01 F7
-      this.webMidiLink.contentWindow.postMessage('midi,F0,7E,7F,09,01,F7', '*');
+      this.webMidiLink.postMessage('midi,F0,7E,7F,09,01,F7');
     }
   }
   SMF.Worker.prototype.sendAllSoundOff = function () {
     if (this.webMidiLink) {
-      this.webMidiLink.contentWindow.postMessage('midi,b0,78,0', '*');
+      this.webMidiLink.postMessage('midi,b0,78,0');
     }
+  }
+  /**
+   * @param {number} time
+   * @return {string}
+   */
+  SMF.Worker.prototype.getTime = function (time) {
+    var secs = (this.tempo / 6000000) * time;
+
+    var hours = Math.floor(secs / (60 * 60));
+
+    var divisor_for_minutes = secs % (60 * 60);
+    var minutes = Math.floor(divisor_for_minutes / 60);
+
+    var divisor_for_seconds = divisor_for_minutes % 60;
+    var seconds = Math.ceil(divisor_for_seconds);
+
+    return hours + ':' + ('00' + minutes).slice(-2) + ':' + ('00' + seconds).slice(-2);
   }
 });

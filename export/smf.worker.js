@@ -23,4 +23,7 @@ if (SMF_WORKER_EXPORT) {
   goog.exportSymbol('SMF.Worker.prototype.getPosition', SMF.Worker.prototype.getPosition);
   goog.exportSymbol('SMF.Worker.prototype.sendGmReset', SMF.Worker.prototype.sendGmReset);
   goog.exportSymbol('SMF.Worker.prototype.sendAllSoundOff', SMF.Worker.prototype.sendAllSoundOff);
+  goog.exportSymbol('SMF.Worker.prototype.time', SMF.Worker.prototype.time);
+  goog.exportSymbol('SMF.Worker.prototype.timeTotal', SMF.Worker.prototype.timeTotal);
+  goog.exportSymbol('SMF.Worker.prototype.getTime', SMF.Worker.prototype.getTime);
 }
