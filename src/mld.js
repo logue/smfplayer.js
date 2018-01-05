@@ -66,7 +66,17 @@ goog.scope(function () {
     /** @type {number} */
     var ip = this.ip;
     /** @type {Object} */
-    var dataInformation = this.dataInformation = {};
+    var dataInformation = this.dataInformation = {
+      'copy': null,
+      'date': null,
+      'exst': null,
+      'note': null,
+      'prot': null,
+      'sorc': null,
+      'titl': null,
+      'trac': null,
+      'vers': null
+    };
     /** @type {string} */
     var type;
     /** @type {number} */
@@ -158,7 +168,16 @@ goog.scope(function () {
       track = tracks[i] = [];
 
       while (ip < limit) {
-        message = {};
+        message = {
+          key: null,
+          length: null,
+          octaveShift: null,
+          subType: null,
+          type: null,
+          value: {},
+          velocity: null,
+          voice: null
+        };
 
         // delta time
         message.deltaTime = deltaTime = input[ip++];
@@ -233,8 +252,8 @@ goog.scope(function () {
                   message.value = input[ip++];
                   break;
                 case 0xf:
-                  message['subType'] = 'EndOfTrack';
-                  message['value'] = input[ip++];
+                  message.subType = 'EndOfTrack';
+                  message.value = input[ip++];
                   break;
                 default:
                   throw new Error('unkwnon message type:' + status.toString(16));
@@ -244,57 +263,57 @@ goog.scope(function () {
             case 0xe:
               switch (status & 0xf) {
                 case 0x0:
-                  message['subType'] = 'InstrumentLowPart';
-                  message['value'] = {
+                  message.subType = 'InstrumentLowPart';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'instrument': input[ip++] & 0x3f
                   };
                   break;
                 case 0x1:
-                  message['subType'] = 'InstrumentHighPart';
-                  message['value'] = {
+                  message.subType = 'InstrumentHighPart';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'instrument': input[ip++] & 0x1
                   };
                   break;
                 case 0x2:
-                  message['subType'] = 'Volume';
-                  message['value'] = {
+                  message.subType = 'Volume';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'volume': input[ip++] & 0x3f
                   };
                   break;
                 case 0x3:
-                  message['subType'] = 'Valance';
-                  message['value'] = {
+                  message.subType = 'Valance';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'valance': input[ip++] & 0x3f
                   };
                   break;
                 case 0x4:
-                  message['subType'] = 'PitchBend';
-                  message['value'] = {
+                  message.subType = 'PitchBend';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'value': input[ip++] & 0x3f
                   };
                   break;
                 case 0x5:
-                  message['subType'] = 'ChannelAssign';
-                  message['value'] = {
+                  message.subType = 'ChannelAssign';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'channel': input[ip++] & 0x3f
                   };
                   break;
                 case 0x6:
-                  message['subType'] = 'VolumeChange';
-                  message['value'] = {
+                  message.subType = 'VolumeChange';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'volume': (input[ip++] & 0x3f) << 26 >> 26
                   };
                   break;
                 case 0x7:
-                  message['subType'] = 'PitchBendRange';
-                  message['value'] = {
+                  message.subType = 'PitchBendRange';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'value': (input[ip++] & 0x3f)
                   };
@@ -302,8 +321,8 @@ goog.scope(function () {
                   // TODO: 未遭遇
                   /*
                   case 0x8:
-                    message['subType'] = 'MasterFineTuning';
-                    message['value'] = {
+                    message.subType = 'MasterFineTuning';
+                    message.value = {
                       'part': input[ip] >> 6,
                       'value': (input[ip++] & 0x3f)
                     };
@@ -311,15 +330,15 @@ goog.scope(function () {
                   */
                   // TODO: あってるか自信ない
                 case 0x9:
-                  message['subType'] = 'MasterCoarseTuning';
-                  message['value'] = {
+                  message.subType = 'MasterCoarseTuning';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'value': (input[ip++] & 0x3f)
                   };
                   break;
                 case 0xA:
-                  message['subType'] = 'Modulation';
-                  message['value'] = {
+                  message.subType = 'Modulation';
+                  message.value = {
                     'part': input[ip] >> 6,
                     'depth': (input[ip++] & 0x3f)
                   };
@@ -332,16 +351,16 @@ goog.scope(function () {
             case 0xf:
               switch (status & 0xf) {
                 case 0x0:
-                  message['subType'] = 'EditInstrument';
-                  message['value'] = parseEditInstrument();
+                  message.subType = 'EditInstrument';
+                  message.value = parseEditInstrument();
                   break;
                 case 0x1:
-                  message['subType'] = 'Vibrato';
-                  message['value'] = parseVibrato();
+                  message.subType = 'Vibrato';
+                  message.value = parseVibrato();
                   break;
                 case 0xf:
-                  message['subType'] = 'DeviceSpecific';
-                  message['value'] = parseDeviceSpecific();
+                  message.subType = 'DeviceSpecific';
+                  message.value = parseDeviceSpecific();
                   break;
                 default:
                   throw new Error('unkwnon message type:' + status.toString(16));
@@ -459,12 +478,14 @@ goog.scope(function () {
   Mld.Parser.prototype.convertToMidiTracks = function () {
     /** @type {Object} */
     var result = {
-      'timeDivision': 48
+      timeDivision: 48,
+      trac: [],
+      plainTracks: []
     };
     /** @type {Array.<Array.<Object>>} */
-    var tracks = result['tracks'] = [];
+    var tracks = result.tracks;
     /** @type {Array.<Array.<Array.<number>>>} */
-    var plainTracks = result['plainTracks'] = [];
+    var plainTracks = result.plainTracks;
     /** @type {Array.<Array.<Object>>} */
     var mfiTracks = this.tracks;
     /** @type {Array.<Object>} */
