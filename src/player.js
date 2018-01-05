@@ -8,7 +8,7 @@ goog.scope(function () {
   /**
    * @constructor
    */
-  SMF.Player = function () {
+  SMF.Player = function (target = '#wml') {
     /** @type {number} */
     this.tempo = 500000; // default
     /** @type {HTMLIFrameElement} */
@@ -48,7 +48,15 @@ goog.scope(function () {
     /** @type {number} */
     this.length;
     /** @type {number} */
+    this.time;
+    /** @type {number} */
+    this.timeTotal;
+    /** @type {number} */
     this.loaded;
+    /** @type {Window} */
+    this.window = goog.global.window;
+    /** @type {Element} */
+    this.target = document.body.querySelector(target);
   };
 
   /**
@@ -108,15 +116,17 @@ goog.scope(function () {
     this.copyright = null;
     this.length = 0;
     this.position = 0;
+    this.time = 0;
+    this.timeTotal = 0;
 
-    goog.global.window.clearTimeout(this.timer);
+    this.window.clearTimeout(this.timer);
 
     /** @type {SMF.Player} */
     var player = this;
     if (this.ready) {
       this.sendInitMessage();
     } else {
-      goog.global.window.addEventListener('message', (function (ev) {
+      this.window.addEventListener('message', (function (ev) {
         if (ev.data === 'link,ready') {
           player.sendInitMessage();
         }
@@ -151,7 +161,7 @@ goog.scope(function () {
         goog.global.console.warn('Midi file is not loaded.');
       }
     } else {
-      goog.global.window.addEventListener('message', (function (ev) {
+      this.window.addEventListener('message', (function (ev) {
         if (ev.data === 'link,ready') {
           player.ready = true;
           player.playSequence();
@@ -187,31 +197,32 @@ goog.scope(function () {
   /**
    * @param {string} url WebMidiLink url.
    */
-  SMF.Player.prototype.setWebMidiLink = function (url, attachpoint) {
-    if (!attachpoint) {
-      attachpoint = 'wml';
-    }
+  SMF.Player.prototype.setWebMidiLink = function (url) {
     /** @type {SMF.Player} */
     var player = this;
     /** @type {HTMLIFrameElement} */
     var iframe;
-    /** @type {Element} **/
-    var dom = goog.global.window.document.getElementById(attachpoint);
 
+    // Clear self
     if (this.webMidiLink) {
-      dom.innerHTML = null;
-      this.webMidiLink = null;
+      this.webMidiLink.parentNode.removeChild(this.webMidiLink);
     }
+
+    // Clear parent DOM
+    if (this.target.firstChild) {
+      this.target.removeChild(this.target.firstChild);
+    }
+
 
     iframe = this.webMidiLink =
       /** @type {HTMLIFrameElement} */
-      (goog.global.window.document.createElement('iframe'));
+      (this.window.document.createElement('iframe'));
     iframe.src = url || '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html';
     iframe.className = 'wml';
 
-    dom.appendChild(iframe);
+    this.target.appendChild(iframe);
 
-    goog.global.window.addEventListener('message', (function (ev) {
+    this.window.addEventListener('message', (function (ev) {
       if (typeof ev.data === 'string') {
         var msg = ev.data.split(',');
 
@@ -269,17 +280,15 @@ goog.scope(function () {
     var pos = this.position || 0;
     /** @type {Array.<?{pos: number}>} */
     var mark = [];
-    /** @type {Window} */
-    var win = goog.global.window;
 
     if (!this.pause) {
-      this.timer = win.setTimeout(
+      this.timer = this.window.setTimeout(
         update,
         this.tempo / 1000 * timeDivision * this.track[0]['time']
       );
     } else {
       // resume
-      this.timer = win.setTimeout(
+      this.timer = this.window.setTimeout(
         update,
         this.resume
       );
@@ -333,7 +342,7 @@ goog.scope(function () {
           if (event.data[0] === 'B' && player.enableFalcomLoop &&
             mark[0] && typeof mark[0]['pos'] === 'number') {
             pos = mark[0]['pos'];
-            player.timer = win.setTimeout(update, 0);
+            player.timer = player.window.setTimeout(update, 0);
             player.position = pos;
             return;
           }
@@ -357,7 +366,7 @@ goog.scope(function () {
                   tmp['count']--;
                 }
                 pos = tmp['pos'];
-                player.timer = win.setTimeout(update, 0);
+                player.timer = player.window.setTimeout(update, 0);
                 player.position = pos;
                 return;
               } else { // loop end
@@ -373,17 +382,16 @@ goog.scope(function () {
 
       if (pos < length) {
         procTime = Date.now() - procTime;
-        player.timer = win.setTimeout(
+        player.timer = player.window.setTimeout(
           update,
           player.tempo / (1000 * timeDivision) * (mergedTrack[pos]['time'] - time - procTime) * (1 / player.tempoRate)
         );
       } else {
         // loop
-        goog.global.window.postMessage('endoftrack', '*');
-        this.pause = true;
+        player.window.postMessage('endoftrack', '*');
+        player.pause = true;
         if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
           pos = mark[0]['pos'];
-          player.timer = win.setTimeout(update, 0);
         } else if (player.enableLoop) {
           player.initSequence();
           player.playSequence();
@@ -391,6 +399,7 @@ goog.scope(function () {
       }
 
       player.position = pos;
+      player.time = time;
     }
   };
 
@@ -485,6 +494,8 @@ goog.scope(function () {
         0;
     });
 
+    // トータルの演奏時間
+    this.timeTotal = mergedTrack.slice(-1)[0].time;
     this.sequence = midi;
   };
 
@@ -534,5 +545,23 @@ goog.scope(function () {
     if (this.webMidiLink) {
       this.webMidiLink.contentWindow.postMessage('midi,b0,78,0', '*');
     }
+  }
+
+  /**
+   * @param {number} time
+   * @return {string}
+   */
+  SMF.Player.prototype.getTime = function (time) {
+    var secs = (this.tempo / 6000000) * time;
+    
+    var hours = Math.floor(secs / (60 * 60));
+
+    var divisor_for_minutes = secs % (60 * 60);
+    var minutes = Math.floor(divisor_for_minutes / 60);
+
+    var divisor_for_seconds = divisor_for_minutes % 60;
+    var seconds = Math.ceil(divisor_for_seconds);
+
+    return hours + ':' + ('00' + minutes).slice(-2) + ':' + ('00' + seconds).slice(-2);
   }
 });
