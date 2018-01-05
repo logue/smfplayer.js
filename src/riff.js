@@ -14,19 +14,19 @@ Riff.Parser = function(input, opt_params) {
   /** @type {ByteArray} */
   this.input = input;
   /** @type {number} */
-  this.ip = opt_params['index'] || 0;
+  this.ip = opt_params.index || 0;
   /** @type {number} */
-  this.length = opt_params['length'] || input.length - this.ip;
+  this.length = opt_params.length || input.length - this.ip;
   /** @type {Array.<{type: string, size: number, offset: number}>} */
   this.chunkList;
   /** @type {number} */
   this.offset = this.ip;
   /** @type {boolean} */
   this.padding =
-    opt_params['padding'] !== void 0 ? opt_params['padding'] : true;
+    opt_params.padding !== void 0 ? opt_params.padding : true;
   /** @type {boolean} */
   this.bigEndian =
-    opt_params['bigEndian'] !== void 0 ? opt_params['bigEndian'] : false;
+    opt_params.bigEndian !== void 0 ? opt_params.bigEndian : false;
 };
 
 Riff.Parser.prototype.parse = function() {
@@ -89,6 +89,6 @@ Riff.Parser.prototype.getChunk = function(index) {
  */
 Riff.Parser.prototype.getNumberOfChunks = function() {
   return this.chunkList.length;
-}
+};
 
 });

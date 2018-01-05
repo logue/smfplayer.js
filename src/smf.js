@@ -14,13 +14,13 @@ goog.scope(function() {
  */
 SMF.Parser = function(input, opt_params) {
   opt_params = opt_params || {};
-  opt_params['padding'] = false;
-  opt_params['bigEndian'] = true;
+  opt_params.padding = false;
+  opt_params.bigEndian = true;
 
   /** @type {ByteArray} */
   this.input = input;
   /** @type {number} */
-  this.ip = opt_params['index'] || 0;
+  this.ip = opt_params.index || 0;
   /** @type {number} */
   this.chunkIndex = 0;
   /**
@@ -67,9 +67,9 @@ SMF.Parser.prototype.parseHeaderChunk = function() {
   /** @type {ByteArray} */
   var data = this.input;
   /** @type {number} */
-  var ip = chunk['offset'];
+  var ip = chunk.offset;
 
-  if (!chunk || chunk['type'] !== 'MThd') {
+  if (!chunk || chunk.type !== 'MThd') {
     throw new Error('invalid header signature');
   }
 
@@ -84,7 +84,7 @@ SMF.Parser.prototype.parseTrackChunk = function() {
   /** @type {ByteArray} */
   var data = this.input;
   /** @type {number} */
-  var ip = chunk['offset'];
+  var ip = chunk.offset;
   /** @type {number} */
   var size;
   /** @type {number} */
@@ -112,11 +112,11 @@ SMF.Parser.prototype.parseTrackChunk = function() {
   /** @type {ByteArray} */
   var plainBytes;
 
-  if (!chunk || chunk['type'] !== 'MTrk') {
+  if (!chunk || chunk.type !== 'MTrk') {
     throw new Error('invalid header signature');
   }
 
-  size = chunk['offset'] + chunk['size'];
+  size = chunk.offset + chunk.size;
   var eventQueue = [];
   var plainQueue = [];
 

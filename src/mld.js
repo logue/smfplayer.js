@@ -14,7 +14,7 @@ Mld.Parser = function(input, opt_params) {
   /** @type {ByteArray} */
   this.input = input;
   /** @type {number} */
-  this.ip = opt_params['index'] || 0;
+  this.ip = opt_params.index || 0;
   /** @type {Object} */
   this.header;
   /** @type {Object} */
@@ -95,6 +95,7 @@ Mld.Parser.prototype.parseDataInformation = function() {
         dataInformation[type] = (input[ip++] << 8) | input[ip++];
         break;
       case 'exst': /* FALLTHROUGH */
+        break;
       default:
         dataInformation[type] = input.subarray(ip, ip += size);
         break;
@@ -155,27 +156,27 @@ Mld.Parser.prototype.parseTracks = function() {
       message = {};
 
       // delta time
-      message['deltaTime'] = deltaTime = input[ip++];
+      message.deltaTime = deltaTime = input[ip++];
 
       // status
       status = input[ip++];
       if (status !== 0xff) {
-        message['type'] = 'note';
-        message['subType'] = 'Note';
-        message['voice'] = status >> 6;
-        message['key'] = status & 0x3f;
+        message.type = 'note';
+        message.subType = 'Note';
+        message.voice = status >> 6;
+        message.key = status & 0x3f;
 
         // note length
-        noteLength = message['length'] = input[ip++];
+        noteLength = message.length = input[ip++];
 
         // extend status
-        if (this.dataInformation['note'] === 1) {
+        if (this.dataInformation.note === 1) {
           extendStatus = input[ip++];
-          message['velocity'] = extendStatus >> 2;
-          message['octaveShift'] = extendStatus & 0x3;
+          message.velocity = extendStatus >> 2;
+          message.octaveShift = extendStatus & 0x3;
         }
       } else {
-        message['type'] = 'meta';
+        message.type = 'meta';
 
         // status
         status = input[ip++];
@@ -184,12 +185,12 @@ Mld.Parser.prototype.parseTracks = function() {
           case 0xb:
             switch (status & 0xf) {
               case 0x0:
-                message['subType'] = 'MasterVolume';
-                message['value'] = input[ip++];
+                message.subType = 'MasterVolume';
+                message.value = input[ip++];
                 break;
               case 0xa:
-                message['subType'] = 'DrumScale';
-                message['value'] = {
+                message.subType = 'DrumScale';
+                message.value = {
                   'channel': (input[ip] >> 3) & 0x7,
                   'drum': input[ip++] & 0x1
                 };
@@ -200,8 +201,8 @@ Mld.Parser.prototype.parseTracks = function() {
             break;
           // tempo message
           case 0xc:
-            message['subType'] = 'SetTempo';
-            message['value'] = {
+            message.subType = 'SetTempo';
+            message.value = {
               'timeBase': (status & 0x7) === 7 ?
                 NaN :
                 Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
@@ -212,20 +213,20 @@ Mld.Parser.prototype.parseTracks = function() {
           case 0xd:
             switch (status & 0xf) {
               case 0x0:
-                message['subType'] = 'Point';
-                message['value'] = input[ip++];
+                message.subType = 'Point';
+                message.value = input[ip++];
                 break;
               case 0xd:
-                message['subType'] = 'Loop';
-                message['value'] = {
+                message.subType = 'Loop';
+                message.value = {
                   'id': input[ip] >> 6,
                   'count': input[ip] >> 2 & 0xf,
                   'point': input[ip++] & 0x3
                 };
                 break;
               case 0xe:
-                message['subType'] = 'Nop';
-                message['value'] = input[ip++];
+                message.subType = 'Nop';
+                message.value = input[ip++];
                 break;
               case 0xf:
                 message['subType'] = 'EndOfTrack';
