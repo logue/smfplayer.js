@@ -197,7 +197,7 @@ goog.scope(function () {
   /**
    * @param {string} url WebMidiLink url.
    */
-  SMF.Player.prototype.setWebMidiLink = function (url) {
+  SMF.Player.prototype.setWebMidiLink = function (url = '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html') {
     /** @type {SMF.Player} */
     var player = this;
     /** @type {HTMLIFrameElement} */
@@ -217,7 +217,7 @@ goog.scope(function () {
     iframe = this.webMidiLink =
       /** @type {HTMLIFrameElement} */
       (this.window.document.createElement('iframe'));
-    iframe.src = url || '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html';
+    iframe.src = url;
     iframe.className = 'wml';
 
     this.target.appendChild(iframe);
