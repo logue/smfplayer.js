@@ -3,7 +3,6 @@ CACHE MANIFEST
 
 Yamaha%20XG%20Sound%20Set.sf2
 ./js/encoding.min.js
-./js/unzip.min.js
 ./js/waapisim.min.js
 ./js/waapisim.swf
 ./midifiles/Midi01.zip

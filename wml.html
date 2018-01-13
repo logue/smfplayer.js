@@ -1,31 +1,44 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="ja" manifest="smfplayer.appcache">
+
 <head>
   <meta name="robots" content="noindex" />
   <title>Web Midi Link</title>
-  <link type="text/css" rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0-beta.3/dist/css/bootstrap.min.css" />
   <style type="text/css">
-/*<![CDATA[*/
+    /*<![CDATA[*/
+
+    meter {
+      margin: 0 2px;
+      width: 100%;
+    }
+
     table {
       table-layout: fixed;
       width: 100%;
       border-spacing: 0;
     }
+
     th {
       padding: 0;
     }
-    td, th{
-      font-size:x-small;
+
+    td,
+    th {
+      font-size: x-small;
     }
-    tbody > tr:nth-child(odd) {
+
+    tbody>tr:nth-child(odd) {
       background-color: #eee;
     }
+
     th:first-child,
     td:first-child {
       width: 146px;
       overflow: hidden;
       white-space: nowrap;
     }
+
     th:nth-child(2),
     td:nth-child(2) {
       width: 32px;
@@ -33,6 +46,7 @@
       white-space: nowrap;
       text-align: right;
     }
+
     th:nth-child(3),
     td:nth-child(3) {
       width: 32px;
@@ -40,6 +54,7 @@
       white-space: nowrap;
       text-align: right;
     }
+
     th:nth-child(4),
     td:nth-child(4) {
       width: 48px;
@@ -47,6 +62,7 @@
       white-space: nowrap;
       text-align: right;
     }
+
     th:nth-child(5),
     td:nth-child(5) {
       width: 48px;
@@ -54,20 +70,24 @@
       white-space: nowrap;
       text-align: right;
     }
-    th:nth-child(6){
-      text-align:right;
+
+    th:nth-child(6) {
+      text-align: right;
     }
     /*
     td:nth-child(65) {
       background-color: #afa;
     }
     */
+
     td:nth-child(12n+10) {
       border-right: 1px dashed #ccc;
     }
+
     td:nth-child(12n+5) {
       border-right: 1px solid #888;
     }
+
     td:nth-child(12n+7),
     td:nth-child(12n+9),
     td:nth-child(12n+12),
@@ -76,40 +96,119 @@
       background-color: #ccc;
       border-right: none;
     }
+
     td.note-on {
       background-color: blue;
     }
-/*]]>*/
+
+    tr.hold td {
+      color: red;
+    }
+
+    tr:nth-child(1) td.note-on {
+      background-color: rgb(238, 17, 0);
+    }
+
+    tr:nth-child(2) td.note-on {
+      background-color: rgb(255, 51, 17);
+    }
+
+    tr:nth-child(3) td.note-on {
+      background-color: rgb(255, 68, 34);
+    }
+
+    tr:nth-child(4) td.note-on {
+      background-color: rgb(255, 102, 68);
+    }
+
+    tr:nth-child(5) td.note-on {
+      background-color: rgb(255, 153, 51);
+    }
+
+    tr:nth-child(6) td.note-on {
+      background-color: rgb(254, 174, 45);
+    }
+
+    tr:nth-child(7) td.note-on {
+      background-color: rgb(204, 187, 51);
+    }
+
+    tr:nth-child(8) td.note-on {
+      background-color: rgb(208, 195, 16);
+    }
+
+    tr:nth-child(9) td.note-on {
+      background-color: rgb(170, 204, 34);
+    }
+
+    tr:nth-child(10) td.note-on {
+      background-color: rgb(105, 208, 37);
+    }
+
+    tr:nth-child(11) td.note-on {
+      background-color: rgb(34, 204, 170);
+    }
+
+    tr:nth-child(12) td.note-on {
+      background-color: rgb(18, 189, 185);
+    }
+
+    tr:nth-child(13) td.note-on {
+      background-color: rgb(17, 170, 187);
+    }
+
+    tr:nth-child(14) td.note-on {
+      background-color: rgb(68, 68, 221);
+    }
+
+    tr:nth-child(15) td.note-on {
+      background-color: rgb(51, 17, 187);
+    }
+
+    tr:nth-child(15) td.note-on {
+      background-color: rgb(59, 12, 189);
+    }
+    /*]]>*/
   </style>
 </head>
+
 <body>
-<h2 class="page-header" style="margin:0;">SoundFont: <span id="soundfont">Yamaha XG Sound Set.sf2</span></h2>
-<p class="text-right"><small>By <a href="https://logue.be/" target="_blank">Logue</a> / Last Modified: 2016/07/11</small></p>
-<div id="message" class="alert alert-warning">Loading...</div>
-<div class="alert alert-info" id="droparea">
-  <div class="form-group">
-    <label for="file">Load SoundFont2 file <small>(drag and drop here *.sf2 file to change sound font)</small>:</label>
-    <input type="file" id="file" name="file" class="form-control" accept="audio/x-soundfont" />
+  <h1 class="h2">SoundFont:
+    <span id="soundfont">Yamaha XG Sound Set.sf2</span>
+  </h1>
+  <p class="text-right">
+    <small>By
+      <a href="https://logue.be/" target="_blank">Logue</a> / Last Modified: 2018/01/13</small>
+  </p>
+  <div id="message" class="alert alert-warning">Loading...</div>
+  <div class="alert alert-info" id="droparea">
+    <div class="custom-file">
+      <input type="file" class="custom-file-input" id="file" accept="audio/x-soundfont">
+      <label class="custom-file-label" for="file">Load SoundFont2 file
+        <small>(drag and drop here *.sf2 file to change sound font)</small>
+      </label>
+    </div>
   </div>
-</div>
-<div class="checkbox-inline">
-  <input type="checkbox" id="reverb" checked="checked" /><label for="reverb">Reverb</label>
-</div>
-<script type="text/javascript" src="./js/sf2synth.min.js"></script>
-<!--script type="text/javascript" src="../sf2synth.js/closure-primitives/base.js"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-var USE_TYPEDARRAY = true;
-Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
-  goog.require(name);
-});
-/*]]>*/
-</script-->
- <script type="text/javascript" src="./js/waapisim.min.js"></script>
- <script type="text/javascript">
-/*<![CDATA[*/
+  <div class="custom-control custom-checkbox">
+    <input type="checkbox" class="custom-control-input" id="reverb" checked="checked" disabled="disabled" />
+    <label class="custom-control-label" for="reverb">Reverb</label>
+  </div>
+  </div>
+  <!--script type="text/javascript" src="./js/sf2synth.min.js"></script-->
+  <script type="text/javascript" src="../sf2synth.js_/closure-primitives/base.js"></script>
+  <script type="text/javascript">
+    /*<![CDATA[*/
+    var USE_TYPEDARRAY = true;
+    Object.keys(goog.dependencies_.nameToPath).forEach(function (name) {
+      goog.require(name);
+    });
+    /*]]>*/
+  </script>
+  <script type="text/javascript" src="./js/waapisim.min.js"></script>
+  <script type="text/javascript">
+    /*<![CDATA[*/
     var message = document.getElementById('message');
-   // var url = '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/Yamaha%20XG%20Sound%20Set.sf2';
+    // var url = '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/Yamaha%20XG%20Sound%20Set.sf2';
     var url = 'Yamaha%20XG%20Sound%20Set.sf2';
     var qs = window.location.search;
     var option = {};
@@ -119,27 +218,28 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
     var wml = new SoundFont.WebMidiLink(option);
     var reverb;
 
-    wml.setLoadCallback(function(){
+    wml.setLoadCallback(function () {
       message.style.display = 'none';
+      document.getElementById('reverb').removeAttribute('disabled');
     });
     wml.setup(url);
 
     // local file
-    window.addEventListener('DOMContentLoaded', function(event) {
+    window.addEventListener('DOMContentLoaded', function (event) {
       var fileElement = document.getElementById('file');
 
-      document.getElementById('file').addEventListener('change', function(event) {
+      document.getElementById('file').addEventListener('change', function (event) {
         var file = document.getElementById("file").files[0];
         handleSoundFont(file);
         event.preventDefault();
       }, false);
 
       var droparea = document.getElementById('droparea');
-      droparea.addEventListener('dragover', function(e) {
+      droparea.addEventListener('dragover', function (e) {
         droparea.className = "alert alert-danger";
         e.preventDefault();
       }, true);
-      droparea.addEventListener('drop', function(e) {
+      droparea.addEventListener('drop', function (e) {
         document.getElementById('droparea').className = "alert alert-info";
         var dt = e.dataTransfer;
         var files = dt.files;
@@ -148,43 +248,44 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
         handleSoundFont(files[0]);
       }, true);
 
-      droparea.addEventListener('dragleave', function(e) {
+      droparea.addEventListener('dragleave', function (e) {
         document.getElementById('droparea').className = "alert alert-info";
       }, true);
 
-      reverb = document.getElementById('reverb');
-      reverb.addEventListener('change', function(event) {
+      document.getElementById('reverb').addEventListener('change', function (event) {
         wml.setReverb(event.target.checked);
       }, false);
     }, false);
 
     // Load sound font
-    function handleSoundFont(file){
+    function handleSoundFont(file) {
       var reader = new FileReader();
 
-//    wml.cancelLoading();
+      //    wml.cancelLoading();
 
       reader.readAsArrayBuffer(file);
 
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         var data = new Uint8Array(e.target.result);
         wml.loadSoundFont(data);
         document.getElementById('soundfont').innerText = file.name;
         message.style.display = 'none';
       };
 
-      reader.onloadstart = function(e) {
+      reader.onloadstart = function (e) {
         message.style.display = 'block';
       };
 
-      reader.onprogress = function(e) {
+      reader.onprogress = function (e) {
         if (e.lengthComputable) {
           var percentLoaded = Math.round((e.loaded / e.total) * 10000);
-          message.innerHTML = '<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' + percentLoaded + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentLoaded + '%;">' + percentLoaded + '%</div></div>';
+          message.innerHTML = '<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' +
+            percentLoaded + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentLoaded + '%;">' +
+            percentLoaded + '%</div></div>';
         }
       }
     }
-/*]]>*/
+    /*]]>*/
 
 (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
 (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -195,4 +296,5 @@ ga('create', 'UA-33600926-1', 'auto');
 ga('send', 'pageview');
  </script>
 </body>
+
 </html>

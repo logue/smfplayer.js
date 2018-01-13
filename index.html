@@ -8,9 +8,9 @@
 	<meta name="description" content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file."
 	/>
 	<meta name="author" content="Masashi Yoshikawa (Logue)" />
-	<title>SMF.Player for MIDI</title>
+	<title>Standard MIDI Player for Web</title>
 	<!-- ogp -->
-	<meta property="og:title" content=">SMF.Player for MIDI" />
+	<meta property="og:title" content="Standard MIDI Player for Web" />
 	<meta property="og:type" content="article" />
 	<meta property="og:url" content="https://logue.github.io/smfplayer.js/" />
 	<meta property="og:image" content="https://logue.github.io/smfplayer.js/icon.png" />
@@ -21,7 +21,7 @@
 	<meta property="article:publisher" content="https://www.facebook.com/logue256" />
 	<meta name="twitter:card" content="Summary" />
 	<meta name="twitter:site" content="@logue256" />
-	<meta name="twitter:title" content="SMF.Player for MIDI" />
+	<meta name="twitter:title" content="Standard MIDI Player for Web" />
 	<meta name="twitter:url" content="https://logue.github.io/smfplayer.js/" />
 	<meta name="twitter:description" content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file. "
 	/>
@@ -53,10 +53,10 @@
 		.percentage {
 			font-family: 'DSEG14-Modern';
 		}
-		
+
 		.control-btn {
-			height:50px;
-			width:50px;
+			height: 50px;
+			width: 50px;
 		}
 
 		.Clock-Wrapper {
@@ -83,7 +83,7 @@
 
 		iframe {
 			width: 100%;
-			height: 580px;
+			height: 530px;
 			border: thin;
 		}
 
@@ -97,8 +97,6 @@
 			/* Vertically center the text there */
 			background-color: #f5f5f5;
 		}
-		
-		
 		/*]]>*/
 	</style>
 </head>
@@ -124,6 +122,9 @@
 				<li class="nav-item">
 					<a class="nav-link" href="https://github.com/logue/sf2synth.js/">sf2synth.js</a>
 				</li>
+				<li class="nav-item">
+					<a class="nav-link" href="https://github.com/logue/MabiMmlEmu/">MabiMmlEmu</a>
+				</li>
 			</ul>
 		</div>
 	</nav>
@@ -141,15 +142,20 @@
 			<div class="card-header">
 				<h2 class="h5 float-left">MIDI Player</h2>
 				<!-- Social Icons -->
-				<div class="float-right">
-					<div class="fb-like" data-href="https://developers.facebook.com/docs/plugins/" data-layout="box_count" data-action="like"
-					 data-size="small" data-show-faces="true" data-share="true"></div>
-					<a href="https://twitter.com/share?ref_src=twsrc%5Etfw" class="twitter-share-button" data-show-count="false">Tweet</a>
-					<script src="//platform.linkedin.com/in.js" type="text/javascript"> lang: ja_JP</script>
-					<script type="IN/FollowCompany" data-id="1337" data-counter="top"></script>
-					<div class="g-follow" data-annotation="vertical-bubble" data-height="20" data-href="//plus.google.com/u/0/117326470288830723187"
-					 data-rel="author"></div>
-					<div class="line-it-button" data-lang="ja" data-type="share-e" data-url="https://logue.github.io/smfplayer.js/" style="display: none;"></div>
+				<div class="float-right" id="socialbuttons">
+					<button class="btn btn-secondary btn-lg facebook" title="Facebook">
+						<i class="fab fa-facebook-square fa-lg"></i>
+					</button>
+					<button class="btn btn-secondary btn-lg twitter" title="Twitter">
+						<i class="fab fa-twitter-square fa-lg"></i>
+					</button>
+					<button class="btn btn-secondary btn-lg google-plus" title="Google +">
+						<i class="fab fa-google-plus-square fa-lg"></i>
+					</button>
+					<button class="btn btn-secondary btn-lg line" title="Line">
+						<i class="fab fa-line fa-lg"></i>
+					</button>
+					<!--button class="btn btn-secondary btn-lg hatena"><i class="fas fa-h-square fa-lg"></i></button-->
 				</div>
 				<div class="clearfix"></div>
 				<!-- Tab menu -->
@@ -189,9 +195,9 @@
 								<button type="button" class="btn btn-warning btn-lg control-btn" id="panic" disabled="disabled" title="Panic">
 									<i class="fas fa-exclamation"></i>
 								</button>
-								<button type="button" class="btn btn-primary btn-lg control-btn" id="copy" disabled="disabled" title="Copy midi URL to clipboard">
+								<!--button type="button" class="btn btn-primary btn-lg control-btn" id="copy" disabled="disabled" title="Copy midi URL to clipboard">
 									<i class="fas fa-copy"></i>
-								</button>
+								</button-->
 							</div>
 							<!-- time -->
 							<div class="col-md">
@@ -247,7 +253,7 @@
 											<option value="midifiles/Midi04.zip">Midi04.zip</option>
 											<option disabled="disabled">------------------------------</option>
 											<option value="midifiles/Marathon1.zip">Marathon Soundtrack</option>
-											<option value="midifiles/SimCIty2000.zip">SimCity 2000 Soundtrack</option>
+											<option value="midifiles/SimCity2000.zip">SimCity 2000 Soundtrack</option>
 											<option value="midifiles/UO_MIDI_Music.zip">Ultima Online Soundtrack</option>
 											<option value="midifiles/Lemmings.zip">Lemmings Soundtrack</option>
 											<option value="midifiles/Sonic_the_Hedgehog.zip">Sonic the Hedgehog</option>
@@ -263,11 +269,11 @@
 						<div class="row">
 							<div class="col-md-7">
 								<label for="music_title">Title</label>
-								<input type="text" class="form-control " id="music_title" readonly="readonly" />
+								<input type="text" class="form-control" id="music_title" readonly="readonly" />
 							</div>
 							<div class="col-md-5">
 								<label for="copyright ">Copyright</label>
-								<input type="text" class="form-control " id="copyright" readonly="readonly" />
+								<input type="text" class="form-control" id="copyright" readonly="readonly" />
 							</div>
 						</div>
 					</div>
@@ -376,16 +382,10 @@
 			<a href="http://opensource.org/licenses/mit-license.php">MIT License</a>.
 		</address>
 	</footer>
-	<aside>
-		<a href="https://github.com/logue/smfplayer.js">
-			<img style="position: absolute; top: 56px; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67"
-			    alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png">
-		</a>
-	</aside>
 	<script src="https://cdn.jsdelivr.net/npm/jquery@3.2.1/dist/jquery.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0-beta.3/dist/js/bootstrap.bundle.min.js"></script>
-	<script src="https://cdn.jsdelivr.net/npm/clipboard@1/dist/clipboard.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/unzip.min.js"></script>
+	<script src="./js/jquery.socialthings.min.js"></script>
 	<script src="./js/encoding.min.js"></script>
 	<script src="./js/smf.player.min.js"></script>
 	<!-- script src="../smfplayer.js/closure-primitives/base.js "></script>
@@ -420,17 +420,19 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 		$(document).ready(function () {
 			$(':input').attr('disabled', 'disabled');
 			// AudioContextが使用可能かのチェック
-			window.AudioContext = window.AudioContext||window.webkitAudioContext||window.mozAudioContext;
-			if ( typeof(window.AudioContext) === 'undefined'){
-				$('#info').addClass('alert-danger').removeClass('alert-warning').text('Your browser has not supported AudioContent function. Please use Firefox or Blink based browser. (such as Chrome)');
+			window.AudioContext = window.AudioContext || window.webkitAudioContext || window.mozAudioContext;
+			if (typeof (window.AudioContext) === 'undefined') {
+				$('#info').addClass('alert-danger').removeClass('alert-warning').text(
+					'Your browser has not supported AudioContent function. Please use Firefox or Blink based browser. (such as Chrome)'
+				);
 				return;
 			}
 			// fileプロトコルは使用不可。（Ajaxを使うため）
 			if (location.protocol === 'file:') {
 				$('#info').addClass('alert-danger').removeClass('alert-warning').text('This program require runs by server.');
 				return;
-		//	}else if (location.protocol === 'http:') {
-		//		location.href = 'https://logue.github.io/smfplayer.js';
+				//	}else if (location.protocol === 'http:') {
+				//		location.href = 'https://logue.github.io/smfplayer.js';
 			}
 
 			// smfplayer.jsの初期化
@@ -458,7 +460,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 				// クエリからZipファイルを選択
 				$('#zips').val(params.zip);
 				loadSample(params.zip);
-				
+
 			} else {
 				zips.selectedIndex = ~~($('#zips').length * Math.random());
 				loadSample($('#zips').val());
@@ -551,19 +553,6 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 			$('#panic').on('click', function () {
 				player.sendAllSoundOff();
 			});
-			
-			// コピーボタン
-			var clipboard = new Clipboard('#copy');
-			clipboard.on('success', function(e) {
-				e.clearSelection();
-				console.info('Action:', e.action);
-				console.info('Text:', e.text);
-				console.info('Trigger:', e.trigger);
-		    });
-			clipboard.on('error', function(e) {
-				console.error('Action:', e.action);
-				console.error('Trigger:', e.trigger);
-			});
 
 			// MIDIファイルのダウンロード
 			$('#download').on('click', function () {
@@ -643,7 +632,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 
 			reader.onprogress = function (e) {
 				if (e.lengthComputable) {
-					var percentLoaded = (e.loaded / e.total)|0 * 100;
+					var percentLoaded = (e.loaded / e.total) | 0 * 100;
 					$('#info div div').css('width', percentLoaded + '%').text(percentLoaded + '%');
 				}
 			}
@@ -729,18 +718,21 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 
 			// エラー処理
 			xhr.onerror = function (e) {
+				$('#info p').removeClass('alert-warning').addClass('alert-danger');
+				$('#info div div').hide();
 				switch (e.target.error.code) {
 					case e.target.error.NOT_FOUND_ERR:
-						alert('File Not Found!');
+						$('#info p').text('File Not Found!');
 						break;
 					case e.target.error.NOT_READABLE_ERR:
-						alert('File is not readable');
+						$('#info p').text('File is not readable');
 						break;
 					case e.target.error.ABORT_ERR:
 						break; // noop
 					default:
-						alert('An error occurred reading this file.');
+						$('#info p').text('An error occurred reading this file.');
 				};
+				$(':input').removeAttr('disabled');
 			}
 
 			// ローディング中
@@ -771,18 +763,52 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 				title = title.substr(0, title.lastIndexOf('.'));
 				document.title = title + ' ' + document.getElementById('zips').value + ' / SMF.Player';
 
+				var hash = '#zip=' + encodeURIComponent($('#zips').val()) + '&file=' + encodeURIComponent(filename);
+				var url = $('link[rel="canonical"]').attr('href') + hash;
+
 				// MIDIファイルに埋め込まれたメタデータを取得
 				$('#music_title').val(Encoding.convert(player.getSequenceName(1), 'UNICODE', 'SJIS'));
 				$('#copyright').val(Encoding.convert(player.getCopyright()[0], 'UNICODE', 'SJIS'));
 
+				// ソーシャルボタン書き換え
+				//$('#socialbuttons .facebook').facebookShareButton({
+				//    url:url,
+				//    text: document.title
+				//});
+
+				$('#socialbuttons .twitter').twitterShareButton({
+					width: 626,
+					height: 436,
+					name: document.title,
+					url: url,
+					via: 'logue256'
+				});
+
+				$('#socialbuttons .facebook').click(function () {
+					window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url) + '&t=' +
+						encodeURIComponent(document.title), "Facebook", "width=400,height=400");
+				});
+				$('#socialbuttons .line').click(function () {
+					window.open('http://line.me/R/msg/text/?' + encodeURIComponent(document.title + "\n" + url), "Line",
+						"width=600,height=600");
+				});
+				$('#socialbuttons .google-plus').click(function () {
+					window.open('https://plus.google.com/share?url=' + encodeURIComponent(url), "Google Plus",
+						"width=400,height=600");
+				});
+				//$('#socialbuttons .hatena').click(function(){
+				//	window.open('https://b.hatena.ne.jp/add?mode=confirm&shareUrl=' + encodeURIComponent(url) + '&description=' + encodeURIComponent(document.title), "Hatena", "width=400,height=400");
+				//});
+
+
+				// クリップボード
+				$('#copy').data('ClipboardText', url);
+
 				// pushstateを使用
 				if (window.history && window.history.pushState) {
-					window.history.pushState(document.title, null, '#zip=' + encodeURIComponent($('#zips').val()) + '&file=' +
-						encodeURIComponent(filename));
+					window.history.pushState(document.title, null, hash);
 					return false;
 				}
-				
-				$('#copy').data('ClipboardText', location.href);
 			}
 		}
 		/**
@@ -900,31 +926,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
 			}
 		}, 100);
 
-		// Twitter
-		$.getScript('https://platform.twitter.com/widgets.js');
-		// LINE
-		$.getScript('https://d.line-scdn.net/r/web/social-plugin/js/thirdparty/loader.min.js');
-		// Facebook
-		(function (d, s, id) {
-			var js, fjs = d.getElementsByTagName(s)[0];
-			if (d.getElementById(id)) return;
-			js = d.createElement(s);
-			js.id = id;
-			js.src = "//connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.4";
-			fjs.parentNode.insertBefore(js, fjs);
-		}(document, 'script', 'facebook-jssdk'));
-		// Google Plus
-		window.___gcfg = {
-			lang: 'ja'
-		};
-		(function () {
-			var po = document.createElement('script');
-			po.type = 'text/javascript';
-			po.async = true;
-			po.src = 'https://apis.google.com/js/platform.js';
-			var s = document.getElementsByTagName('script')[0];
-			s.parentNode.insertBefore(po, s);
-		})();
+
 		// Google Analytics
 		(function (i, s, o, g, r, a, m) {
 			i['GoogleAnalyticsObject'] = r;
