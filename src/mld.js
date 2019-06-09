@@ -1,15 +1,10 @@
-goog.provide('Mld.Parser');
-
-goog.require('Typedef');
-
-goog.scope(function () {
-
+export default class Mld {
   /**
    * @param {ByteArray} input
    * @param {Object=} opt_params
    * @constructor
    */
-  Mld.Parser = function (input, opt_params) {
+  constructor(input, opt_params) {
     opt_params = opt_params || {};
     /** @type {ByteArray} */
     this.input = input;
@@ -23,21 +18,21 @@ goog.scope(function () {
     this.tracks;
   };
 
-  Mld.Parser.prototype.parse = function () {
+  parse() {
     this.parseHeader();
     this.parseDataInformation();
     this.parseTracks();
   };
 
-  Mld.Parser.prototype.parseHeader = function () {
+  parseHeader() {
     /** @type {ByteArray} */
-    var input = this.input;
+    let input = this.input;
     /** @type {number} */
-    var ip = this.ip;
+    let ip = this.ip;
     /** @type {Object} */
-    var header = this.header = {};
+    let header = this.header = {};
     /** @type {string} */
-    var signature =
+    let signature =
       String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]);
 
     if (signature !== 'melo') {
@@ -60,13 +55,13 @@ goog.scope(function () {
     this.ip = ip;
   };
 
-  Mld.Parser.prototype.parseDataInformation = function () {
+  parseDataInformation() {
     /** @type {ByteArray} */
-    var input = this.input;
+    let input = this.input;
     /** @type {number} */
-    var ip = this.ip;
+    let ip = this.ip;
     /** @type {Object} */
-    var dataInformation = this.dataInformation = {
+    let dataInformation = this.dataInformation = {
       'copy': null,
       'date': null,
       'exst': null,
@@ -78,9 +73,9 @@ goog.scope(function () {
       'vers': null
     };
     /** @type {string} */
-    var type;
+    let type;
     /** @type {number} */
-    var size;
+    let size;
 
     while (ip < this.header.trackOffset) {
       type =
@@ -89,13 +84,13 @@ goog.scope(function () {
 
       switch (type) {
         case 'titl':
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 'copy':
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 'vers':
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 'date':
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 'prot':
           dataInformation[type] = String.fromCharCode.apply(
             null,
@@ -121,35 +116,35 @@ goog.scope(function () {
     this.ip = ip;
   };
 
-  Mld.Parser.prototype.parseTracks = function () {
+  parseTracks() {
     /** @type {ByteArray} */
-    var input = this.input;
+    let input = this.input;
     /** @type {number} */
-    var ip = this.ip;
+    let ip = this.ip;
     /** @type {string} */
-    var signature;
+    let signature;
     /** @type {number} */
-    var size;
+    let size;
     /** @type {number} */
-    var limit;
+    let limit;
     /** @type {number} */
-    var deltaTime;
+    let deltaTime;
     /** @type {number} */
-    var status;
+    let status;
     /** @type {number} */
-    var noteLength;
+    let noteLength;
     /** @type {number} */
-    var extendStatus;
+    let extendStatus;
     /** @type {Object} */
-    var message;
+    let message;
     /** @type {Array.<Array.<Object>>} */
-    var tracks = this.tracks = [];
+    let tracks = this.tracks = [];
     /** @type {Array.<Object>} */
-    var track;
+    let track;
     /** @type {number} */
-    var i;
+    let i;
     /** @type {number} */
-    var il;
+    let il;
 
     for (i = 0, il = this.header.numberOfTracks; i < il; ++i) {
       signature =
@@ -223,7 +218,7 @@ goog.scope(function () {
                   throw new Error('unknown message type:' + status.toString(16));
               }
               break;
-              // tempo message
+            // tempo message
             case 0xc:
               message.subType = 'SetTempo';
               message.value = {
@@ -232,7 +227,7 @@ goog.scope(function () {
                 'tempo': input[ip++]
               };
               break;
-              // control message
+            // control message
             case 0xd:
               switch (status & 0xf) {
                 case 0x0:
@@ -259,7 +254,7 @@ goog.scope(function () {
                   throw new Error('unkwnon message type:' + status.toString(16));
               }
               break;
-              // instrument
+            // instrument
             case 0xe:
               switch (status & 0xf) {
                 case 0x0:
@@ -318,17 +313,17 @@ goog.scope(function () {
                     'value': (input[ip++] & 0x3f)
                   };
                   break;
-                  // TODO: 未遭遇
-                  /*
-                  case 0x8:
-                    message.subType = 'MasterFineTuning';
-                    message.value = {
-                      'part': input[ip] >> 6,
-                      'value': (input[ip++] & 0x3f)
-                    };
-                    break;
-                  */
-                  // TODO: あってるか自信ない
+                // TODO: 未遭遇
+                /*
+                case 0x8:
+                  message.subType = 'MasterFineTuning';
+                  message.value = {
+                    'part': input[ip] >> 6,
+                    'value': (input[ip++] & 0x3f)
+                  };
+                  break;
+                */
+                // TODO: あってるか自信ない
                 case 0x9:
                   message.subType = 'MasterCoarseTuning';
                   message.value = {
@@ -347,7 +342,7 @@ goog.scope(function () {
                   throw new Error('unkwnon message type:' + status.toString(16));
               }
               break;
-              // extended information
+            // extended information
             case 0xf:
               switch (status & 0xf) {
                 case 0x0:
@@ -381,13 +376,13 @@ goog.scope(function () {
      */
     function parseEditInstrument() {
       /** @type {number} */
-      var length = (input[ip++] << 8) | input[ip++];
+      let length = (input[ip++] << 8) | input[ip++];
       /** @type {number} */
-      var limit = ip + length;
+      let limit = ip + length;
       /** @type {Array.<Object>} */
-      var result = [];
+      let result = [];
       /** @type {Object} */
-      var info;
+      let info;
 
       // const
       if (input[ip++] !== 1) {
@@ -437,7 +432,7 @@ goog.scope(function () {
      */
     function parseVibrato() {
       /** @type {number} */
-      var length = (input[ip++] << 8) | input[ip++];
+      let length = (input[ip++] << 8) | input[ip++];
 
       // const
       if (input[ip++] !== 1) {
@@ -455,9 +450,9 @@ goog.scope(function () {
      */
     function parseDeviceSpecific() {
       /** @type {number} */
-      var length = (input[ip++] << 8) | input[ip++];
+      let length = (input[ip++] << 8) | input[ip++];
       /** @type {number} */
-      var limit = ip + length;
+      let limit = ip + length;
 
       // const
       if (input[ip++] !== 0x11) {
@@ -475,49 +470,49 @@ goog.scope(function () {
   /**
    * @return {Object}
    */
-  Mld.Parser.prototype.convertToMidiTracks = function () {
+  convertToMidiTracks() {
     /** @type {Object} */
-    var result = {
+    let result = {
       timeDivision: 48,
       trac: [],
       plainTracks: []
     };
     /** @type {Array.<Array.<Object>>} */
-    var tracks = result.tracks;
+    let tracks = result.tracks;
     /** @type {Array.<Array.<Array.<number>>>} */
-    var plainTracks = result.plainTracks;
+    let plainTracks = result.plainTracks;
     /** @type {Array.<Array.<Object>>} */
-    var mfiTracks = this.tracks;
+    let mfiTracks = this.tracks;
     /** @type {Array.<Object>} */
-    var mfiTrack;
+    let mfiTrack;
     /** @type {Object} */
-    var mfiEvent;
+    let mfiEvent;
     /** @type {Object} */
-    var prevEvent;
+    let prevEvent;
     /** @type {Array.<Object>} */
-    var tmpTrack;
+    let tmpTrack;
     /** @type {number} */
-    var time;
+    let time;
     /** @type {number} */
-    var pos;
+    let pos;
     /** @type {number} */
-    var key;
+    let key;
     /** @type {number} */
-    var tmp;
+    let tmp;
     /** @type {string} */
-    var str;
+    let str;
     /** @type {number} */
-    var i;
+    let i;
     /** @type {number} */
-    var il;
+    let il;
     /** @type {number} */
-    var j;
+    let j;
     /** @type {number} */
-    var jl;
+    let jl;
     /** @type {Array.<number>} */
-    var channelTime = [];
+    let channelTime = [];
     /** @type {number} */
-    var channel;
+    let channel;
 
     for (i = 0; i < 16; ++i) {
       plainTracks[i] = [];
@@ -579,7 +574,7 @@ goog.scope(function () {
       tmpTrack.sort(function (a, b) {
         return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
           a['id'] > b['id'] ? 1 : a['id'] < b['id'] ? -1 :
-          0;
+            0;
       });
 
       // MIDI トラックに作成
@@ -779,9 +774,9 @@ goog.scope(function () {
    * @param {number} octaveShift
    * @returns {number}
    */
-  Mld.Parser.prototype.applyOctaveShift = function (key, octaveShift) {
+  applyOctaveShift(key, octaveShift) {
     /** @type {Array.<number>} */
-    var table = [0, 12, -24, -12];
+    let table = [0, 12, -24, -12];
 
     if (table[octaveShift] !== void 0) {
       return key + table[octaveShift];
@@ -794,15 +789,15 @@ goog.scope(function () {
    * @param {Array.<Array.<ByteArray>>} plainTracks
    * @returns {ByteArray}
    */
-  Mld.Parser.prototype.toSMF = function (plainTracks) {
+  toSMF(plainTracks) {
     /** @type {number} @const */
-    var TimeDivision = 48;
+    let TimeDivision = 48;
     /** @type {Array.<number>} */
-    var trackHeader;
+    let trackHeader;
     /** @type {Array.<number>} */
-    var trackData;
+    let trackData;
     /** @type {ByteArray} */
-    var result = [
+    let result = [
       0x4D, 0x54, 0x68, 0x64, // "MThd"
       0x00, 0x00, 0x00, 0x06, // Size
       0x00, 0x01, // Format
@@ -810,13 +805,13 @@ goog.scope(function () {
       (TimeDivision >> 8) & 0xff, TimeDivision & 0xff // Data
     ];
     /** @type {number} */
-    var i;
+    let i;
     /** @type {number} */
-    var il;
+    let il;
     /** @type {number} */
-    var j;
+    let j;
     /** @type {number} */
-    var jl;
+    let jl;
 
     /**
      * @param {string} str
@@ -824,11 +819,11 @@ goog.scope(function () {
      */
     function stringToArray(str) {
       /** @type {number} */
-      var i;
+      let i;
       /** @type {number} */
-      var il = str.length;
+      let il = str.length;
       /** @type {Array.<number>} */
-      var array = new Array(il);
+      let array = new Array(il);
 
       for (i = 0; i < il; ++i) {
         array[i] = str.charCodeAt(i);
@@ -839,7 +834,7 @@ goog.scope(function () {
 
     if (this.dataInformation['copy'] !== void 0) {
       /** @type {Array.<number>} */
-      var copy = stringToArray(this.dataInformation['copy']);
+      let copy = stringToArray(this.dataInformation['copy']);
 
       il = copy.length;
       copy = [0x00, 0xff, 0x02].concat(
@@ -851,7 +846,7 @@ goog.scope(function () {
 
     /*
     if (this.dataInformation['titl'] !== void 0) {
-      var title = stringToArray(this.dataInformation['titl']);
+      let title = stringToArray(this.dataInformation['titl']);
       il = title.length;
       title = [0x00, 0xff, 0x03].concat(
         this.deltaTimeToByteArray(il),
@@ -862,7 +857,7 @@ goog.scope(function () {
     */
 
     for (i = 0, il = plainTracks.length; i < il; ++i) {
-      var track = plainTracks[i];
+      let track = plainTracks[i];
       trackData = [];
       for (j = 0, jl = track.length; j < jl; ++j) {
         Array.prototype.push.apply(trackData, track[j]);
@@ -884,9 +879,9 @@ goog.scope(function () {
    * @param {number} deltaTime
    * @return {Array.<number>}
    */
-  Mld.Parser.prototype.deltaTimeToByteArray = function (deltaTime) {
+  deltaTimeToByteArray(deltaTime) {
     /** @type {Array.<number>} */
-    var array = [];
+    let array = [];
 
     while (deltaTime >= 0x80) {
       array.unshift(deltaTime & 0x7f | (array.length === 0 ? 0 : 0x80));
@@ -897,4 +892,4 @@ goog.scope(function () {
     return array;
   };
 
-});
+};

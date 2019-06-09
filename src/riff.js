@@ -1,15 +1,11 @@
-goog.provide('Riff.Parser');
-
-goog.require('Typedef');
-
-goog.scope(function () {
+export default class Riff {
 
   /**
    * @param {ByteArray} input input buffer.
    * @param {Object=} opt_params option parameters.
    * @constructor
    */
-  Riff.Parser = function (input, opt_params) {
+  constructor(input, opt_params) {
     opt_params = opt_params || {};
     /** @type {ByteArray} */
     this.input = input;
@@ -29,7 +25,7 @@ goog.scope(function () {
       opt_params.bigEndian !== void 0 ? opt_params.bigEndian : false;
   };
 
-  Riff.Parser.prototype.parse = function () {
+  parse() {
     /** @type {number} */
     var length = this.length + this.offset;
 
@@ -40,7 +36,7 @@ goog.scope(function () {
     }
   };
 
-  Riff.Parser.prototype.parseChunk = function () {
+  parseChunk() {
     /** @type {ByteArray} */
     var input = this.input;
     /** @type {number} */
@@ -73,7 +69,7 @@ goog.scope(function () {
    * @param {number} index chunk index.
    * @return {?{type: string, size: number, offset: number}}
    */
-  Riff.Parser.prototype.getChunk = function (index) {
+  getChunk(index) {
     /** @type {{type: string, size: number, offset: number}} */
     var chunk = this.chunkList[index];
 
@@ -87,8 +83,7 @@ goog.scope(function () {
   /**
    * @return {number}
    */
-  Riff.Parser.prototype.getNumberOfChunks = function () {
+  getNumberOfChunks() {
     return this.chunkList.length;
   };
-
-});
+};

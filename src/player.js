@@ -1,14 +1,13 @@
-goog.provide('SMF.Player');
+import SMF from './smf';
+import Mld from './mld';
 
-goog.require('SMF.Parser');
-goog.require('Mld.Parser');
-
-goog.scope(function () {
+export class Player {
 
   /**
+   * @param {string} target WML attach dom
    * @constructor
    */
-  SMF.Player = function (target = '#wml') {
+  constructor(target = "#wml") {
     /** @type {number} */
     this.tempo = 500000; // default
     /** @type {HTMLIFrameElement} */
@@ -22,11 +21,11 @@ goog.scope(function () {
     /** @type {number} */
     this.position = 0;
     /** @type {Array.<Object>} */
-    this.track;
+    this.track = [];
     /** @type {number} */
-    this.timer;
+    this.timer = 0;
     /** @type {Object} TODO: 最低限のプロパティは記述する */
-    this.sequence;
+    this.sequence = {};
     /** @type {boolean} */
     this.enableCC111Loop = false;
     /** @type {boolean} */
@@ -40,56 +39,56 @@ goog.scope(function () {
     /** @type {number} */
     this.masterVolume = 16383;
     /** @type {?string} */
-    this.sequenceName;
+    this.sequenceName = '';
     /** @type {Array.<string>} */
-    this.copyright;
-    /** @type {HTMLIFrameElement} */
-    this.webMidiLink;
+    this.copyright = [];
+    /** @type {HTMLIFrameElement|Worker} */
+    this.webMidiLink = null;
     /** @type {number} */
-    this.length;
+    this.length = 0;
     /** @type {number} */
-    this.time;
+    this.time = 0;
     /** @type {number} */
     this.timeTotal;
     /** @type {number} */
-    this.loaded;
+    this.loaded = 0;
     /** @type {Window} */
-    this.window = goog.global.window;
+    this.window = window;
     /** @type {Element} */
-    this.target = document.body.querySelector(target);
+    this.target = this.window.document.querySelector(target);
   };
 
   /**
    * @param {boolean} enable
    */
-  SMF.Player.prototype.setCC111Loop = function (enable) {
+  setCC111Loop(enable) {
     this.enableCC111Loop = enable;
   };
 
   /**
    * @param {boolean} enable
    */
-  SMF.Player.prototype.setFalcomLoop = function (enable) {
+  setFalcomLoop(enable) {
     this.enableFalcomLoop = enable;
   };
 
   /**
    * @param {boolean} enable
    */
-  SMF.Player.prototype.setMFiLoop = function (enable) {
+  setMFiLoop(enable) {
     this.enableMFiLoop = enable;
   };
 
   /**
    * @param {boolean} enable
    */
-  SMF.Player.prototype.setLoop = function (enable) {
+  setLoop(enable) {
     this.enableLoop = enable;
   };
 
-  SMF.Player.prototype.stop = function () {
+  stop() {
     /** @type {number} */
-    var i;
+    let i;
 
     this.pause = true;
     this.resume = Date.now();
@@ -101,11 +100,11 @@ goog.scope(function () {
     }
   };
 
-  SMF.Player.prototype.getWebMidiLink = function () {
+  getWebMidiLink() {
     return this.webMidiLink;
   };
 
-  SMF.Player.prototype.init = function () {
+  init() {
     this.stop();
     this.initSequence();
     this.pause = true;
@@ -121,8 +120,8 @@ goog.scope(function () {
 
     this.window.clearTimeout(this.timer);
 
-    /** @type {SMF.Player} */
-    var player = this;
+    /** @type {Player} */
+    let player = this;
     if (this.ready) {
       this.sendInitMessage();
     } else {
@@ -134,7 +133,7 @@ goog.scope(function () {
     }
   };
 
-  SMF.Player.prototype.initSequence = function () {
+  initSequence() {
     this.tempo = 500000;
     this.position = 0;
 
@@ -142,9 +141,9 @@ goog.scope(function () {
     this.pause = false;
   };
 
-  SMF.Player.prototype.play = function () {
-    /** @type {SMF.Player} */
-    var player = this;
+  play() {
+    /** @type {Player} */
+    let player = this;
 
     if (!this.webMidiLink) {
       throw new Error('WebMidiLink not found');
@@ -158,7 +157,7 @@ goog.scope(function () {
         }
         this.playSequence();
       } else {
-        goog.global.console.warn('Midi file is not loaded.');
+        console.warn('Midi file is not loaded.');
       }
     } else {
       this.window.addEventListener('message', (function (ev) {
@@ -170,11 +169,15 @@ goog.scope(function () {
     }
   };
 
-  SMF.Player.prototype.sendInitMessage = function () {
+  ended() {
+    player.window.postMessage('endoftrack', '*');
+  }
+
+  sendInitMessage() {
     /** @type {Window} */
-    var win = this.webMidiLink.contentWindow;
+    let win = this.webMidiLink.contentWindow;
     /** @type {number} */
-    var i;
+    let i;
 
     for (i = 0; i < 16; ++i) {
       // all sound off
@@ -195,56 +198,62 @@ goog.scope(function () {
   };
 
   /**
-   * @param {string} url WebMidiLink url.
+   * @param {string|Worker} port WebMidiLink url.
    */
-  SMF.Player.prototype.setWebMidiLink = function (url = '//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html') {
-    /** @type {SMF.Player} */
-    var player = this;
-    /** @type {HTMLIFrameElement} */
-    var iframe;
+  setWebMidiLink(port = './wml.html') {
+    /** @type {Player} */
+    const player = this;
 
-    // Clear self
-    if (this.webMidiLink) {
-      this.webMidiLink.parentNode.removeChild(this.webMidiLink);
-    }
-
-    // Clear parent DOM
-    if (this.target.firstChild) {
-      this.target.removeChild(this.target.firstChild);
-    }
-
-
-    iframe = this.webMidiLink =
-      /** @type {HTMLIFrameElement} */
-      (this.window.document.createElement('iframe'));
-    iframe.src = url;
-    iframe.className = 'wml';
-
-    this.target.appendChild(iframe);
-
-    this.window.addEventListener('message', (function (ev) {
+    const process = (ev) => {
       if (typeof ev.data === 'string') {
-        var msg = ev.data.split(',');
+        const msg = ev.data.split(',');
 
         if (msg[0] === 'link') {
-          //        goog.global.console.log(ev.data);
+          // console.log(ev.data);
           if (msg[1] === 'ready') {
             player.ready = true;
             player.loaded = 100;
             player.setMasterVolume(player.masterVolume);
           } else if (msg[1] === 'progress') {
-            //          goog.global.console.log(msg[2]);
+            // console.log(msg[2]);
             player.loaded = Math.round((msg[2] / msg[3]) * 10000);
           }
         }
       }
-    }), false);
+    }
+
+    if (typeof port === 'string') {
+      /** @type {HTMLIFrameElement} */
+      let iframe;
+
+      // Clear self
+      if (this.webMidiLink) {
+        this.webMidiLink.parentNode.removeChild(this.webMidiLink);
+      }
+
+      // Clear parent DOM
+      if (this.target.firstChild) {
+        this.target.removeChild(this.target.firstChild);
+      }
+
+      iframe = this.webMidiLink =
+        /** @type {HTMLIFrameElement} */
+        (this.window.document.createElement('iframe'));
+      iframe.src = port;
+      iframe.className = 'wml';
+
+      this.target.appendChild(iframe);
+      this.window.addEventListener('message', process, false);
+    } else {
+      // Worker Mode
+      this.webMidiLink.addEventListener('message', process, false);
+    }
   };
 
   /**
    * @param {number} volume
    */
-  SMF.Player.prototype.setMasterVolume = function (volume) {
+  setMasterVolume(volume) {
 
     this.masterVolume = volume;
 
@@ -263,52 +272,37 @@ goog.scope(function () {
   /**
    * @param {number} tempo
    */
-  SMF.Player.prototype.setTempoRate = function (tempo) {
+  setTempoRate(tempo) {
     this.tempoRate = tempo;
   };
 
-  SMF.Player.prototype.playSequence = function () {
-    /** @type {SMF.Player} */
-    var player = this;
+  playSequence() {
+    /** @type {Player} */
+    const player = this;
     /** @type {number} */
-    var timeDivision = this.sequence.timeDivision;
+    let timeDivision = this.sequence.timeDivision;
     /** @type {Array.<Object>} */
-    var mergedTrack = this.track;
+    let mergedTrack = this.track;
     /** @type {Window} */
-    var webMidiLink = this.webMidiLink.contentWindow;
+    let webMidiLink = this.webMidiLink.contentWindow;
     /** @type {number} */
-    var pos = this.position || 0;
+    let pos = this.position || 0;
     /** @type {Array.<?{pos: number}>} */
-    var mark = [];
+    let mark = [];
 
-    if (!this.pause) {
-      this.timer = this.window.setTimeout(
-        update,
-        this.tempo / 1000 * timeDivision * this.track[0]['time']
-      );
-    } else {
-      // resume
-      this.timer = this.window.setTimeout(
-        update,
-        this.resume
-      );
-      this.pause = false;
-      this.resume = -1;
-    }
-
-    function update() {
+    const update = () => {
       /** @type {number} */
-      var time = mergedTrack[pos]['time'];
+      let time = mergedTrack[pos]['time'];
       /** @type {number} */
-      var length = mergedTrack.length;
+      let length = mergedTrack.length;
       /** @type {Object} TODO */
-      var event;
+      let event;
       /** @type {?Array.<string>} */
-      var match;
+      let match;
       /** @type {*} */
-      var tmp;
+      let tmp;
       /** @type {number} */
-      var procTime = Date.now();
+      let procTime = Date.now();
 
       if (player.pause) {
         player.resume = Date.now() - player.resume;
@@ -388,7 +382,7 @@ goog.scope(function () {
         );
       } else {
         // loop
-        player.window.postMessage('endoftrack', '*');
+        player.ended();
         player.pause = true;
         if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
           pos = mark[0]['pos'];
@@ -401,11 +395,26 @@ goog.scope(function () {
       player.position = pos;
       player.time = time;
     }
+
+    if (!this.pause) {
+      this.timer = player.window.setTimeout(
+        update,
+        this.tempo / 1000 * timeDivision * this.track[0]['time']
+      );
+    } else {
+      // resume
+      this.timer = player.window.setTimeout(
+        update,
+        this.resume
+      );
+      this.pause = false;
+      this.resume = -1;
+    }
   };
 
-  SMF.Player.prototype.loadMidiFile = function (buffer) {
-    /** @type {SMF.Parser} */
-    var parser = new SMF.Parser(buffer);
+  loadMidiFile(buffer) {
+    /** @type {SMF} */
+    let parser = new SMF(buffer);
 
     this.init();
     parser.parse();
@@ -413,9 +422,9 @@ goog.scope(function () {
     this.mergeMidiTracks(parser);
   };
 
-  SMF.Player.prototype.loadMldFile = function (buffer) {
-    /** @type {Mld.Parser} */
-    var parser = new Mld.Parser(buffer);
+  loadMldFile(buffer) {
+    /** @type {Mld} */
+    let parser = new Mld(buffer);
 
     this.init();
     parser.parse();
@@ -427,27 +436,27 @@ goog.scope(function () {
   /**
    * @param {Object} midi
    */
-  SMF.Player.prototype.mergeMidiTracks = function (midi) {
+  mergeMidiTracks(midi) {
     /** @type {Array.<Object>} */
-    var mergedTrack = this.track = [];
+    let mergedTrack = this.track = [];
     /** @type {Array.<number>} */
-    var trackPosition;
+    let trackPosition;
     /** @type {Array.<Array.<Object>>} */
-    var tracks;
+    let tracks;
     /** @type {Array.<Object>} */
-    var track;
+    let track;
     /** @type {Array.<Array.<Array.<number>>>} */
-    var plainTracks;
+    let plainTracks;
     /** @type {Array.<string>} */
-    var copys = this.copyright = [];
+    let copys = this.copyright = [];
     /** @type {number} */
-    var i;
+    let i;
     /** @type {number} */
-    var il;
+    let il;
     /** @type {number} */
-    var j;
+    let j;
     /** @type {number} */
-    var jl;
+    let jl;
 
     tracks = midi.tracks;
     trackPosition = new Array(tracks.length);
@@ -490,8 +499,8 @@ goog.scope(function () {
     mergedTrack.sort(function (a, b) {
       return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
         a['track'] > b['track'] ? 1 : a['track'] < b['track'] ? -1 :
-        a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
-        0;
+          a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
+            0;
     });
 
     // トータルの演奏時間
@@ -502,46 +511,46 @@ goog.scope(function () {
   /**
    * @return {?string}
    */
-  SMF.Player.prototype.getSequenceName = function () {
+  getSequenceName() {
     return this.sequenceName;
   };
 
   /**
    * @return {Array.<string>}
    */
-  SMF.Player.prototype.getCopyright = function () {
+  getCopyright() {
     return this.copyright;
   };
 
   /**
    * @return {number}
    */
-  SMF.Player.prototype.getPosition = function () {
+  getPosition() {
     return this.position;
   }
 
   /**
    * @param {number} pos
    */
-  SMF.Player.prototype.setPosition = function (pos) {
+  setPosition(pos) {
     this.position = pos;
   }
 
   /**
    * @return {number}
    */
-  SMF.Player.prototype.getLength = function () {
+  getLength() {
     return this.length;
   }
 
-  SMF.Player.prototype.sendGmReset = function () {
+  sendGmReset() {
     if (this.webMidiLink) {
       // F0 7E 7F 09 01 F7
       this.webMidiLink.contentWindow.postMessage('midi,F0,7E,7F,09,01,F7', '*');
     }
   }
 
-  SMF.Player.prototype.sendAllSoundOff = function () {
+  sendAllSoundOff() {
     if (this.webMidiLink) {
       this.webMidiLink.contentWindow.postMessage('midi,b0,78,0', '*');
     }
@@ -551,17 +560,17 @@ goog.scope(function () {
    * @param {number} time
    * @return {string}
    */
-  SMF.Player.prototype.getTime = function (time) {
-    var secs = (this.tempo / 6000000) * time;
-    
-    var hours = Math.floor(secs / (60 * 60));
+  getTime(time) {
+    let secs = (this.tempo / 6000000) * time;
 
-    var divisor_for_minutes = secs % (60 * 60);
-    var minutes = Math.floor(divisor_for_minutes / 60);
+    let hours = Math.floor(secs / (60 * 60));
 
-    var divisor_for_seconds = divisor_for_minutes % 60;
-    var seconds = Math.ceil(divisor_for_seconds);
+    let divisor_for_minutes = secs % (60 * 60);
+    let minutes = Math.floor(divisor_for_minutes / 60);
+
+    let divisor_for_seconds = divisor_for_minutes % 60;
+    let seconds = Math.ceil(divisor_for_seconds);
 
     return hours + ':' + ('00' + minutes).slice(-2) + ':' + ('00' + seconds).slice(-2);
   }
-});
+}

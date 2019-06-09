@@ -5,7 +5,7 @@ smfplayer.js は [WebMidiLink](http://www.g200kg.com/en/docs/webmidilink/) 対�
 ## 使い方
 
 ```js
-var player = new SMF.Player();
+var player = new Smf.Player();
 
 window.addEventListener('DOMContentLoaded', function() {
   /** @type {boolean} */
@@ -56,30 +56,27 @@ function loadSMF(url) {
 
 ## 命令
 
-| メソッド/変数名               | 内容                              |
-| ------------------------- | --------------------------------- |
-| play()                    | 再生                              |
-| stop()                    | 停止                              |
-| loadMidiFile(ArrayBuffer) | MIDI形式のファイルを読み込む              |
-| loadMldFile(ArrayBuffer)  | MLD形式のファイルを読み込む               |
-| setLoop(boolean)          | 再生中のファイルをループ再生する             |
-| setCC111Loop(boolean)     | コントロールチェンジNo.111の値でループする         |
-| setFalcomLoop(boolean)    | Falcomで使用されているMIDIのループする        |
-| setMFiLoop(boolean)       | Mfiメタデータでループする                    |
-| setWebMidiLink(string)    | 再生に使用するWebMidiLinkのURLを指定する |
-| getWebMidiLink()          | 使用しているWebMidiLinkのURLを出力する    |
-| setTempoRate(number)      | テンポの倍率を指定する                   |
-| setMasterVolume(number)   | マスターボリュームの設定（0~1）             |
-| getCopyright()            | メタデータの著作権情報を取得数           |
-| getSequenceName()         | メタデータのシーケンス名を取得する              |
-| getLength()               | データーの命令数を取得する                |
-| setPosition(number)       | 入力された値にジャンプする                  |
-| getPosition()             | 現在の再生位置を取得                |
-| sendGmReset()             | GMリセット命令をWMLに送る                |
-| sendAllSoundOff()         | AllSoundOff命令をWMLに送る           |
-| time                      | 現在の再生位置（マイクロ秒）           |
-| timeTotal                 | 再生時間（マイクロ秒）                |
-| getTime()                 | HH:MM:SS形式で時間を出力            |
+| メソッド/変数名            | 内容
+| ------------------------- | ---------------------------------
+| play()                    | 再生
+| stop()                    | 停止
+| loadMidiFile(ArrayBuffer) | MIDI形式のファイルを読み込む
+| loadMldFile(ArrayBuffer)  | MLD形式のファイルを読み込む
+| setLoop(boolean)          | 再生中のファイルをループ再生する
+| setCC111Loop(boolean)     | コントロールチェンジNo.111の値でループする
+| setFalcomLoop(boolean)    | Falcomで使用されているMIDIのループする
+| setMFiLoop(boolean)       | Mfiメタデータでループする
+| setWebMidiLink(string)    | 再生に使用するWebMidiLinkのURLを指定する
+| getWebMidiLink()          | 使用しているWebMidiLinkのURLを出力する
+| setTempoRate(number)      | テンポの倍率を指定する
+| setMasterVolume(number)   | マスターボリュームの設定（0~1）
+| getCopyright()            | メタデータの著作権情報を取得
+| getSequenceName()         | メタデータのシーケンス名を取得する
+| getLength()               | データーの命令数を取得する
+| setPosition(number)       | 入力された値にジャンプする
+| getPosition()             | 現在の再生位置を取得
+| sendGmReset()             | GMリセット命令をWMLに送る
+| sendAllSoundOff()         | AllSoundOff命令をWMLに送る
 
 ## 対応ブラウザ
 

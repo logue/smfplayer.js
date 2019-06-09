@@ -1,19 +1,17 @@
-goog.provide('SMF.Parser');
+import Riff from './riff';
+import {
+  ChannelEvent,
+  SystemExclusiveEvent,
+  MetaEvent
+} from './midi_event';
 
-goog.require('Typedef');
-goog.require('Riff.Parser');
-goog.require('Midi.Event');
-
-
-goog.scope(function () {
-
+export default class SMF {
   /**
    * @param {ByteArray} input input buffer.
    * @param {Object=} opt_params option parameters.
    * @constructor
    */
-  SMF.Parser = function (input, opt_params) {
-    opt_params = opt_params || {};
+  constructor(input, opt_params = {}) {
     opt_params.padding = false;
     opt_params.bigEndian = true;
 
@@ -24,30 +22,30 @@ goog.scope(function () {
     /** @type {number} */
     this.chunkIndex = 0;
     /**
-     * @type {Riff.Parser}
+     * @type {Riff}
      * @private
      */
-    this.riffParser_ = new Riff.Parser(input, opt_params);
+    this.riffParser_ = new Riff(input, opt_params);
 
     // MIDI File Information
 
     /** @type {number} */
-    this.formatType;
+    this.formatType = 0;
     /** @type {number} */
-    this.numberOfTracks;
+    this.numberOfTracks = 0;
     /** @type {number} */
-    this.timeDivision;
+    this.timeDivision = 0;
     /** @type {Array.<Array.<Midi.Event>>} */
     this.tracks = [];
     /** @type {Array.<Array.<ByteArray>>} */
     this.plainTracks = [];
   };
 
-  SMF.Parser.prototype.parse = function () {
+  parse() {
     /** @type {number} */
-    var i;
+    let i = 0;
     /** @type {number} */
-    var il;
+    let il = 0;
 
     // parse riff chunks
     this.riffParser_.parse();
@@ -61,13 +59,13 @@ goog.scope(function () {
     }
   };
 
-  SMF.Parser.prototype.parseHeaderChunk = function () {
+  parseHeaderChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
-    var chunk = this.riffParser_.getChunk(this.chunkIndex++);
+    const chunk = this.riffParser_.getChunk(this.chunkIndex++);
     /** @type {ByteArray} */
-    var data = this.input;
+    const data = this.input;
     /** @type {number} */
-    var ip = chunk.offset;
+    let ip = chunk.offset;
 
     if (!chunk || chunk.type !== 'MThd') {
       throw new Error('invalid header signature');
@@ -78,47 +76,62 @@ goog.scope(function () {
     this.timeDivision = (data[ip++] << 8) | data[ip++];
   };
 
-  SMF.Parser.prototype.parseTrackChunk = function () {
+  parseTrackChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
-    var chunk = this.riffParser_.getChunk(this.chunkIndex++);
+    const chunk = this.riffParser_.getChunk(this.chunkIndex++);
     /** @type {ByteArray} */
-    var data = this.input;
+    const data = this.input;
     /** @type {number} */
-    var ip = chunk.offset;
+    let ip = chunk.offset;
     /** @type {number} */
-    var size;
+    let size = 0;
     /** @type {number} */
-    var deltaTime;
+    let deltaTime = 0;
     /** @type {number} */
-    var eventType;
+    let eventType = 0;
     /** @type {number} */
-    var channel;
+    let channel = 0;
     /** @type {number} */
-    var prevEventType = -1;
+    let prevEventType = -1;
     /** @type {number} */
-    var prevChannel = -1;
+    let prevChannel = -1;
     /** @type {number} */
-    var tmp;
+    let tmp = 0;
     /** @type {number} */
-    var totalTime = 0;
+    let totalTime = 0;
     /** @type {number} */
-    var offset;
+    let offset = 0;
     /** @type {number} */
-    var length;
+    let length = 0;
     /** @type {number} */
-    var status;
-    /** @type {Midi.Event} */
-    var event;
+    let status = 0;
+    /** @type {Event} */
+    let event;
     /** @type {ByteArray} */
-    var plainBytes;
+    let plainBytes;
+
+    /** @return {number} */
+    const readNumber = () => {
+      /** @type {number} */
+      let result = 0;
+      /** @type {number} */
+      let tmp = 0;
+
+      do {
+        tmp = data[ip++];
+        result = (result << 7) | (tmp & 0x7f);
+      } while ((tmp & 0x80) !== 0);
+
+      return result;
+    }
 
     if (!chunk || chunk.type !== 'MTrk') {
       throw new Error('invalid header signature');
     }
 
     size = chunk.offset + chunk.size;
-    var eventQueue = [];
-    var plainQueue = [];
+    let eventQueue = [];
+    let plainQueue = [];
 
     while (ip < size) {
       // delta time
@@ -146,36 +159,41 @@ goog.scope(function () {
       }
 
       // TODO
-      var table = [, , , , , , , ,
-        'NoteOff', 'NoteOn', 'NoteAftertouch', 'ControlChange',
-        'ProgramChange', 'ChannelAftertouch', 'PitchBend'
+      const table = [, , , , , , , ,
+        'NoteOff',
+        'NoteOn',
+        'NoteAftertouch',
+        'ControlChange',
+        'ProgramChange',
+        'ChannelAftertouch',
+        'PitchBend'
       ];
 
       switch (eventType) {
         // channel events
         case 0x8:
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 0x9:
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 0xA:
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 0xB:
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 0xD:
-          /* FALLTHROUGH */
+        /* FALLTHROUGH */
         case 0xE:
-          event = new Midi.ChannelEvent(
+          event = new ChannelEvent(
             table[eventType], deltaTime, totalTime,
             channel, data[ip++], data[ip++]
           );
           break;
         case 0xC:
-          event = new Midi.ChannelEvent(
+          event = new ChannelEvent(
             table[eventType], deltaTime, totalTime,
             channel, data[ip++]
           );
           break;
-          // meta events, system exclusive event
+        // meta events, system exclusive event
         case 0xF:
           switch (channel) {
             // SysEx event
@@ -184,109 +202,109 @@ goog.scope(function () {
               if (data[ip + tmp - 1] !== 0xf7) {
                 throw new Error('invalid SysEx event');
               }
-              event = new Midi.SystemExclusiveEvent(
+              event = new SystemExclusiveEvent(
                 'SystemExclusive', deltaTime, totalTime,
                 data.subarray(ip, (ip += tmp) - 1)
               );
               break;
             case 0x7:
               tmp = readNumber();
-              event = new Midi.SystemExclusiveEvent(
+              event = new SystemExclusiveEvent(
                 'SystemExclusive(F7)', deltaTime, totalTime,
                 data.subarray(ip, (ip += tmp))
               );
               break;
-              // meta event
+            // meta event
             case 0xF:
               eventType = data[ip++];
               tmp = readNumber();
               switch (eventType) {
                 case 0x00: // sequence number
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]]
                   );
                   break;
                 case 0x01: // text event
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                   );
                   break;
                 case 0x02: // copyright notice
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                   );
                   break;
                 case 0x03: // sequence/track name
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                   );
                   break;
                 case 0x04: // instrument name
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                   );
                   break;
                 case 0x05: // lyrics
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                   );
                   break;
                 case 0x06: // marker
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                   );
                   break;
                 case 0x07: // cue point
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
                   );
                   break;
                 case 0x20: // midi channel prefix
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]]
                   );
                   break;
                 case 0x2f: // end of track
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'EndOfTrack', deltaTime, totalTime, []
                   );
                   break;
                 case 0x51: // set tempo
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]]
                   );
                   break;
                 case 0x54: // smpte offset
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]]
                   );
                   break;
                 case 0x58: // time signature
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]]
                   );
                   break;
                 case 0x59: // key signature
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]]
                   );
                   break;
                 case 0x7f: // sequencer specific
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)]
                   );
                   break;
                 default: // unknown
-                  event = new Midi.MetaEvent(
+                  event = new MetaEvent(
                     'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)]
                   );
               }
               break;
             default:
-              goog.global.console.log("unknown message:", status.toString(16));
+              console.log("unknown message:", status.toString(16));
           }
           break;
-          // error
+        // error
         default:
           throw new Error('invalid status');
       }
@@ -296,9 +314,9 @@ goog.scope(function () {
       plainBytes = data.subarray(offset, offset + length);
       plainBytes[0] = status;
       if (
-        event instanceof Midi.ChannelEvent &&
+        event instanceof ChannelEvent &&
         event.subtype === 'NoteOn' &&
-        /** @type {Midi.ChannelEvent} */
+        /** @type {ChannelEvent} */
         (event).parameter2 === 0
       ) {
         event.subtype = table[8];
@@ -312,21 +330,5 @@ goog.scope(function () {
 
     this.tracks.push(eventQueue);
     this.plainTracks.push(plainQueue);
-
-    /** @return {number} */
-    function readNumber() {
-      /** @type {number} */
-      var result = 0;
-      /** @type {number} */
-      var tmp;
-
-      do {
-        tmp = data[ip++];
-        result = (result << 7) | (tmp & 0x7f);
-      } while ((tmp & 0x80) !== 0);
-
-      return result;
-    }
   };
-
-});
+};

@@ -1,0 +1,36 @@
+{
+  "name": "smfplayer.js",
+  "description": "smfplayer.js is JavaScript based Standard Midi Player for WebMidiLink based synthesizer.",
+  "scripts": {
+    "watch": "webpack --mode development --watch --color --progress",
+    "dev": "webpack --mode development",
+    "prod": "webpack --mode production --env.production",
+    "start": "webpack-dev-server --color --mode development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/logue/smfplayer.js.git"
+  },
+  "keywords": [
+    "midi",
+    "WebMidiLink",
+    "wml",
+    "smf",
+    "midi player",
+    "sequencer"
+  ],
+  "author": "imaya / GREE Inc.",
+  "contributors": [
+    "Logue"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/logue/smfplayer.js/issues"
+  },
+  "homepage": "https://github.com/logue/smfplayer.js#readme",
+  "devDependencies": {
+    "webpack": "^4.33.0",
+    "webpack-cli": "^3.3.3",
+    "webpack-dev-server": "^3.7.1"
+  }
+}
