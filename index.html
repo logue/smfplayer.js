@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" prefix="og: http://ogp.me/ns#" lang="ja">
+<html xmlns="http://www.w3.org/1999/xhtml" prefix="og: http://ogp.me/ns#" class="h-100">
 
 <head>
   <meta charset="utf-8" />
@@ -26,6 +26,15 @@
   <meta name="twitter:description"
     content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file. " />
   <meta name="twitter:image" content="https://logue.github.io/smfplayer.js/icon.png" />
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-33600926-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-33600926-1');
+  </script>
 
   <link rel="shortcuticon" href="./favicon.ico">
   <link rel="canonical" href="https://logue.github.io/smfplayer.js/">
@@ -88,300 +97,318 @@
       border: thin;
     }
 
-    footer {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      height: 60px;
-      /* Set the fixed height of the footer here */
-      line-height: 60px;
-      /* Vertically center the text there */
-      background-color: #f5f5f5;
-    }
-
     /*]]>*/
   </style>
 </head>
 
-<body>
-  <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-    <a class="navbar-brand" href="#">MIDI Player XG</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
-      aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<body class="d-flex flex-column h-100">
+  <header>
+    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+      <a class="navbar-brand" href="#">MIDI Player XG</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault"
+        aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-    <div class="collapse navbar-collapse" id="navbarsExampleDefault">
-      <ul class="navbar-nav ml-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Sample
-            <span class="sr-only">(current)</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="https://github.com/logue/smfplayer.js/">smfplayer.js</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="https://github.com/logue/sf2synth.js/">sf2synth.js</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="https://github.com/logue/MabiMmlEmu/">MabiMmlEmu</a>
-        </li>
-      </ul>
-    </div>
-  </nav>
-
-  <main role="main" class="container my-3">
-    <div id="info" class="alert alert-warning">
-      <p>Initializing...</p>
-      <div class="progress hide" id="progress">
-        <div class="progress-bar percentage" role="progressbar" style="width:0%;" aria-valuemin="0" aria-valuemin="0"
-          aria-valuemax="100">0%</div>
-      </div>
-    </div>
-
-    <!-- player panel-->
-    <div class="card mb-3" id="player">
-      <div class="card-header">
-        <h2 class="h5 float-left">MIDI Player</h2>
-        <!-- Social Icons -->
-        <div class="float-right" id="socialbuttons">
-          <button class="btn btn-secondary btn-lg facebook" title="Facebook">
-            <i class="fab fa-facebook-square fa-lg"></i>
-          </button>
-          <button class="btn btn-secondary btn-lg twitter" title="Twitter">
-            <i class="fab fa-twitter-square fa-lg"></i>
-          </button>
-          <button class="btn btn-secondary btn-lg line" title="Line">
-            <i class="fab fa-line fa-lg"></i>
-          </button>
-          <!--button class="btn btn-secondary btn-lg hatena"><i class="fas fa-h-square fa-lg"></i></button-->
-        </div>
-        <div class="clearfix"></div>
-        <!-- Tab menu -->
-        <ul class="nav nav-tabs card-header-tabs" id="player-tablist" role="tablist">
-          <li class="nav-item">
-            <a class="nav-link active" id="player-tab" data-toggle="tab" href="#player-tab-content" role="tab"
-              aria-controls="plyaer-tab-content" aria-selected="true">
-              <i class="far fa-play-circle"></i>
-              Player</a>
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Sample
+              <span class="sr-only">(current)</span>
+            </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" id="option-tab" data-toggle="tab" href="#option-tab-content" role="tab"
-              aria-controls="option-tab-content" aria-selected="false">
-              <i class="fas fa-wrench"></i>
-              Option</a>
+            <a class="nav-link" href="https://github.com/logue/smfplayer.js/">smfplayer.js</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/logue/sf2synth.js/">sf2synth.js</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://github.com/logue/MabiMmlEmu/">MabiMmlEmu</a>
           </li>
         </ul>
       </div>
-      <div class="card-body">
-        <div class="tab-content" id="plyaer-tab-contents">
-          <div class="tab-pane fade show active" id="player-tab-content" role="tabpanel" aria-labelledby="player-tab">
-            <!-- Player control -->
-            <div class="row">
-              <div class="col-md-4">
-                <button type="button" class="btn btn-info btn-lg control-btn" id="prev" disabled="disabled"
-                  title="Previous Music">
-                  <i class="fas fa-chevron-left"></i>
-                </button>
-                <button type="button" class="btn btn-primary btn-lg control-btn" id="play" disabled="disabled"
-                  title="Play / Pause">
-                  <i class="fas fa-play"></i>
-                </button>
-                <button type="button" class="btn btn-danger btn-lg control-btn" id="stop" disabled="disabled"
-                  title="Stop">
-                  <i class="fas fa-stop"></i>
-                </button>
-                <button type="button" class="btn btn-info btn-lg control-btn" id="next" disabled="disabled"
-                  title="Next Music">
-                  <i class="fas fa-chevron-right"></i>
-                </button>
-                <button type="button" class="btn btn-warning btn-lg control-btn" id="panic" disabled="disabled"
-                  title="Panic">
-                  <i class="fas fa-exclamation"></i>
-                </button>
-                <!--button type="button" class="btn btn-primary btn-lg control-btn" id="copy" disabled="disabled" title="Copy midi URL to clipboard">
-                  <i class="fas fa-copy"></i>
-                </button-->
-              </div>
-              <!-- time -->
-              <div class="col-md">
-                <!--div class="Clock-Wrapper">
-                  <span class="Clock-Time-Background h4">
-                    ~:~~:~~ / ~:~~:~~
-                  </span>
-                  <span id="clock" class="Clock-Time-Front h4">
-                  <span id="time-now">0:00:00</span>
-                  /
-                  <span id="time-total">0:00:00</span>
-                  </span>
-                </div-->
-                <div class="progress" id="music-progress">
-                  <div class="progress-bar percentage" role="progressbar" style="width:0%;" aria-valuemin="0"
-                    aria-valuemin="0" aria-valuemax="100">0%</div>
-                </div>
-              </div>
-            </div>
-            <!-- Midi selector -->
-            <div class="row">
-              <div class="col-md-8">
-                <div class="form-group">
-                  <label for="files">MIDI file: </label>
-                  <div class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text">
-                        <i class="fas fa-music"></i>
-                      </span>
-                    </div>
-                    <select id="files" class="form-control"></select>
-                    <div class="input-group-append">
-                      <button class="btn btn-secondary" type="button" title="Download" id="download">
-                        <i class="fas fa-download"></i>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="input-group">
-                  <label for="zips">Zip archive file:</label>
-                  <div class="input-group">
-                    <div class="input-group-prepend">
-                      <span class="input-group-text">
-                        <i class="far fa-file-archive"></i>
-                      </span>
-                    </div>
-                    <select id="zips" class="form-control ">
-                      <option value="midifiles/YAMAHA mididata library.zip">YAMAHA mididata library.zip</option>
-                      <option value="midifiles/適当詰め合わせ.zip">適当詰め合わせ.zip</option>
-                      <option value="midifiles/Midi01.zip">Midi01.zip</option>
-                      <option value="midifiles/Midi03.zip">Midi03.zip</option>
-                      <option value="midifiles/Midi04.zip">Midi04.zip</option>
-                      <option disabled="disabled">------------------------------</option>
-                      <option value="midifiles/Marathon1.zip">Marathon Soundtrack</option>
-                      <option value="midifiles/SimCity2000.zip">SimCity 2000 Soundtrack</option>
-                      <option value="midifiles/UO_MIDI_Music.zip">Ultima Online Soundtrack
-                      </option>
-                      <option value="midifiles/Lemmings.zip">Lemmings Soundtrack</option>
-                      <option value="midifiles/Sonic_the_Hedgehog.zip">Sonic the Hedgehog</option>
-                      <option value="midifiles/A-Train.zip">A列車で行こう</option>
-                      <option value="midifiles/A-Train_Global.zip">A列車で行こう4 Global</option>
-                      <option value="midifiles/Alundra.zip">アランドラ</option>
-                      <option value="midifiles/Breath_of_Fire_4.zip">ブレス・オブ・ファイア４</option>
-                      <option value="midifiles/Final_Fantasy_7.zip">ファイナルファンタジー７</option>
-                      <option value="midifiles/Final_Fantasy_11.zip">ファイナルファンタジー１１</option>
-                      <option value="midifiles/Legend_of_Mana.zip">聖剣伝説Legend of Mana</option>
-                      <option value="midifiles/Silent_Hill.zip">サイレントヒル</option>
-                      <option value="midifiles/Valkyrie_Profile.zip">ヴァルキリー・プロファイル</option>
-                    </select>
-                  </div>
-                </div>
+    </nav>
+  </header>
 
-              </div>
-            </div>
-            <!-- Meta info -->
-            <div class="row">
-              <div class="col-md-7">
-                <label for="music_title">Title</label>
-                <input type="text" class="form-control" id="music_title" readonly="readonly" />
-              </div>
-              <div class="col-md-5">
-                <label for="copyright ">Copyright</label>
-                <input type="text" class="form-control" id="copyright" readonly="readonly" />
-              </div>
-            </div>
+  <main role="main" class="flex-shrink-0 my-3">
+    <div class="container">
+
+      <div id="info" class="alert alert-warning alert-dismissible fade show" role="alert">
+        <p>Initializing...</p>
+        <div class="progress hide" id="progress">
+          <div class="progress-bar percentage" role="progressbar" style="width:0%;" aria-valuemin="0" aria-valuemin="0"
+            aria-valuemax="100">0%</div>
+        </div>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+
+      <!-- player panel-->
+      <div class="card mb-3" id="player">
+        <div class="card-header">
+          <h2 class="h5 float-left">MIDI Player</h2>
+          <!-- Social Icons -->
+          <div class="float-right" id="socialbuttons">
+            <button class="btn btn-secondary facebook" title="Facebook">
+              <i class="fab fa-facebook-square fa-lg"></i>
+            </button>
+            <button class="btn btn-secondary twitter" title="Twitter">
+              <i class="fab fa-twitter-square fa-lg"></i>
+            </button>
+            <button class="btn btn-secondary line" title="Line">
+              <i class="fab fa-line fa-lg"></i>
+            </button>
+            <!--button class="btn btn-secondary btn-lg hatena"><i class="fas fa-h-square fa-lg"></i></button-->
           </div>
-          <div class="tab-pane fade" id="option-tab-content" role="tabpanel" aria-labelledby="option-tab">
-            
-            <div class="row">
-              <!-- Loop setting -->
-              <div class="col-md-5">
-                <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" id="random" />
-                  <label class="custom-control-label" for="random"><i class="fas fa-random"></i>
-                    Random</label>
-                </div>
-                <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" id="playerloop"
-                    onchange="player.setLoop(this.checked);" />
-                  <label class="custom-control-label" for="playerloop"><i class="fas fa-redo"></i>
-                    Loop</label>
-                </div>
-                <hr />
-                <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" id="cc111loop"
-                    onchange="player.setCC111Loop(this.checked);" />
-                  <label class="custom-control-label" for="cc111loop">CC#111 Loop</label>
-                </div>
-                <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" id="falcomloop"
-                    onchange="player.setFalcomLoop(this.checked);" />
-                  <label class="custom-control-label" for="falcomloop">Marker A-B (Ys2
-                    Eternal)</label>
-                </div>
-                <div class="custom-control custom-switch">
-                  <input type="checkbox" class="custom-control-input" id="falcomloop"
-                    onchange="player.setMFiLoop(this.checked);" />
-                  <label class="custom-control-label" for="falcomloop">MFi</label>
-                </div>
+          <div class="clearfix"></div>
+          <!-- Tab menu -->
+          <ul class="nav nav-tabs card-header-tabs" id="player-tablist" role="tablist">
+            <li class="nav-item">
+              <a class="nav-link active" id="player-tab" data-toggle="tab" href="#player-tab-content" role="tab"
+                aria-controls="plyaer-tab-content" aria-selected="true">
+                <i class="far fa-play-circle"></i>
+                Player</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" id="option-tab" data-toggle="tab" href="#option-tab-content" role="tab"
+                aria-controls="option-tab-content" aria-selected="false">
+                <i class="fas fa-wrench"></i>
+                Option</a>
+            </li>
+          </ul>
+        </div>
 
-              </div>
-              <!-- Tempo and volume -->
-              <div class="col-md-7">
-                <div class="form-group">
-                  <label for="tempo">Tempo: x
-                    <span id="tempo_value" class="badge badge-secondary">1.0</span>
-                  </label>
-                  <div class="d-flex">
-                    <div><i class="far fa-clock"></i></div>
-                    <input id="tempo" type="range" class="custom-range ml-1" min="0.1" max="10.0" step="0.1"
-                      value="1.0" />
+        <div class="card-body">
+          <div class="tab-content" id="plyaer-tab-contents">
+            <div class="tab-pane fade show active" id="player-tab-content" role="tabpanel" aria-labelledby="player-tab">
+              <!-- Player control -->
+              <div class="d-flex align-items-center">
+                <div>
+                  <button type="button" class="btn btn-info btn-lg control-btn" id="prev" disabled="disabled"
+                    title="Previous Music">
+                    <i class="fas fa-chevron-left"></i>
+                  </button>
+                  <button type="button" class="btn btn-primary btn-lg control-btn" id="play" disabled="disabled"
+                    title="Play / Pause">
+                    <i class="fas fa-play"></i>
+                  </button>
+                  <button type="button" class="btn btn-danger btn-lg control-btn" id="stop" disabled="disabled"
+                    title="Stop">
+                    <i class="fas fa-stop"></i>
+                  </button>
+                  <button type="button" class="btn btn-info btn-lg control-btn" id="next" disabled="disabled"
+                    title="Next Music">
+                    <i class="fas fa-chevron-right"></i>
+                  </button>
+                  <button type="button" class="btn btn-warning btn-lg control-btn" id="panic" disabled="disabled"
+                    title="Panic">
+                    <i class="fas fa-exclamation"></i>
+                  </button>
+                  <!--button type="button" class="btn btn-primary btn-lg control-btn" id="copy" disabled="disabled" title="Copy midi URL to clipboard">
+                    <i class="fas fa-copy"></i>
+                  </button-->
+                </div>
+                <!-- time -->
+                <div class="flex-grow-1 ml-3">
+                  <!--div class="Clock-Wrapper">
+                    <span class="Clock-Time-Background h4">
+                      ~:~~:~~ / ~:~~:~~
+                    </span>
+                    <span id="clock" class="Clock-Time-Front h4">
+                    <span id="time-now">0:00:00</span>
+                    /
+                    <span id="time-total">0:00:00</span>
+                    </span>
+                  </div-->
+                  <div class="progress" id="music-progress">
+                    <div class="progress-bar percentage" role="progressbar" style="width:0%;" aria-valuemin="0"
+                      aria-valuemin="0" aria-valuemax="100">0%</div>
                   </div>
                 </div>
-                <div class="form-group">
-                  <label for="volume">Master Volume:
-                    <span id="volume_value" class="badge badge-secondary">0.5</span>
-                  </label>
-                  <div class="d-flex">
-                    <div><i class="fas fa-volume-down"></i></div>
-                    <input id="volume" type="range" class="custom-range mx-1" min="0" max="1" step="0.01" value="0.5" />
-                    <div><i class="fas fa-volume-up"></i></div>
+              </div>
+              <!-- Midi selector -->
+              <div class="row">
+                <div class="col-md-8 col-xs-12">
+                  <div class="form-group">
+                    <label for="files">MIDI file: </label>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">
+                          <i class="fas fa-music"></i>
+                        </span>
+                      </div>
+                      <select id="files" class="form-control"></select>
+                      <div class="input-group-append">
+                        <button class="btn btn-secondary" type="button" title="Download" id="download">
+                          <i class="fas fa-download"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4 col-xs-12">
+                  <div class="input-group">
+                    <label for="zips">Zip archive file:</label>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">
+                          <i class="far fa-file-archive"></i>
+                        </span>
+                      </div>
+                      <select id="zips" class="form-control ">
+                        <option value="midifiles/YAMAHA mididata library.zip">YAMAHA mididata library.zip</option>
+                        <option value="midifiles/適当詰め合わせ.zip" selected="selected">適当詰め合わせ.zip</option>
+                        <option value="midifiles/Midi01.zip">Midi01.zip</option>
+                        <option value="midifiles/Midi03.zip">Midi03.zip</option>
+                        <option value="midifiles/Midi04.zip">Midi04.zip</option>
+                        <option disabled="disabled">------------------------------</option>
+                        <optgroup label="Final Fantasy">
+                          <option value="midifiles/Final_Fantasy_4.zip">Final Fantasy IV</option>
+                          <option value="midifiles/Final_Fantasy_5.zip">Final Fantasy V</option>
+                          <option value="midifiles/Final_Fantasy_6.zip">Final Fantasy VI</option>
+                          <option value="midifiles/Final_Fantasy_7.zip">Final Fantasy VII</option>
+                          <option value="midifiles/Final_Fantasy_8.zip">Final Fantasy VIII</option>
+                          <option value="midifiles/Final_Fantasy_9.zip">Final Fantasy XI</option>
+                          <option value="midifiles/Final_Fantasy_10.zip">Final Fantasy X</option>
+                          <option value="midifiles/Final_Fantasy_11.zip">Final Fantasy XI</option>
+                        </optgroup>
+                        <optgroup label="聖剣伝説">
+                          <option value="midifiles/Legend_of_Mana.zip">Legend of Mana</option>
+                          <option value="midifiles/Secret_of_Mana.zip">Secret of Mana</option>
+                        </optgroup>
+                        <optgroup label="PC">
+                          <option value="midifiles/Marathon1.zip">Marathon Soundtrack</option>
+                          <option value="midifiles/SimCity2000.zip">SimCity 2000 Soundtrack</option>
+                          <option value="midifiles/UO_MIDI_Music.zip">Ultima Online Soundtrack</option>
+                          <option value="midifiles/Lemmings.zip">Lemmings Soundtrack</option>
+                          <option value="midifiles/sor.zip">Sourcerian</option>
+                          <option value="midifiles/A-Train.zip">A-Train</option>
+                        </optgroup>
+                        <option value="midifiles/Sonic_the_Hedgehog.zip">Sonic the Hedgehog</option>
+                        <option value="midifiles/Zelda_3_-_A_Link_to_the_Past.zip">Legend of Zelda</option>
+                        <optgroup label="PlayStation">
+                          <option value="midifiles/A-Train_Global.zip">A-Train 4 Global</option>
+                          <option value="midifiles/Alundra.zip">Alundra</option>
+                          <option value="midifiles/Breath_of_Fire_4.zip">Breath of Fire IV</option>
+                          <option value="midifiles/Silent_Hill.zip">Silent Hill</option>
+                          <option value="midifiles/Valkyrie_Profile.zip">Valkyrie Profile</option>
+                        </optgroup>
+                      </select>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+              <!-- Meta info -->
+              <div class="row">
+                <div class="col-md-7 col-xs-12">
+                  <label for="music_title">Title</label>
+                  <input type="text" class="form-control" id="music_title" readonly="readonly" />
+                </div>
+                <div class="col-md-5 col-xs-12">
+                  <label for="copyright ">Copyright</label>
+                  <input type="text" class="form-control" id="copyright" readonly="readonly" />
+                </div>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="option-tab-content" role="tabpanel" aria-labelledby="option-tab">
+
+              <div class="row">
+                <!-- Loop setting -->
+                <div class="col-md-5 col-xs-12">
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="random" />
+                    <label class="custom-control-label" for="random"><i class="fas fa-random"></i>
+                      Random</label>
+                  </div>
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="playerloop"
+                      onchange="player.setLoop(this.checked);" />
+                    <label class="custom-control-label" for="playerloop"><i class="fas fa-redo"></i>
+                      Loop</label>
+                  </div>
+                  <hr />
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="cc111loop"
+                      onchange="player.setCC111Loop(this.checked);" />
+                    <label class="custom-control-label" for="cc111loop">CC#111 Loop</label>
+                  </div>
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="falcomloop"
+                      onchange="player.setFalcomLoop(this.checked);" />
+                    <label class="custom-control-label" for="falcomloop">Marker A-B (Ys2
+                      Eternal)</label>
+                  </div>
+                  <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="falcomloop"
+                      onchange="player.setMFiLoop(this.checked);" />
+                    <label class="custom-control-label" for="falcomloop">MFi</label>
+                  </div>
+
+                </div>
+                <!-- Tempo and volume -->
+                <div class="col-md-7 col-xs-12">
+                  <div class="form-group">
+                    <label for="tempo">Tempo: x
+                      <span id="tempo_value" class="badge badge-secondary">1.0</span>
+                    </label>
+                    <div class="d-flex">
+                      <div><i class="far fa-clock"></i></div>
+                      <input id="tempo" type="range" class="custom-range ml-1" min="0.1" max="10.0" step="0.1"
+                        value="1.0" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="volume">Master Volume:
+                      <span id="volume_value" class="badge badge-secondary">0.5</span>
+                    </label>
+                    <div class="d-flex">
+                      <div><i class="fas fa-volume-down"></i></div>
+                      <input id="volume" type="range" class="custom-range mx-1" min="0" max="1" step="0.01"
+                        value="0.5" />
+                      <div><i class="fas fa-volume-up"></i></div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
+        <div class="card-footer text-muted">(drag and drop midi file here, to play local midi file.)</div>
       </div>
-      <div class="card-footer text-muted">(drag and drop midi file here, to play local midi file.)</div>
-    </div>
-    <!-- WebMidiLink Placeholder -->
-    <div class="card">
-      <div class="card-header">
-        <div class="form-group mb-0">
-          <label for="synth"><h2 class="h5 mb-0">Synthesyther</h2></label>
-          <select id="synth" class="form-control">
-            <option value="./wml.html">Yamaha XG Sound Set.sf2</option>
-            <option value="./wml2.html" selected="selected">Yamaha XG Sound Set Ver2.0.sf2</option>
-            <option value="./wml.html?disableDrawSynth ">Yamaha XG Sound Set.sf2 (Disable Keyboard)</option>
-            <option value="//g200kg.com/en/docs/gmplayer">GMPlayer</option>
-            <option value="//webmusicdevelopers.appspot.com/webtg/gmplayer/index.html">GMPlayer(2)</option>
-            <option value="//imaya.github.io/demo/sf2.js/wml.html">A320U.sf2</option>
-            <option value="//logue.github.io/Wml2WebMidiApi/wml.html">Web MIDI API (Experimental)</option>
-            <option value="//aikelab.net/websynth/">aike : WebAudioSynth</option>
-            <option value="//script-synthesizer.herokuapp.com/">mohayonao : timbre.js</option>
-            <!--option value="//beatonica.com/">aike : Beatonica</option-->
-            <option value="//www.g200kg.com/en/docs/webmidilink/webbeeper.html">g200kg : WebBeeper</option>
-            <option value="//www.angryoctopus.co.nz/synth16/">GameSmith : Webitaur</option>
-            <option value="//aikelab.net/bitmaker/">aike : Bitmaker</option>
-          </select>
-          <small class="form-text text-muted">Select <a href="https://www.g200kg.com/en/docs/webmidilink/" target="_blank">WebMidiLink <i class="fas fa-external-link-alt"></i></a> based synthesizer</small>
+      <!-- WebMidiLink Placeholder -->
+      <div class="card">
+        <div class="card-header">
+          <div class="form-group mb-0">
+            <h2 class="h5 mb-0"><label for="synth">Synthesyther</label></h2>
+            <select id="synth" class="form-control">
+              <option value="./wml.html?soundfont=Yamaha XG Sound Set.sf2">Yamaha XG Sound Set.sf2</option>
+              <option value="./wml.html?soundfont=Yamaha XG Sound Set ver.2.0.sf2" selected="selected">Yamaha XG Sound
+                Set Ver2.0.sf2</option>
+              <option value="./wml.html?soundfont=Yamaha XG Sound Set ver.2.0.sf2&amp;ui=false">Yamaha XG Sound Set.sf2
+                (Disable Keyboard)</option>
+              <option value="//g200kg.com/en/docs/gmplayer">GMPlayer</option>
+              <option value="//webmusicdevelopers.appspot.com/webtg/gmplayer/index.html">GMPlayer(2)</option>
+              <option value="//imaya.github.io/demo/sf2.js/wml.html">A320U.sf2</option>
+              <option value="//logue.github.io/Wml2WebMidiApi/wml.html">Web MIDI API (Experimental)</option>
+              <option value="//aikelab.net/websynth/">aike : WebAudioSynth</option>
+              <option value="//script-synthesizer.herokuapp.com/">mohayonao : timbre.js</option>
+              <!--option value="//beatonica.com/">aike : Beatonica</option-->
+              <option value="//www.g200kg.com/en/docs/webmidilink/webbeeper.html">g200kg : WebBeeper</option>
+              <option value="//www.angryoctopus.co.nz/synth16/">GameSmith : Webitaur</option>
+              <option value="//aikelab.net/bitmaker/">aike : Bitmaker</option>
+            </select>
+            <small class="form-text text-muted">Select <a href="https://www.g200kg.com/en/docs/webmidilink/"
+                target="_blank">WebMidiLink <i class="fas fa-external-link-alt"></i></a> based synthesizer</small>
+          </div>
         </div>
+        <div class="card-body" id="wml"></div>
       </div>
-      <div class="card-body" id="wml"></div>
     </div>
   </main>
-  <footer>
+  <footer class="footer mt-auto py-3 mb-0 bg-light">
     <address class="container mb-0">
       <a href="//github.com/gree/smfplayer.js">SMF.Player</a>
       <i class="far fa-copyright"></i> 2013 imaya / GREE Inc. /
@@ -400,28 +427,17 @@
   <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@1.0.29/encoding.min.js"
     integrity="sha256-43tAJsbifpKXUsuWt6SOpBWF8BQHF2zSwFVfPCeua+w=" crossorigin="anonymous"></script>
   <script src="./js/smf.player.min.js"></script>
-  <!-- script src="../smfplayer.js/closure-primitives/base.js "></script>
-    <script type="text/javascript ">
-/*<![CDATA[*/
-var USE_TYPEDARRAY = true;
-Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
-  goog.require(name);
-});
-/*]]>*/</script -->
+  <script src="https://cdn.jsdelivr.net/npm/query-string@1.0.1/query-string.min.js"></script>
   <script>
     /*<![CDATA[*/
     // インターバル関数用。準備完了フラグ
     var isReady = false;
 
     // QueryStrings
-    var params = {};
-    location.hash.substr(1).split('&').forEach(function (param) {
-      var param = decodeURIComponent(param);
-      var p = param.split('=');
-      params[p[0]] = p[1];
-    });
+    const params = queryString.parse(window.location.search);
+
     // SMF Player
-    var player = new Smf.Player('#wml');
+    var player = new SMF.Player('#wml');
 
     var $progress = $('#progress');
 
@@ -443,7 +459,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
       if (location.protocol === 'file:') {
         $('#info').addClass('alert-danger').removeClass('alert-warning').text('This program require runs by server.');
         return;
-        //ss}else if (location.protocol === 'http:') {
+        //}else if (location.protocol === 'http:') {
         //    location.href = 'https://logue.github.io/smfplayer.js';
       }
 
@@ -457,7 +473,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
       // player.setMasterChannel(new TimerMasterChannel(TimerMasterChannel.MODE_DEFAULT));
       // WebMidiLink設定
       //player.setWebMidiLink('//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html', 'wml');
-      player.setWebMidiLink('wml2.html', 'wml');
+      player.setWebMidiLink('wml.html?soundfont=Yamaha XG Sound Set ver.2.0.sf2', 'wml');
 
       // Zipファイルの取得
       $('#files').on('change', function (e) {
@@ -474,7 +490,7 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
         loadSample(params.zip);
 
       } else {
-        zips.selectedIndex = ~~($('#zips').length * Math.random());
+        zips.selectedIndex = $('#zips').length * Math.random();
         loadSample($('#zips').val());
       }
 
@@ -902,7 +918,8 @@ Object.keys(goog.dependencies_.nameToPath).forEach(function(name) {
           if (document.querySelector('#random').checked) {
             handleSelect(document.querySelector('#files'));
           }
-          $('#info').addClass('alert-success').removeClass('alert-warning').text('Ready.');
+          $('#info').addClass('alert-success').removeClass('alert-warning');
+          $('#info p').text('Ready.');
           $(':input').prop('disabled', false);
           break;
       }
