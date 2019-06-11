@@ -1,13 +1,14 @@
 import SMF from './smf';
 import Mld from './mld';
 
+/**
+ * Midi Player Class
+ */
 export class Player {
-
   /**
    * @param {string} target WML attach dom
-   * @constructor
    */
-  constructor(target = "#wml") {
+  constructor(target = '#wml') {
     /** @type {number} */
     this.tempo = 500000; // default
     /** @type {HTMLIFrameElement} */
@@ -15,7 +16,7 @@ export class Player {
     /** @type {number} */
     this.resume;
     /** @type {boolean} */
-    this.pause = true;;
+    this.pause = true;
     /** @type {boolean} */
     this.ready = false;
     /** @type {number} */
@@ -56,36 +57,38 @@ export class Player {
     this.window = window;
     /** @type {Element} */
     this.target = this.window.document.querySelector(target);
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setCC111Loop(enable) {
     this.enableCC111Loop = enable;
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setFalcomLoop(enable) {
     this.enableFalcomLoop = enable;
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setMFiLoop(enable) {
     this.enableMFiLoop = enable;
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setLoop(enable) {
     this.enableLoop = enable;
-  };
+  }
 
+  /**
+   */
   stop() {
     /** @type {number} */
     let i;
@@ -98,12 +101,17 @@ export class Player {
         this.webMidiLink.contentWindow.postMessage('midi,b' + i.toString(16) + ',78,0', '*');
       }
     }
-  };
+  }
 
+  /**
+   * @return {HTMLIframeElement}
+   */
   getWebMidiLink() {
     return this.webMidiLink;
-  };
+  }
 
+  /**
+   */
   init() {
     this.stop();
     this.initSequence();
@@ -121,29 +129,33 @@ export class Player {
     this.window.clearTimeout(this.timer);
 
     /** @type {Player} */
-    let player = this;
+    const player = this;
     if (this.ready) {
       this.sendInitMessage();
     } else {
-      this.window.addEventListener('message', (function (ev) {
+      this.window.addEventListener('message', (ev) => {
         if (ev.data === 'link,ready') {
           player.sendInitMessage();
         }
-      }), false);
+      }, false);
     }
   };
 
+  /**
+   */
   initSequence() {
     this.tempo = 500000;
     this.position = 0;
 
     this.sendInitMessage();
     this.pause = false;
-  };
+  }
 
+  /**
+   */
   play() {
     /** @type {Player} */
-    let player = this;
+    const player = this;
 
     if (!this.webMidiLink) {
       throw new Error('WebMidiLink not found');
@@ -160,22 +172,26 @@ export class Player {
         console.warn('Midi file is not loaded.');
       }
     } else {
-      this.window.addEventListener('message', (function (ev) {
+      this.window.addEventListener('message', (ev) => {
         if (ev.data === 'link,ready') {
           player.ready = true;
           player.playSequence();
         }
-      }), false);
+      }, false);
     }
   };
 
+  /**
+   */
   ended() {
     player.window.postMessage('endoftrack', '*');
   }
 
+  /**
+   */
   sendInitMessage() {
     /** @type {Window} */
-    let win = this.webMidiLink.contentWindow;
+    const win = this.webMidiLink.contentWindow;
     /** @type {number} */
     let i;
 
@@ -220,12 +236,9 @@ export class Player {
           }
         }
       }
-    }
+    };
 
     if (typeof port === 'string') {
-      /** @type {HTMLIFrameElement} */
-      let iframe;
-
       // Clear self
       if (this.webMidiLink) {
         this.webMidiLink.parentNode.removeChild(this.webMidiLink);
@@ -236,7 +249,8 @@ export class Player {
         this.target.removeChild(this.target.firstChild);
       }
 
-      iframe = this.webMidiLink =
+      /** @type {HTMLIFrameElement} */
+      const iframe = this.webMidiLink =
         /** @type {HTMLIFrameElement} */
         (this.window.document.createElement('iframe'));
       iframe.src = port;
@@ -254,7 +268,6 @@ export class Player {
    * @param {number} volume
    */
   setMasterVolume(volume) {
-
     this.masterVolume = volume;
 
     if (this.webMidiLink) {
@@ -262,7 +275,7 @@ export class Player {
         'midi,f0,7f,7f,04,01,' + [
           ('0' + ((volume) & 0x7f).toString(16)).substr(-2),
           ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
-          '7f'
+          '7f',
         ].join(','),
         '*'
       );
@@ -276,25 +289,27 @@ export class Player {
     this.tempoRate = tempo;
   };
 
+  /**
+   */
   playSequence() {
     /** @type {Player} */
     const player = this;
     /** @type {number} */
-    let timeDivision = this.sequence.timeDivision;
+    const timeDivision = this.sequence.timeDivision;
     /** @type {Array.<Object>} */
-    let mergedTrack = this.track;
+    const mergedTrack = this.track;
     /** @type {Window} */
-    let webMidiLink = this.webMidiLink.contentWindow;
+    const webMidiLink = this.webMidiLink.contentWindow;
     /** @type {number} */
     let pos = this.position || 0;
     /** @type {Array.<?{pos: number}>} */
-    let mark = [];
+    const mark = [];
 
     const update = () => {
       /** @type {number} */
-      let time = mergedTrack[pos]['time'];
+      const time = mergedTrack[pos]['time'];
       /** @type {number} */
-      let length = mergedTrack.length;
+      const length = mergedTrack.length;
       /** @type {Object} TODO */
       let event;
       /** @type {?Array.<string>} */
@@ -320,7 +335,7 @@ export class Player {
         // CC#111 Loop
         if (event.subtype === 'ControlChange' && event.parameter1 === 111) {
           mark[0] = {
-            'pos': pos
+            'pos': pos,
           };
         }
 
@@ -329,7 +344,7 @@ export class Player {
           // mark
           if (event.data[0] === 'A') {
             mark[0] = {
-              'pos': pos
+              'pos': pos,
             };
           }
           // jump
@@ -351,7 +366,7 @@ export class Player {
             if (match[1] === 'START') {
               mark[match[2] | 0] = mark[match[2]] || {
                 'pos': pos,
-                'count': match[3] | 0
+                'count': match[3] | 0,
               };
             } else if (match[1] === 'END' && player.enableMFiLoop) {
               tmp = mark[match[2] | 0];
@@ -394,7 +409,7 @@ export class Player {
 
       player.position = pos;
       player.time = time;
-    }
+    };
 
     if (!this.pause) {
       this.timer = player.window.setTimeout(
@@ -412,9 +427,12 @@ export class Player {
     }
   };
 
+  /**
+   * @param {ArrayBuffer} buffer
+   */
   loadMidiFile(buffer) {
     /** @type {SMF} */
-    let parser = new SMF(buffer);
+    const parser = new SMF(buffer);
 
     this.init();
     parser.parse();
@@ -422,33 +440,36 @@ export class Player {
     this.mergeMidiTracks(parser);
   };
 
+  /**
+   * @param {ArrayBuffer} buffer
+   */
   loadMldFile(buffer) {
     /** @type {Mld} */
-    let parser = new Mld(buffer);
+    const parser = new Mld(buffer);
 
     this.init();
     parser.parse();
 
-    //this.mergeMidiTracks(parser.convertToMidiTracks());
+    // this.mergeMidiTracks(parser.convertToMidiTracks());
     this.loadMidiFile(parser.convertToMidiTracks());
-  };
+  }
 
   /**
    * @param {Object} midi
    */
   mergeMidiTracks(midi) {
     /** @type {Array.<Object>} */
-    let mergedTrack = this.track = [];
-    /** @type {Array.<number>} */
-    let trackPosition;
+    const mergedTrack = this.track = [];
     /** @type {Array.<Array.<Object>>} */
-    let tracks;
+    const tracks = midi.tracks;
+    /** @type {Array.<number>} */
+    const trackPosition = new Array(tracks.length);
+    /** @type {Array.<Array.<Array.<number>>>} */
+    const plainTracks = midi.plainTracks;
+    /** @type {Array.<string>} */
+    const copys = this.copyright = [];
     /** @type {Array.<Object>} */
     let track;
-    /** @type {Array.<Array.<Array.<number>>>} */
-    let plainTracks;
-    /** @type {Array.<string>} */
-    let copys = this.copyright = [];
     /** @type {number} */
     let i;
     /** @type {number} */
@@ -457,10 +478,6 @@ export class Player {
     let j;
     /** @type {number} */
     let jl;
-
-    tracks = midi.tracks;
-    trackPosition = new Array(tracks.length);
-    plainTracks = midi.plainTracks;
 
     // initialize
     for (i = 0, il = tracks.length; i < il; ++i) {
@@ -471,11 +488,11 @@ export class Player {
     for (i = 0, il = tracks.length; i < il; ++i) {
       track = tracks[i];
       for (j = 0, jl = track.length; j < jl; ++j) {
-        if (midi.formatType === 0 && track[j].subtype === "SequenceTrackName") {
+        if (midi.formatType === 0 && track[j].subtype === 'SequenceTrackName') {
           this.sequenceName = track[j].data[0];
         }
 
-        if (track[j].subtype === "CopyrightNotice") {
+        if (track[j].subtype === 'CopyrightNotice') {
           copys.push(track[j].data[0]);
         }
 
@@ -487,16 +504,16 @@ export class Player {
           'webMidiLink': 'midi,' +
             Array.prototype.map.call(
               plainTracks[i][j],
-              function (a) {
+              (a) => {
                 return a.toString(16);
               }
-            ).join(',')
+            ).join(','),
         });
       }
     }
 
     // sort
-    mergedTrack.sort(function (a, b) {
+    mergedTrack.sort((a, b) => {
       return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
         a['track'] > b['track'] ? 1 : a['track'] < b['track'] ? -1 :
           a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
@@ -543,6 +560,8 @@ export class Player {
     return this.length;
   }
 
+  /**
+   */
   sendGmReset() {
     if (this.webMidiLink) {
       // F0 7E 7F 09 01 F7
@@ -550,6 +569,8 @@ export class Player {
     }
   }
 
+  /**
+   */
   sendAllSoundOff() {
     if (this.webMidiLink) {
       this.webMidiLink.contentWindow.postMessage('midi,b0,78,0', '*');
@@ -561,15 +582,15 @@ export class Player {
    * @return {string}
    */
   getTime(time) {
-    let secs = (this.tempo / 6000000) * time;
+    const secs = (this.tempo / 6000000) * time;
 
-    let hours = Math.floor(secs / (60 * 60));
+    const hours = Math.floor(secs / (60 * 60));
 
-    let divisor_for_minutes = secs % (60 * 60);
-    let minutes = Math.floor(divisor_for_minutes / 60);
+    const divisorForMinutes = secs % (60 * 60);
+    const minutes = Math.floor(divisorForMinutes / 60);
 
-    let divisor_for_seconds = divisor_for_minutes % 60;
-    let seconds = Math.ceil(divisor_for_seconds);
+    const divisorForSeconds = divisorForMinutes % 60;
+    const seconds = Math.ceil(divisorForSeconds);
 
     return hours + ':' + ('00' + minutes).slice(-2) + ':' + ('00' + seconds).slice(-2);
   }

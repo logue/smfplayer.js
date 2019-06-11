@@ -1,13 +1,13 @@
-/*! smfplayer.js vundefined | imaya / GREE Inc. / Logue | license: MIT */
+/*! smfplayer.js v0.2.2 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("Smf", [], factory);
+		define("SMF", [], factory);
 	else if(typeof exports === 'object')
-		exports["Smf"] = factory();
+		exports["SMF"] = factory();
 	else
-		root["Smf"] = factory();
+		root["SMF"] = factory();
 })((typeof self !== 'undefined' ? self : this), function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -109,12 +109,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ChannelEvent", function() { return ChannelEvent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SystemExclusiveEvent", function() { return SystemExclusiveEvent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MetaEvent", function() { return MetaEvent; });
+/**
+ * Midi Event abstract class
+ */
 class Event {
   /**
    * @param {string} subtype event subtype name.
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @constructor
    */
   constructor(subtype, deltaTime, time) {
     /** @type {string} */
@@ -126,36 +128,40 @@ class Event {
   }
 }
 
+/**
+ * Midi Channel Event Class
+ * @extends {Event}
+ */
 class ChannelEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {number} channel
-   * @param {number=} opt_parameter1
-   * @param {number=} opt_parameter2
-   * @constructor
-   * @extends {Event}
+   * @param {number=} optParameter1
+   * @param {number=} optParameter2
    */
-  constructor(subtype, deltaTime, time, channel, opt_parameter1, opt_parameter2) {
+  constructor(subtype, deltaTime, time, channel, optParameter1, optParameter2) {
     super(subtype, deltaTime, time);
     /** @type {number} */
     this.channel = channel;
     /** @type {(number|undefined)} */
-    this.parameter1 = opt_parameter1;
+    this.parameter1 = optParameter1;
     /** @type {(number|undefined)} */
-    this.parameter2 = opt_parameter2;
+    this.parameter2 = optParameter2;
   }
 }
 
+/**
+ * System Exclusive Event Class
+ * @extends {Event}
+ */
 class SystemExclusiveEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {ByteArray} data
-   * @constructor
-   * @extends {Event}
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
@@ -164,14 +170,16 @@ class SystemExclusiveEvent extends Event {
   }
 }
 
+/**
+ * Midi Meta Event Class
+ * @extends {Event}
+ */
 class MetaEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {Array.<*>} data meta data.
-   * @constructor
-   * @extends {Event}
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
@@ -179,6 +187,7 @@ class MetaEvent extends Event {
     this.data = data;
   };
 }
+
 
 
 
@@ -194,62 +203,66 @@ class MetaEvent extends Event {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Riff; });
+/**
+ * Riff Parser class
+ */
 class Riff {
-
   /**
    * @param {ByteArray} input input buffer.
-   * @param {Object=} opt_params option parameters.
-   * @constructor
+   * @param {Object=} optParams option parameters.
    */
-  constructor(input, opt_params) {
-    opt_params = opt_params || {};
+  constructor(input, optParams = {}) {
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams['index'] || 0;
     /** @type {number} */
-    this.length = opt_params.length || input.length - this.ip;
-    /** @type {Array.<{type: string, size: number, offset: number}>} */
+    this.length = optParams['length'] || input.length - this.ip;
+    /** @type {Array.<RiffChunk>} */
     this.chunkList;
     /** @type {number} */
     this.offset = this.ip;
     /** @type {boolean} */
     this.padding =
-      opt_params.padding !== void 0 ? opt_params.padding : true;
+      optParams['padding'] !== void 0 ? optParams['padding'] : true;
     /** @type {boolean} */
     this.bigEndian =
-      opt_params.bigEndian !== void 0 ? opt_params.bigEndian : false;
-  };
+      optParams['bigEndian'] !== void 0 ? optParams['bigEndian'] : false;
+  }
 
+  /**
+   */
   parse() {
     /** @type {number} */
-    var length = this.length + this.offset;
+    const length = this.length + this.offset;
 
     this.chunkList = [];
 
     while (this.ip < length) {
       this.parseChunk();
     }
-  };
+  }
 
+  /**
+   */
   parseChunk() {
     /** @type {ByteArray} */
-    var input = this.input;
+    const input = this.input;
     /** @type {number} */
-    var ip = this.ip;
+    let ip = this.ip;
     /** @type {number} */
-    var size;
+    let size;
 
-    this.chunkList.push({
-      'type': String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
-      'size': (size = this.bigEndian ?
+    this.chunkList.push(new RiffChunk(
+      String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
+      (size = this.bigEndian ?
         ((input[ip++] << 24) | (input[ip++] << 16) |
           (input[ip++] << 8) | (input[ip++])) >>> 0 :
         ((input[ip++]) | (input[ip++] << 8) |
           (input[ip++] << 16) | (input[ip++] << 24)) >>> 0
       ),
-      'offset': ip
-    });
+      ip
+    ));
 
     ip += size;
 
@@ -259,30 +272,50 @@ class Riff {
     }
 
     this.ip = ip;
-  };
+  }
 
   /**
    * @param {number} index chunk index.
-   * @return {?{type: string, size: number, offset: number}}
+   * @return {?RiffChunk}
    */
   getChunk(index) {
-    /** @type {{type: string, size: number, offset: number}} */
-    var chunk = this.chunkList[index];
+    /** @type {RiffChunk} */
+    const chunk = this.chunkList[index];
 
     if (chunk === void 0) {
       return null;
     }
 
     return chunk;
-  };
+  }
 
   /**
    * @return {number}
    */
   getNumberOfChunks() {
     return this.chunkList.length;
-  };
-};
+  }
+}
+
+/**
+ * Riff Chunk Structure
+ * @interface
+ */
+class RiffChunk {
+  /**
+   * @param {string} type
+   * @param {number} size
+   * @param {number} offset
+   */
+  constructor(type, size, offset) {
+    /** @type {string} */
+    this.type = type;
+    /** @type {number} */
+    this.size = size;
+    /** @type {number} */
+    this.offset = offset;
+  }
+}
 
 
 /***/ }),
@@ -302,27 +335,29 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+/**
+ * Standard Midi File Parser class
+ */
 class SMF {
   /**
    * @param {ByteArray} input input buffer.
-   * @param {Object=} opt_params option parameters.
-   * @constructor
+   * @param {Object=} optParams option parameters.
    */
-  constructor(input, opt_params = {}) {
-    opt_params.padding = false;
-    opt_params.bigEndian = true;
+  constructor(input, optParams = {}) {
+    optParams.padding = false;
+    optParams.bigEndian = true;
 
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams.index || 0;
     /** @type {number} */
     this.chunkIndex = 0;
     /**
      * @type {Riff}
      * @private
      */
-    this.riffParser_ = new _riff__WEBPACK_IMPORTED_MODULE_0__["default"](input, opt_params);
+    this.riffParser_ = new _riff__WEBPACK_IMPORTED_MODULE_0__["default"](input, optParams);
 
     // MIDI File Information
 
@@ -338,6 +373,8 @@ class SMF {
     this.plainTracks = [];
   };
 
+  /**
+   */
   parse() {
     /** @type {number} */
     let i = 0;
@@ -356,6 +393,8 @@ class SMF {
     }
   };
 
+  /**
+   */
   parseHeaderChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
@@ -373,6 +412,8 @@ class SMF {
     this.timeDivision = (data[ip++] << 8) | data[ip++];
   };
 
+  /**
+   */
   parseTrackChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
@@ -420,15 +461,15 @@ class SMF {
       } while ((tmp & 0x80) !== 0);
 
       return result;
-    }
+    };
 
     if (!chunk || chunk.type !== 'MTrk') {
       throw new Error('invalid header signature');
     }
 
     size = chunk.offset + chunk.size;
-    let eventQueue = [];
-    let plainQueue = [];
+    const eventQueue = [];
+    const plainQueue = [];
 
     while (ip < size) {
       // delta time
@@ -463,7 +504,7 @@ class SMF {
         'ControlChange',
         'ProgramChange',
         'ChannelAftertouch',
-        'PitchBend'
+        'PitchBend',
       ];
 
       switch (eventType) {
@@ -598,7 +639,7 @@ class SMF {
               }
               break;
             default:
-              console.log("unknown message:", status.toString(16));
+              console.log('unknown message:', status.toString(16));
           }
           break;
         // error
@@ -629,6 +670,7 @@ class SMF {
     this.plainTracks.push(plainQueue);
   };
 };
+
 
 /***/ })
 

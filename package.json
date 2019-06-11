@@ -1,5 +1,6 @@
 {
   "name": "smfplayer.js",
+  "version": "0.2.2",
   "description": "smfplayer.js is JavaScript based Standard Midi Player for WebMidiLink based synthesizer.",
   "scripts": {
     "watch": "webpack --mode development --watch --color --progress",
@@ -29,6 +30,11 @@
   },
   "homepage": "https://github.com/logue/smfplayer.js#readme",
   "devDependencies": {
+    "closure-webpack-plugin": "^2.0.1",
+    "eslint": "^5.16.0",
+    "eslint-config-google": "^0.13.0",
+    "eslint-plugin-vue": "^5.2.2",
+    "google-closure-compiler": "^20190528.0.0",
     "webpack": "^4.33.0",
     "webpack-cli": "^3.3.3",
     "webpack-dev-server": "^3.7.1"

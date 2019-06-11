@@ -1,59 +1,63 @@
+/**
+ * Riff Parser class
+ */
 export default class Riff {
-
   /**
    * @param {ByteArray} input input buffer.
-   * @param {Object=} opt_params option parameters.
-   * @constructor
+   * @param {Object=} optParams option parameters.
    */
-  constructor(input, opt_params) {
-    opt_params = opt_params || {};
+  constructor(input, optParams = {}) {
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams['index'] || 0;
     /** @type {number} */
-    this.length = opt_params.length || input.length - this.ip;
-    /** @type {Array.<{type: string, size: number, offset: number}>} */
+    this.length = optParams['length'] || input.length - this.ip;
+    /** @type {Array.<RiffChunk>} */
     this.chunkList;
     /** @type {number} */
     this.offset = this.ip;
     /** @type {boolean} */
     this.padding =
-      opt_params.padding !== void 0 ? opt_params.padding : true;
+      optParams['padding'] !== void 0 ? optParams['padding'] : true;
     /** @type {boolean} */
     this.bigEndian =
-      opt_params.bigEndian !== void 0 ? opt_params.bigEndian : false;
-  };
+      optParams['bigEndian'] !== void 0 ? optParams['bigEndian'] : false;
+  }
 
+  /**
+   */
   parse() {
     /** @type {number} */
-    var length = this.length + this.offset;
+    const length = this.length + this.offset;
 
     this.chunkList = [];
 
     while (this.ip < length) {
       this.parseChunk();
     }
-  };
+  }
 
+  /**
+   */
   parseChunk() {
     /** @type {ByteArray} */
-    var input = this.input;
+    const input = this.input;
     /** @type {number} */
-    var ip = this.ip;
+    let ip = this.ip;
     /** @type {number} */
-    var size;
+    let size;
 
-    this.chunkList.push({
-      'type': String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
-      'size': (size = this.bigEndian ?
+    this.chunkList.push(new RiffChunk(
+      String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
+      (size = this.bigEndian ?
         ((input[ip++] << 24) | (input[ip++] << 16) |
           (input[ip++] << 8) | (input[ip++])) >>> 0 :
         ((input[ip++]) | (input[ip++] << 8) |
           (input[ip++] << 16) | (input[ip++] << 24)) >>> 0
       ),
-      'offset': ip
-    });
+      ip
+    ));
 
     ip += size;
 
@@ -63,27 +67,47 @@ export default class Riff {
     }
 
     this.ip = ip;
-  };
+  }
 
   /**
    * @param {number} index chunk index.
-   * @return {?{type: string, size: number, offset: number}}
+   * @return {?RiffChunk}
    */
   getChunk(index) {
-    /** @type {{type: string, size: number, offset: number}} */
-    var chunk = this.chunkList[index];
+    /** @type {RiffChunk} */
+    const chunk = this.chunkList[index];
 
     if (chunk === void 0) {
       return null;
     }
 
     return chunk;
-  };
+  }
 
   /**
    * @return {number}
    */
   getNumberOfChunks() {
     return this.chunkList.length;
-  };
-};
+  }
+}
+
+/**
+ * Riff Chunk Structure
+ * @interface
+ */
+class RiffChunk {
+  /**
+   * @param {string} type
+   * @param {number} size
+   * @param {number} offset
+   */
+  constructor(type, size, offset) {
+    /** @type {string} */
+    this.type = type;
+    /** @type {number} */
+    this.size = size;
+    /** @type {number} */
+    this.offset = offset;
+  }
+}

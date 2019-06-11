@@ -2,30 +2,32 @@ import Riff from './riff';
 import {
   ChannelEvent,
   SystemExclusiveEvent,
-  MetaEvent
+  MetaEvent,
 } from './midi_event';
 
+/**
+ * Standard Midi File Parser class
+ */
 export default class SMF {
   /**
    * @param {ByteArray} input input buffer.
-   * @param {Object=} opt_params option parameters.
-   * @constructor
+   * @param {Object=} optParams option parameters.
    */
-  constructor(input, opt_params = {}) {
-    opt_params.padding = false;
-    opt_params.bigEndian = true;
+  constructor(input, optParams = {}) {
+    optParams.padding = false;
+    optParams.bigEndian = true;
 
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams.index || 0;
     /** @type {number} */
     this.chunkIndex = 0;
     /**
      * @type {Riff}
      * @private
      */
-    this.riffParser_ = new Riff(input, opt_params);
+    this.riffParser_ = new Riff(input, optParams);
 
     // MIDI File Information
 
@@ -41,6 +43,8 @@ export default class SMF {
     this.plainTracks = [];
   };
 
+  /**
+   */
   parse() {
     /** @type {number} */
     let i = 0;
@@ -59,6 +63,8 @@ export default class SMF {
     }
   };
 
+  /**
+   */
   parseHeaderChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
@@ -76,6 +82,8 @@ export default class SMF {
     this.timeDivision = (data[ip++] << 8) | data[ip++];
   };
 
+  /**
+   */
   parseTrackChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
@@ -123,15 +131,15 @@ export default class SMF {
       } while ((tmp & 0x80) !== 0);
 
       return result;
-    }
+    };
 
     if (!chunk || chunk.type !== 'MTrk') {
       throw new Error('invalid header signature');
     }
 
     size = chunk.offset + chunk.size;
-    let eventQueue = [];
-    let plainQueue = [];
+    const eventQueue = [];
+    const plainQueue = [];
 
     while (ip < size) {
       // delta time
@@ -166,7 +174,7 @@ export default class SMF {
         'ControlChange',
         'ProgramChange',
         'ChannelAftertouch',
-        'PitchBend'
+        'PitchBend',
       ];
 
       switch (eventType) {
@@ -301,7 +309,7 @@ export default class SMF {
               }
               break;
             default:
-              console.log("unknown message:", status.toString(16));
+              console.log('unknown message:', status.toString(16));
           }
           break;
         // error

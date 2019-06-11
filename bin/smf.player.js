@@ -1,13 +1,13 @@
-/*! smfplayer.js vundefined | imaya / GREE Inc. / Logue | license: MIT */
+/*! smfplayer.js v0.2.2 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("Smf", [], factory);
+		define("SMF", [], factory);
 	else if(typeof exports === 'object')
-		exports["Smf"] = factory();
+		exports["SMF"] = factory();
 	else
-		root["Smf"] = factory();
+		root["SMF"] = factory();
 })((typeof self !== 'undefined' ? self : this), function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -109,12 +109,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "ChannelEvent", function() { return ChannelEvent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SystemExclusiveEvent", function() { return SystemExclusiveEvent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MetaEvent", function() { return MetaEvent; });
+/**
+ * Midi Event abstract class
+ */
 class Event {
   /**
    * @param {string} subtype event subtype name.
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @constructor
    */
   constructor(subtype, deltaTime, time) {
     /** @type {string} */
@@ -126,36 +128,40 @@ class Event {
   }
 }
 
+/**
+ * Midi Channel Event Class
+ * @extends {Event}
+ */
 class ChannelEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {number} channel
-   * @param {number=} opt_parameter1
-   * @param {number=} opt_parameter2
-   * @constructor
-   * @extends {Event}
+   * @param {number=} optParameter1
+   * @param {number=} optParameter2
    */
-  constructor(subtype, deltaTime, time, channel, opt_parameter1, opt_parameter2) {
+  constructor(subtype, deltaTime, time, channel, optParameter1, optParameter2) {
     super(subtype, deltaTime, time);
     /** @type {number} */
     this.channel = channel;
     /** @type {(number|undefined)} */
-    this.parameter1 = opt_parameter1;
+    this.parameter1 = optParameter1;
     /** @type {(number|undefined)} */
-    this.parameter2 = opt_parameter2;
+    this.parameter2 = optParameter2;
   }
 }
 
+/**
+ * System Exclusive Event Class
+ * @extends {Event}
+ */
 class SystemExclusiveEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {ByteArray} data
-   * @constructor
-   * @extends {Event}
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
@@ -164,14 +170,16 @@ class SystemExclusiveEvent extends Event {
   }
 }
 
+/**
+ * Midi Meta Event Class
+ * @extends {Event}
+ */
 class MetaEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {Array.<*>} data meta data.
-   * @constructor
-   * @extends {Event}
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
@@ -179,6 +187,7 @@ class MetaEvent extends Event {
     this.data = data;
   };
 }
+
 
 
 
@@ -194,18 +203,19 @@ class MetaEvent extends Event {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Mld; });
+/**
+ * Mld Parser Class
+ */
 class Mld {
   /**
    * @param {ByteArray} input
-   * @param {Object=} opt_params
-   * @constructor
+   * @param {Object=} optParams
    */
-  constructor(input, opt_params) {
-    opt_params = opt_params || {};
+  constructor(input, optParams = {}) {
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams.index || 0;
     /** @type {Object} */
     this.header;
     /** @type {Object} */
@@ -214,21 +224,25 @@ class Mld {
     this.tracks;
   };
 
+  /**
+   */
   parse() {
     this.parseHeader();
     this.parseDataInformation();
     this.parseTracks();
   };
 
+  /**
+   */
   parseHeader() {
     /** @type {ByteArray} */
-    let input = this.input;
+    const input = this.input;
     /** @type {number} */
     let ip = this.ip;
     /** @type {Object} */
-    let header = this.header = {};
+    const header = this.header = {};
     /** @type {string} */
-    let signature =
+    const signature =
       String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]);
 
     if (signature !== 'melo') {
@@ -251,13 +265,15 @@ class Mld {
     this.ip = ip;
   };
 
+  /**
+   */
   parseDataInformation() {
     /** @type {ByteArray} */
-    let input = this.input;
+    const input = this.input;
     /** @type {number} */
     let ip = this.ip;
     /** @type {Object} */
-    let dataInformation = this.dataInformation = {
+    const dataInformation = this.dataInformation = {
       'copy': null,
       'date': null,
       'exst': null,
@@ -266,7 +282,7 @@ class Mld {
       'sorc': null,
       'titl': null,
       'trac': null,
-      'vers': null
+      'vers': null,
     };
     /** @type {string} */
     let type;
@@ -305,16 +321,17 @@ class Mld {
         default:
           dataInformation[type] = input.subarray(ip, ip += size);
           break;
-
       }
     }
 
     this.ip = ip;
-  };
+  }
 
+  /**
+   */
   parseTracks() {
     /** @type {ByteArray} */
-    let input = this.input;
+    const input = this.input;
     /** @type {number} */
     let ip = this.ip;
     /** @type {string} */
@@ -324,23 +341,106 @@ class Mld {
     /** @type {number} */
     let limit;
     /** @type {number} */
-    let deltaTime;
-    /** @type {number} */
     let status;
-    /** @type {number} */
-    let noteLength;
     /** @type {number} */
     let extendStatus;
     /** @type {Object} */
     let message;
     /** @type {Array.<Array.<Object>>} */
-    let tracks = this.tracks = [];
+    const tracks = this.tracks = [];
     /** @type {Array.<Object>} */
     let track;
     /** @type {number} */
     let i;
     /** @type {number} */
     let il;
+    /**
+     * @return {Array.<Object>}
+     */
+    const parseEditInstrument = () => {
+      /** @type {number} */
+      const length = (input[ip++] << 8) | input[ip++];
+      /** @type {number} */
+      const limit = ip + length;
+      /** @type {Array.<Object>} */
+      const result = [];
+      /** @type {Object} */
+      let info;
+
+      // const
+      if (input[ip++] !== 1) {
+        throw new Error('invalid EditInstrument const value:' + input[ip - 1]);
+      }
+
+      while (ip < limit) {
+        info = {};
+
+        info['part'] = (input[ip++] >> 4) & 0x3;
+        info['modulator'] = {
+          'ML': input[ip] >> 5,
+          'VIV': (input[ip] >> 4) & 0x1,
+          'EG': (input[ip] >> 3) & 0x1,
+          'SUS': (input[ip] >> 2) & 0x1,
+          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'DR': (input[ip] >> 4) & 0xf,
+          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'SL': (input[ip] >> 4) & 0xf,
+          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          'WF': (input[ip] >> 3) & 0x1,
+          'FB': input[ip++] & 0x7,
+        };
+        info['carrier'] = {
+          'ML': input[ip] >> 5,
+          'VIV': (input[ip] >> 4) & 0x1,
+          'EG': (input[ip] >> 3) & 0x1,
+          'SUS': (input[ip] >> 2) & 0x1,
+          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'DR': (input[ip] >> 4) & 0xf,
+          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'SL': (input[ip] >> 4) & 0xf,
+          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          'WF': (input[ip] >> 3) & 0x1,
+          'FB': input[ip++] & 0x7,
+        };
+        info['octaveSelect'] = input[ip++] & 0x3;
+
+        result.push(info);
+      }
+
+      return result;
+    };
+    /**
+     * @return {{part: number, switch: number}}
+     */
+    const parseVibrato = () => {
+      // const
+      if (input[ip++] !== 1) {
+        throw new Error('invalid Vibrato const value:' + input[ip - 1]);
+      }
+
+      return {
+        'part': (input[ip++] >> 5) & 0x3,
+        'switch': (input[ip++] >> 6),
+      };
+    };
+    /**
+     * @return {{data: ByteArray}}
+     */
+    const parseDeviceSpecific = () => {
+      /** @type {number} */
+      const length = (input[ip++] << 8) | input[ip++];
+      /** @type {number} */
+      const limit = ip + length;
+
+      // const
+      if (input[ip++] !== 0x11) {
+        throw new Error('invalid DeviceSpecific const value:' + input[ip - 1]);
+      }
+
+      return {
+        'data': input.subarray(ip, ip += limit - ip),
+      };
+    };
 
     for (i = 0, il = this.header.numberOfTracks; i < il; ++i) {
       signature =
@@ -367,7 +467,7 @@ class Mld {
           type: null,
           value: {},
           velocity: null,
-          voice: null
+          voice: null,
         };
 
         // delta time
@@ -407,7 +507,7 @@ class Mld {
                   message.subType = 'DrumScale';
                   message.value = {
                     'channel': (input[ip] >> 3) & 0x7,
-                    'drum': input[ip++] & 0x1
+                    'drum': input[ip++] & 0x1,
                   };
                   break;
                 default:
@@ -420,7 +520,7 @@ class Mld {
               message.value = {
                 'timeBase': (status & 0x7) === 7 ?
                   NaN : Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
-                'tempo': input[ip++]
+                'tempo': input[ip++],
               };
               break;
             // control message
@@ -435,7 +535,7 @@ class Mld {
                   message.value = {
                     'id': input[ip] >> 6,
                     'count': input[ip] >> 2 & 0xf,
-                    'point': input[ip++] & 0x3
+                    'point': input[ip++] & 0x3,
                   };
                   break;
                 case 0xe:
@@ -457,81 +557,83 @@ class Mld {
                   message.subType = 'InstrumentLowPart';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x3f
+                    'instrument': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x1:
                   message.subType = 'InstrumentHighPart';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x1
+                    'instrument': input[ip++] & 0x1,
                   };
                   break;
                 case 0x2:
                   message.subType = 'Volume';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'volume': input[ip++] & 0x3f
+                    'volume': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x3:
                   message.subType = 'Valance';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'valance': input[ip++] & 0x3f
+                    'valance': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x4:
                   message.subType = 'PitchBend';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'value': input[ip++] & 0x3f
+                    'value': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x5:
                   message.subType = 'ChannelAssign';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'channel': input[ip++] & 0x3f
+                    'channel': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x6:
                   message.subType = 'VolumeChange';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'volume': (input[ip++] & 0x3f) << 26 >> 26
+                    'volume': (input[ip++] & 0x3f) << 26 >> 26,
                   };
                   break;
                 case 0x7:
                   message.subType = 'PitchBendRange';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f)
+                    'value': (input[ip++] & 0x3f),
                   };
                   break;
-                // TODO: 未遭遇
-                /*
+
+
                 case 0x8:
-                  message.subType = 'MasterFineTuning';
-                  message.value = {
-                    'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f)
-                  };
-                  break;
+                /*
+                // TODO: 未遭遇
+                message.subType = 'MasterFineTuning';
+                message.value = {
+                  'part': input[ip] >> 6,
+                  'value': (input[ip++] & 0x3f)
+                };
+                break;
                 */
                 // TODO: あってるか自信ない
                 case 0x9:
                   message.subType = 'MasterCoarseTuning';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f)
+                    'value': (input[ip++] & 0x3f),
                   };
                   break;
                 case 0xA:
                   message.subType = 'Modulation';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'depth': (input[ip++] & 0x3f)
+                    'depth': (input[ip++] & 0x3f),
                   };
                   break;
                 default:
@@ -567,118 +669,25 @@ class Mld {
       ip = limit;
     }
 
-    /**
-     * @return {Array.<Object>}
-     */
-    function parseEditInstrument() {
-      /** @type {number} */
-      let length = (input[ip++] << 8) | input[ip++];
-      /** @type {number} */
-      let limit = ip + length;
-      /** @type {Array.<Object>} */
-      let result = [];
-      /** @type {Object} */
-      let info;
-
-      // const
-      if (input[ip++] !== 1) {
-        throw new Error('invalid EditInstrument const value:' + input[ip - 1]);
-      }
-
-      while (ip < limit) {
-        info = {};
-
-        info['part'] = (input[ip++] >> 4) & 0x3;
-        info['modulator'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7
-        };
-        info['carrier'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7
-        };
-        info['octaveSelect'] = input[ip++] & 0x3;
-
-        result.push(info);
-      }
-
-      return result;
-    }
-
-    /**
-     * @return {{part: number, switch: number}}
-     */
-    function parseVibrato() {
-      /** @type {number} */
-      let length = (input[ip++] << 8) | input[ip++];
-
-      // const
-      if (input[ip++] !== 1) {
-        throw new Error('invalid Vibrato const value:' + input[ip - 1]);
-      }
-
-      return {
-        'part': (input[ip++] >> 5) & 0x3,
-        'switch': (input[ip++] >> 6)
-      };
-    }
-
-    /**
-     * @return {{data: ByteArray}}
-     */
-    function parseDeviceSpecific() {
-      /** @type {number} */
-      let length = (input[ip++] << 8) | input[ip++];
-      /** @type {number} */
-      let limit = ip + length;
-
-      // const
-      if (input[ip++] !== 0x11) {
-        throw new Error('invalid DeviceSpecific const value:' + input[ip - 1]);
-      }
-
-      return {
-        'data': input.subarray(ip, ip += limit - ip)
-      };
-    }
-
     this.ip = ip;
-  };
+  }
 
   /**
    * @return {Object}
    */
   convertToMidiTracks() {
     /** @type {Object} */
-    let result = {
+    const result = {
       timeDivision: 48,
       trac: [],
-      plainTracks: []
+      plainTracks: [],
     };
     /** @type {Array.<Array.<Object>>} */
-    let tracks = result.tracks;
+    const tracks = result.tracks;
     /** @type {Array.<Array.<Array.<number>>>} */
-    let plainTracks = result.plainTracks;
+    const plainTracks = result.plainTracks;
     /** @type {Array.<Array.<Object>>} */
-    let mfiTracks = this.tracks;
+    const mfiTracks = this.tracks;
     /** @type {Array.<Object>} */
     let mfiTrack;
     /** @type {Object} */
@@ -706,7 +715,7 @@ class Mld {
     /** @type {number} */
     let jl;
     /** @type {Array.<number>} */
-    let channelTime = [];
+    const channelTime = [];
     /** @type {number} */
     let channel;
 
@@ -732,7 +741,7 @@ class Mld {
             break;
           case 'Note':
             tmpTrack[pos++] = mfiEvent;
-            // TODO: value: ... 形式になおす　
+            // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
               'id': pos,
               'type': 'internal',
@@ -741,7 +750,7 @@ class Mld {
               'key': mfiEvent['key'],
               'voice': mfiEvent['voice'],
               'velocity': mfiEvent['velocity'],
-              'octaveShift': mfiEvent['octaveShift']
+              'octaveShift': mfiEvent['octaveShift'],
             };
             pos++;
             break;
@@ -751,14 +760,14 @@ class Mld {
             if (mfiEvent['subType'] !== 'InstrumentLowPart') {
               throw new Error('broken instrument');
             }
-            // TODO: value: ... 形式になおす　
+            // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
               'id': pos,
               'type': 'internal',
               'subType': 'ProgramChange',
               'time': time,
               'part': mfiEvent['value']['part'],
-              'instrument': (prevEvent['value']['instrument'] << 6) | mfiEvent['value']['instrument']
+              'instrument': (prevEvent['value']['instrument'] << 6) | mfiEvent['value']['instrument'],
             };
             pos++;
             break;
@@ -767,7 +776,7 @@ class Mld {
             break;
         }
       }
-      tmpTrack.sort(function (a, b) {
+      tmpTrack.sort((a, b) => {
         return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
           a['id'] > b['id'] ? 1 : a['id'] < b['id'] ? -1 :
             0;
@@ -850,9 +859,9 @@ class Mld {
                 [
                   0xFF,
                   0x06,
-                  str.length
+                  str.length,
                 ],
-                str.split('').map(function (a) {
+                str.split('').map((a) => {
                   return a.charCodeAt(0);
                 })
               )
@@ -927,11 +936,11 @@ class Mld {
               ), [
                 0x00,
                 0xB0 | channel,
-                0x65, 0x00
+                0x65, 0x00,
               ], [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2
+                0x06, mfiEvent['value']['value'] * 2,
               ]
             );
             break;
@@ -946,11 +955,11 @@ class Mld {
               ), [
                 0x00,
                 0xB0 | channel,
-                0x65, 0x02
+                0x65, 0x02,
               ], [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2
+                0x06, mfiEvent['value']['value'] * 2,
               ]
             );
             break;
@@ -963,31 +972,31 @@ class Mld {
     }
 
     return this.toSMF(plainTracks);
-  };
+  }
 
   /**
    * @param {number} key
    * @param {number} octaveShift
-   * @returns {number}
+   * @return {number}
    */
   applyOctaveShift(key, octaveShift) {
     /** @type {Array.<number>} */
-    let table = [0, 12, -24, -12];
+    const table = [0, 12, -24, -12];
 
     if (table[octaveShift] !== void 0) {
       return key + table[octaveShift];
     }
 
     throw new Error('invalid OctaveShift value:' + octaveShift);
-  };
+  }
 
   /**
    * @param {Array.<Array.<ByteArray>>} plainTracks
-   * @returns {ByteArray}
+   * @return {ByteArray}
    */
   toSMF(plainTracks) {
     /** @type {number} @const */
-    let TimeDivision = 48;
+    const TimeDivision = 48;
     /** @type {Array.<number>} */
     let trackHeader;
     /** @type {Array.<number>} */
@@ -998,7 +1007,7 @@ class Mld {
       0x00, 0x00, 0x00, 0x06, // Size
       0x00, 0x01, // Format
       0x00, 0x10, // number of track
-      (TimeDivision >> 8) & 0xff, TimeDivision & 0xff // Data
+      (TimeDivision >> 8) & 0xff, TimeDivision & 0xff, // Data
     ];
     /** @type {number} */
     let i;
@@ -1011,15 +1020,15 @@ class Mld {
 
     /**
      * @param {string} str
-     * @returns {Array.<number>}
+     * @return {Array.<number>}
      */
     function stringToArray(str) {
       /** @type {number} */
       let i;
       /** @type {number} */
-      let il = str.length;
+      const il = str.length;
       /** @type {Array.<number>} */
-      let array = new Array(il);
+      const array = new Array(il);
 
       for (i = 0; i < il; ++i) {
         array[i] = str.charCodeAt(i);
@@ -1053,7 +1062,7 @@ class Mld {
     */
 
     for (i = 0, il = plainTracks.length; i < il; ++i) {
-      let track = plainTracks[i];
+      const track = plainTracks[i];
       trackData = [];
       for (j = 0, jl = track.length; j < jl; ++j) {
         Array.prototype.push.apply(trackData, track[j]);
@@ -1063,13 +1072,13 @@ class Mld {
       trackHeader = [
         0x4D, 0x54, 0x72, 0x6B, // "MTrk"
         (jl >> 24) & 0xff, (jl >> 16) & 0xff,
-        (jl >> 8) & 0xff, (jl) & 0xff
+        (jl >> 8) & 0xff, (jl) & 0xff,
       ];
       result = result.concat(trackHeader, trackData);
     }
 
     return new Uint8Array(result);
-  };
+  }
 
   /**
    * @param {number} deltaTime
@@ -1077,7 +1086,7 @@ class Mld {
    */
   deltaTimeToByteArray(deltaTime) {
     /** @type {Array.<number>} */
-    let array = [];
+    const array = [];
 
     while (deltaTime >= 0x80) {
       array.unshift(deltaTime & 0x7f | (array.length === 0 ? 0 : 0x80));
@@ -1086,9 +1095,9 @@ class Mld {
     array.unshift(deltaTime | (array.length === 0 ? 0 : 0x80));
 
     return array;
-  };
+  }
+}
 
-};
 
 /***/ }),
 
@@ -1107,13 +1116,14 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+/**
+ * Midi Player Class
+ */
 class Player {
-
   /**
    * @param {string} target WML attach dom
-   * @constructor
    */
-  constructor(target = "#wml") {
+  constructor(target = '#wml') {
     /** @type {number} */
     this.tempo = 500000; // default
     /** @type {HTMLIFrameElement} */
@@ -1121,7 +1131,7 @@ class Player {
     /** @type {number} */
     this.resume;
     /** @type {boolean} */
-    this.pause = true;;
+    this.pause = true;
     /** @type {boolean} */
     this.ready = false;
     /** @type {number} */
@@ -1162,36 +1172,38 @@ class Player {
     this.window = window;
     /** @type {Element} */
     this.target = this.window.document.querySelector(target);
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setCC111Loop(enable) {
     this.enableCC111Loop = enable;
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setFalcomLoop(enable) {
     this.enableFalcomLoop = enable;
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setMFiLoop(enable) {
     this.enableMFiLoop = enable;
-  };
+  }
 
   /**
    * @param {boolean} enable
    */
   setLoop(enable) {
     this.enableLoop = enable;
-  };
+  }
 
+  /**
+   */
   stop() {
     /** @type {number} */
     let i;
@@ -1204,12 +1216,17 @@ class Player {
         this.webMidiLink.contentWindow.postMessage('midi,b' + i.toString(16) + ',78,0', '*');
       }
     }
-  };
+  }
 
+  /**
+   * @return {HTMLIframeElement}
+   */
   getWebMidiLink() {
     return this.webMidiLink;
-  };
+  }
 
+  /**
+   */
   init() {
     this.stop();
     this.initSequence();
@@ -1227,29 +1244,33 @@ class Player {
     this.window.clearTimeout(this.timer);
 
     /** @type {Player} */
-    let player = this;
+    const player = this;
     if (this.ready) {
       this.sendInitMessage();
     } else {
-      this.window.addEventListener('message', (function (ev) {
+      this.window.addEventListener('message', (ev) => {
         if (ev.data === 'link,ready') {
           player.sendInitMessage();
         }
-      }), false);
+      }, false);
     }
   };
 
+  /**
+   */
   initSequence() {
     this.tempo = 500000;
     this.position = 0;
 
     this.sendInitMessage();
     this.pause = false;
-  };
+  }
 
+  /**
+   */
   play() {
     /** @type {Player} */
-    let player = this;
+    const player = this;
 
     if (!this.webMidiLink) {
       throw new Error('WebMidiLink not found');
@@ -1266,22 +1287,26 @@ class Player {
         console.warn('Midi file is not loaded.');
       }
     } else {
-      this.window.addEventListener('message', (function (ev) {
+      this.window.addEventListener('message', (ev) => {
         if (ev.data === 'link,ready') {
           player.ready = true;
           player.playSequence();
         }
-      }), false);
+      }, false);
     }
   };
 
+  /**
+   */
   ended() {
     player.window.postMessage('endoftrack', '*');
   }
 
+  /**
+   */
   sendInitMessage() {
     /** @type {Window} */
-    let win = this.webMidiLink.contentWindow;
+    const win = this.webMidiLink.contentWindow;
     /** @type {number} */
     let i;
 
@@ -1326,12 +1351,9 @@ class Player {
           }
         }
       }
-    }
+    };
 
     if (typeof port === 'string') {
-      /** @type {HTMLIFrameElement} */
-      let iframe;
-
       // Clear self
       if (this.webMidiLink) {
         this.webMidiLink.parentNode.removeChild(this.webMidiLink);
@@ -1342,7 +1364,8 @@ class Player {
         this.target.removeChild(this.target.firstChild);
       }
 
-      iframe = this.webMidiLink =
+      /** @type {HTMLIFrameElement} */
+      const iframe = this.webMidiLink =
         /** @type {HTMLIFrameElement} */
         (this.window.document.createElement('iframe'));
       iframe.src = port;
@@ -1360,7 +1383,6 @@ class Player {
    * @param {number} volume
    */
   setMasterVolume(volume) {
-
     this.masterVolume = volume;
 
     if (this.webMidiLink) {
@@ -1368,7 +1390,7 @@ class Player {
         'midi,f0,7f,7f,04,01,' + [
           ('0' + ((volume) & 0x7f).toString(16)).substr(-2),
           ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
-          '7f'
+          '7f',
         ].join(','),
         '*'
       );
@@ -1382,25 +1404,27 @@ class Player {
     this.tempoRate = tempo;
   };
 
+  /**
+   */
   playSequence() {
     /** @type {Player} */
     const player = this;
     /** @type {number} */
-    let timeDivision = this.sequence.timeDivision;
+    const timeDivision = this.sequence.timeDivision;
     /** @type {Array.<Object>} */
-    let mergedTrack = this.track;
+    const mergedTrack = this.track;
     /** @type {Window} */
-    let webMidiLink = this.webMidiLink.contentWindow;
+    const webMidiLink = this.webMidiLink.contentWindow;
     /** @type {number} */
     let pos = this.position || 0;
     /** @type {Array.<?{pos: number}>} */
-    let mark = [];
+    const mark = [];
 
     const update = () => {
       /** @type {number} */
-      let time = mergedTrack[pos]['time'];
+      const time = mergedTrack[pos]['time'];
       /** @type {number} */
-      let length = mergedTrack.length;
+      const length = mergedTrack.length;
       /** @type {Object} TODO */
       let event;
       /** @type {?Array.<string>} */
@@ -1426,7 +1450,7 @@ class Player {
         // CC#111 Loop
         if (event.subtype === 'ControlChange' && event.parameter1 === 111) {
           mark[0] = {
-            'pos': pos
+            'pos': pos,
           };
         }
 
@@ -1435,7 +1459,7 @@ class Player {
           // mark
           if (event.data[0] === 'A') {
             mark[0] = {
-              'pos': pos
+              'pos': pos,
             };
           }
           // jump
@@ -1457,7 +1481,7 @@ class Player {
             if (match[1] === 'START') {
               mark[match[2] | 0] = mark[match[2]] || {
                 'pos': pos,
-                'count': match[3] | 0
+                'count': match[3] | 0,
               };
             } else if (match[1] === 'END' && player.enableMFiLoop) {
               tmp = mark[match[2] | 0];
@@ -1500,7 +1524,7 @@ class Player {
 
       player.position = pos;
       player.time = time;
-    }
+    };
 
     if (!this.pause) {
       this.timer = player.window.setTimeout(
@@ -1518,9 +1542,12 @@ class Player {
     }
   };
 
+  /**
+   * @param {ArrayBuffer} buffer
+   */
   loadMidiFile(buffer) {
     /** @type {SMF} */
-    let parser = new _smf__WEBPACK_IMPORTED_MODULE_0__["default"](buffer);
+    const parser = new _smf__WEBPACK_IMPORTED_MODULE_0__["default"](buffer);
 
     this.init();
     parser.parse();
@@ -1528,33 +1555,36 @@ class Player {
     this.mergeMidiTracks(parser);
   };
 
+  /**
+   * @param {ArrayBuffer} buffer
+   */
   loadMldFile(buffer) {
     /** @type {Mld} */
-    let parser = new _mld__WEBPACK_IMPORTED_MODULE_1__["default"](buffer);
+    const parser = new _mld__WEBPACK_IMPORTED_MODULE_1__["default"](buffer);
 
     this.init();
     parser.parse();
 
-    //this.mergeMidiTracks(parser.convertToMidiTracks());
+    // this.mergeMidiTracks(parser.convertToMidiTracks());
     this.loadMidiFile(parser.convertToMidiTracks());
-  };
+  }
 
   /**
    * @param {Object} midi
    */
   mergeMidiTracks(midi) {
     /** @type {Array.<Object>} */
-    let mergedTrack = this.track = [];
-    /** @type {Array.<number>} */
-    let trackPosition;
+    const mergedTrack = this.track = [];
     /** @type {Array.<Array.<Object>>} */
-    let tracks;
+    const tracks = midi.tracks;
+    /** @type {Array.<number>} */
+    const trackPosition = new Array(tracks.length);
+    /** @type {Array.<Array.<Array.<number>>>} */
+    const plainTracks = midi.plainTracks;
+    /** @type {Array.<string>} */
+    const copys = this.copyright = [];
     /** @type {Array.<Object>} */
     let track;
-    /** @type {Array.<Array.<Array.<number>>>} */
-    let plainTracks;
-    /** @type {Array.<string>} */
-    let copys = this.copyright = [];
     /** @type {number} */
     let i;
     /** @type {number} */
@@ -1563,10 +1593,6 @@ class Player {
     let j;
     /** @type {number} */
     let jl;
-
-    tracks = midi.tracks;
-    trackPosition = new Array(tracks.length);
-    plainTracks = midi.plainTracks;
 
     // initialize
     for (i = 0, il = tracks.length; i < il; ++i) {
@@ -1577,11 +1603,11 @@ class Player {
     for (i = 0, il = tracks.length; i < il; ++i) {
       track = tracks[i];
       for (j = 0, jl = track.length; j < jl; ++j) {
-        if (midi.formatType === 0 && track[j].subtype === "SequenceTrackName") {
+        if (midi.formatType === 0 && track[j].subtype === 'SequenceTrackName') {
           this.sequenceName = track[j].data[0];
         }
 
-        if (track[j].subtype === "CopyrightNotice") {
+        if (track[j].subtype === 'CopyrightNotice') {
           copys.push(track[j].data[0]);
         }
 
@@ -1593,16 +1619,16 @@ class Player {
           'webMidiLink': 'midi,' +
             Array.prototype.map.call(
               plainTracks[i][j],
-              function (a) {
+              (a) => {
                 return a.toString(16);
               }
-            ).join(',')
+            ).join(','),
         });
       }
     }
 
     // sort
-    mergedTrack.sort(function (a, b) {
+    mergedTrack.sort((a, b) => {
       return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
         a['track'] > b['track'] ? 1 : a['track'] < b['track'] ? -1 :
           a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
@@ -1649,6 +1675,8 @@ class Player {
     return this.length;
   }
 
+  /**
+   */
   sendGmReset() {
     if (this.webMidiLink) {
       // F0 7E 7F 09 01 F7
@@ -1656,6 +1684,8 @@ class Player {
     }
   }
 
+  /**
+   */
   sendAllSoundOff() {
     if (this.webMidiLink) {
       this.webMidiLink.contentWindow.postMessage('midi,b0,78,0', '*');
@@ -1667,19 +1697,20 @@ class Player {
    * @return {string}
    */
   getTime(time) {
-    let secs = (this.tempo / 6000000) * time;
+    const secs = (this.tempo / 6000000) * time;
 
-    let hours = Math.floor(secs / (60 * 60));
+    const hours = Math.floor(secs / (60 * 60));
 
-    let divisor_for_minutes = secs % (60 * 60);
-    let minutes = Math.floor(divisor_for_minutes / 60);
+    const divisorForMinutes = secs % (60 * 60);
+    const minutes = Math.floor(divisorForMinutes / 60);
 
-    let divisor_for_seconds = divisor_for_minutes % 60;
-    let seconds = Math.ceil(divisor_for_seconds);
+    const divisorForSeconds = divisorForMinutes % 60;
+    const seconds = Math.ceil(divisorForSeconds);
 
     return hours + ':' + ('00' + minutes).slice(-2) + ':' + ('00' + seconds).slice(-2);
   }
 }
+
 
 /***/ }),
 
@@ -1693,62 +1724,66 @@ class Player {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Riff; });
+/**
+ * Riff Parser class
+ */
 class Riff {
-
   /**
    * @param {ByteArray} input input buffer.
-   * @param {Object=} opt_params option parameters.
-   * @constructor
+   * @param {Object=} optParams option parameters.
    */
-  constructor(input, opt_params) {
-    opt_params = opt_params || {};
+  constructor(input, optParams = {}) {
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams['index'] || 0;
     /** @type {number} */
-    this.length = opt_params.length || input.length - this.ip;
-    /** @type {Array.<{type: string, size: number, offset: number}>} */
+    this.length = optParams['length'] || input.length - this.ip;
+    /** @type {Array.<RiffChunk>} */
     this.chunkList;
     /** @type {number} */
     this.offset = this.ip;
     /** @type {boolean} */
     this.padding =
-      opt_params.padding !== void 0 ? opt_params.padding : true;
+      optParams['padding'] !== void 0 ? optParams['padding'] : true;
     /** @type {boolean} */
     this.bigEndian =
-      opt_params.bigEndian !== void 0 ? opt_params.bigEndian : false;
-  };
+      optParams['bigEndian'] !== void 0 ? optParams['bigEndian'] : false;
+  }
 
+  /**
+   */
   parse() {
     /** @type {number} */
-    var length = this.length + this.offset;
+    const length = this.length + this.offset;
 
     this.chunkList = [];
 
     while (this.ip < length) {
       this.parseChunk();
     }
-  };
+  }
 
+  /**
+   */
   parseChunk() {
     /** @type {ByteArray} */
-    var input = this.input;
+    const input = this.input;
     /** @type {number} */
-    var ip = this.ip;
+    let ip = this.ip;
     /** @type {number} */
-    var size;
+    let size;
 
-    this.chunkList.push({
-      'type': String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
-      'size': (size = this.bigEndian ?
+    this.chunkList.push(new RiffChunk(
+      String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
+      (size = this.bigEndian ?
         ((input[ip++] << 24) | (input[ip++] << 16) |
           (input[ip++] << 8) | (input[ip++])) >>> 0 :
         ((input[ip++]) | (input[ip++] << 8) |
           (input[ip++] << 16) | (input[ip++] << 24)) >>> 0
       ),
-      'offset': ip
-    });
+      ip
+    ));
 
     ip += size;
 
@@ -1758,30 +1793,50 @@ class Riff {
     }
 
     this.ip = ip;
-  };
+  }
 
   /**
    * @param {number} index chunk index.
-   * @return {?{type: string, size: number, offset: number}}
+   * @return {?RiffChunk}
    */
   getChunk(index) {
-    /** @type {{type: string, size: number, offset: number}} */
-    var chunk = this.chunkList[index];
+    /** @type {RiffChunk} */
+    const chunk = this.chunkList[index];
 
     if (chunk === void 0) {
       return null;
     }
 
     return chunk;
-  };
+  }
 
   /**
    * @return {number}
    */
   getNumberOfChunks() {
     return this.chunkList.length;
-  };
-};
+  }
+}
+
+/**
+ * Riff Chunk Structure
+ * @interface
+ */
+class RiffChunk {
+  /**
+   * @param {string} type
+   * @param {number} size
+   * @param {number} offset
+   */
+  constructor(type, size, offset) {
+    /** @type {string} */
+    this.type = type;
+    /** @type {number} */
+    this.size = size;
+    /** @type {number} */
+    this.offset = offset;
+  }
+}
 
 
 /***/ }),
@@ -1801,27 +1856,29 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
+/**
+ * Standard Midi File Parser class
+ */
 class SMF {
   /**
    * @param {ByteArray} input input buffer.
-   * @param {Object=} opt_params option parameters.
-   * @constructor
+   * @param {Object=} optParams option parameters.
    */
-  constructor(input, opt_params = {}) {
-    opt_params.padding = false;
-    opt_params.bigEndian = true;
+  constructor(input, optParams = {}) {
+    optParams.padding = false;
+    optParams.bigEndian = true;
 
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams.index || 0;
     /** @type {number} */
     this.chunkIndex = 0;
     /**
      * @type {Riff}
      * @private
      */
-    this.riffParser_ = new _riff__WEBPACK_IMPORTED_MODULE_0__["default"](input, opt_params);
+    this.riffParser_ = new _riff__WEBPACK_IMPORTED_MODULE_0__["default"](input, optParams);
 
     // MIDI File Information
 
@@ -1837,6 +1894,8 @@ class SMF {
     this.plainTracks = [];
   };
 
+  /**
+   */
   parse() {
     /** @type {number} */
     let i = 0;
@@ -1855,6 +1914,8 @@ class SMF {
     }
   };
 
+  /**
+   */
   parseHeaderChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
@@ -1872,6 +1933,8 @@ class SMF {
     this.timeDivision = (data[ip++] << 8) | data[ip++];
   };
 
+  /**
+   */
   parseTrackChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
@@ -1919,15 +1982,15 @@ class SMF {
       } while ((tmp & 0x80) !== 0);
 
       return result;
-    }
+    };
 
     if (!chunk || chunk.type !== 'MTrk') {
       throw new Error('invalid header signature');
     }
 
     size = chunk.offset + chunk.size;
-    let eventQueue = [];
-    let plainQueue = [];
+    const eventQueue = [];
+    const plainQueue = [];
 
     while (ip < size) {
       // delta time
@@ -1962,7 +2025,7 @@ class SMF {
         'ControlChange',
         'ProgramChange',
         'ChannelAftertouch',
-        'PitchBend'
+        'PitchBend',
       ];
 
       switch (eventType) {
@@ -2097,7 +2160,7 @@ class SMF {
               }
               break;
             default:
-              console.log("unknown message:", status.toString(16));
+              console.log('unknown message:', status.toString(16));
           }
           break;
         // error
@@ -2128,6 +2191,7 @@ class SMF {
     this.plainTracks.push(plainQueue);
   };
 };
+
 
 /***/ })
 

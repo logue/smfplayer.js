@@ -1,9 +1,11 @@
+/**
+ * Midi Event abstract class
+ */
 class Event {
   /**
    * @param {string} subtype event subtype name.
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @constructor
    */
   constructor(subtype, deltaTime, time) {
     /** @type {string} */
@@ -15,36 +17,40 @@ class Event {
   }
 }
 
+/**
+ * Midi Channel Event Class
+ * @extends {Event}
+ */
 class ChannelEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {number} channel
-   * @param {number=} opt_parameter1
-   * @param {number=} opt_parameter2
-   * @constructor
-   * @extends {Event}
+   * @param {number=} optParameter1
+   * @param {number=} optParameter2
    */
-  constructor(subtype, deltaTime, time, channel, opt_parameter1, opt_parameter2) {
+  constructor(subtype, deltaTime, time, channel, optParameter1, optParameter2) {
     super(subtype, deltaTime, time);
     /** @type {number} */
     this.channel = channel;
     /** @type {(number|undefined)} */
-    this.parameter1 = opt_parameter1;
+    this.parameter1 = optParameter1;
     /** @type {(number|undefined)} */
-    this.parameter2 = opt_parameter2;
+    this.parameter2 = optParameter2;
   }
 }
 
+/**
+ * System Exclusive Event Class
+ * @extends {Event}
+ */
 class SystemExclusiveEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {ByteArray} data
-   * @constructor
-   * @extends {Event}
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
@@ -53,14 +59,16 @@ class SystemExclusiveEvent extends Event {
   }
 }
 
+/**
+ * Midi Meta Event Class
+ * @extends {Event}
+ */
 class MetaEvent extends Event {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {Array.<*>} data meta data.
-   * @constructor
-   * @extends {Event}
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
@@ -72,5 +80,5 @@ class MetaEvent extends Event {
 export {
   ChannelEvent,
   SystemExclusiveEvent,
-  MetaEvent
+  MetaEvent,
 };

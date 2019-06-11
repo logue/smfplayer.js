@@ -1,15 +1,16 @@
+/**
+ * Mld Parser Class
+ */
 export default class Mld {
   /**
    * @param {ByteArray} input
-   * @param {Object=} opt_params
-   * @constructor
+   * @param {Object=} optParams
    */
-  constructor(input, opt_params) {
-    opt_params = opt_params || {};
+  constructor(input, optParams = {}) {
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = opt_params.index || 0;
+    this.ip = optParams.index || 0;
     /** @type {Object} */
     this.header;
     /** @type {Object} */
@@ -18,21 +19,25 @@ export default class Mld {
     this.tracks;
   };
 
+  /**
+   */
   parse() {
     this.parseHeader();
     this.parseDataInformation();
     this.parseTracks();
   };
 
+  /**
+   */
   parseHeader() {
     /** @type {ByteArray} */
-    let input = this.input;
+    const input = this.input;
     /** @type {number} */
     let ip = this.ip;
     /** @type {Object} */
-    let header = this.header = {};
+    const header = this.header = {};
     /** @type {string} */
-    let signature =
+    const signature =
       String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]);
 
     if (signature !== 'melo') {
@@ -55,13 +60,15 @@ export default class Mld {
     this.ip = ip;
   };
 
+  /**
+   */
   parseDataInformation() {
     /** @type {ByteArray} */
-    let input = this.input;
+    const input = this.input;
     /** @type {number} */
     let ip = this.ip;
     /** @type {Object} */
-    let dataInformation = this.dataInformation = {
+    const dataInformation = this.dataInformation = {
       'copy': null,
       'date': null,
       'exst': null,
@@ -70,7 +77,7 @@ export default class Mld {
       'sorc': null,
       'titl': null,
       'trac': null,
-      'vers': null
+      'vers': null,
     };
     /** @type {string} */
     let type;
@@ -109,16 +116,17 @@ export default class Mld {
         default:
           dataInformation[type] = input.subarray(ip, ip += size);
           break;
-
       }
     }
 
     this.ip = ip;
-  };
+  }
 
+  /**
+   */
   parseTracks() {
     /** @type {ByteArray} */
-    let input = this.input;
+    const input = this.input;
     /** @type {number} */
     let ip = this.ip;
     /** @type {string} */
@@ -128,23 +136,106 @@ export default class Mld {
     /** @type {number} */
     let limit;
     /** @type {number} */
-    let deltaTime;
-    /** @type {number} */
     let status;
-    /** @type {number} */
-    let noteLength;
     /** @type {number} */
     let extendStatus;
     /** @type {Object} */
     let message;
     /** @type {Array.<Array.<Object>>} */
-    let tracks = this.tracks = [];
+    const tracks = this.tracks = [];
     /** @type {Array.<Object>} */
     let track;
     /** @type {number} */
     let i;
     /** @type {number} */
     let il;
+    /**
+     * @return {Array.<Object>}
+     */
+    const parseEditInstrument = () => {
+      /** @type {number} */
+      const length = (input[ip++] << 8) | input[ip++];
+      /** @type {number} */
+      const limit = ip + length;
+      /** @type {Array.<Object>} */
+      const result = [];
+      /** @type {Object} */
+      let info;
+
+      // const
+      if (input[ip++] !== 1) {
+        throw new Error('invalid EditInstrument const value:' + input[ip - 1]);
+      }
+
+      while (ip < limit) {
+        info = {};
+
+        info['part'] = (input[ip++] >> 4) & 0x3;
+        info['modulator'] = {
+          'ML': input[ip] >> 5,
+          'VIV': (input[ip] >> 4) & 0x1,
+          'EG': (input[ip] >> 3) & 0x1,
+          'SUS': (input[ip] >> 2) & 0x1,
+          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'DR': (input[ip] >> 4) & 0xf,
+          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'SL': (input[ip] >> 4) & 0xf,
+          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          'WF': (input[ip] >> 3) & 0x1,
+          'FB': input[ip++] & 0x7,
+        };
+        info['carrier'] = {
+          'ML': input[ip] >> 5,
+          'VIV': (input[ip] >> 4) & 0x1,
+          'EG': (input[ip] >> 3) & 0x1,
+          'SUS': (input[ip] >> 2) & 0x1,
+          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'DR': (input[ip] >> 4) & 0xf,
+          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          'SL': (input[ip] >> 4) & 0xf,
+          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          'WF': (input[ip] >> 3) & 0x1,
+          'FB': input[ip++] & 0x7,
+        };
+        info['octaveSelect'] = input[ip++] & 0x3;
+
+        result.push(info);
+      }
+
+      return result;
+    };
+    /**
+     * @return {{part: number, switch: number}}
+     */
+    const parseVibrato = () => {
+      // const
+      if (input[ip++] !== 1) {
+        throw new Error('invalid Vibrato const value:' + input[ip - 1]);
+      }
+
+      return {
+        'part': (input[ip++] >> 5) & 0x3,
+        'switch': (input[ip++] >> 6),
+      };
+    };
+    /**
+     * @return {{data: ByteArray}}
+     */
+    const parseDeviceSpecific = () => {
+      /** @type {number} */
+      const length = (input[ip++] << 8) | input[ip++];
+      /** @type {number} */
+      const limit = ip + length;
+
+      // const
+      if (input[ip++] !== 0x11) {
+        throw new Error('invalid DeviceSpecific const value:' + input[ip - 1]);
+      }
+
+      return {
+        'data': input.subarray(ip, ip += limit - ip),
+      };
+    };
 
     for (i = 0, il = this.header.numberOfTracks; i < il; ++i) {
       signature =
@@ -171,7 +262,7 @@ export default class Mld {
           type: null,
           value: {},
           velocity: null,
-          voice: null
+          voice: null,
         };
 
         // delta time
@@ -211,7 +302,7 @@ export default class Mld {
                   message.subType = 'DrumScale';
                   message.value = {
                     'channel': (input[ip] >> 3) & 0x7,
-                    'drum': input[ip++] & 0x1
+                    'drum': input[ip++] & 0x1,
                   };
                   break;
                 default:
@@ -224,7 +315,7 @@ export default class Mld {
               message.value = {
                 'timeBase': (status & 0x7) === 7 ?
                   NaN : Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
-                'tempo': input[ip++]
+                'tempo': input[ip++],
               };
               break;
             // control message
@@ -239,7 +330,7 @@ export default class Mld {
                   message.value = {
                     'id': input[ip] >> 6,
                     'count': input[ip] >> 2 & 0xf,
-                    'point': input[ip++] & 0x3
+                    'point': input[ip++] & 0x3,
                   };
                   break;
                 case 0xe:
@@ -261,81 +352,83 @@ export default class Mld {
                   message.subType = 'InstrumentLowPart';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x3f
+                    'instrument': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x1:
                   message.subType = 'InstrumentHighPart';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x1
+                    'instrument': input[ip++] & 0x1,
                   };
                   break;
                 case 0x2:
                   message.subType = 'Volume';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'volume': input[ip++] & 0x3f
+                    'volume': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x3:
                   message.subType = 'Valance';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'valance': input[ip++] & 0x3f
+                    'valance': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x4:
                   message.subType = 'PitchBend';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'value': input[ip++] & 0x3f
+                    'value': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x5:
                   message.subType = 'ChannelAssign';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'channel': input[ip++] & 0x3f
+                    'channel': input[ip++] & 0x3f,
                   };
                   break;
                 case 0x6:
                   message.subType = 'VolumeChange';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'volume': (input[ip++] & 0x3f) << 26 >> 26
+                    'volume': (input[ip++] & 0x3f) << 26 >> 26,
                   };
                   break;
                 case 0x7:
                   message.subType = 'PitchBendRange';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f)
+                    'value': (input[ip++] & 0x3f),
                   };
                   break;
-                // TODO: 未遭遇
-                /*
+
+
                 case 0x8:
-                  message.subType = 'MasterFineTuning';
-                  message.value = {
-                    'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f)
-                  };
-                  break;
+                /*
+                // TODO: 未遭遇
+                message.subType = 'MasterFineTuning';
+                message.value = {
+                  'part': input[ip] >> 6,
+                  'value': (input[ip++] & 0x3f)
+                };
+                break;
                 */
                 // TODO: あってるか自信ない
                 case 0x9:
                   message.subType = 'MasterCoarseTuning';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f)
+                    'value': (input[ip++] & 0x3f),
                   };
                   break;
                 case 0xA:
                   message.subType = 'Modulation';
                   message.value = {
                     'part': input[ip] >> 6,
-                    'depth': (input[ip++] & 0x3f)
+                    'depth': (input[ip++] & 0x3f),
                   };
                   break;
                 default:
@@ -371,118 +464,25 @@ export default class Mld {
       ip = limit;
     }
 
-    /**
-     * @return {Array.<Object>}
-     */
-    function parseEditInstrument() {
-      /** @type {number} */
-      let length = (input[ip++] << 8) | input[ip++];
-      /** @type {number} */
-      let limit = ip + length;
-      /** @type {Array.<Object>} */
-      let result = [];
-      /** @type {Object} */
-      let info;
-
-      // const
-      if (input[ip++] !== 1) {
-        throw new Error('invalid EditInstrument const value:' + input[ip - 1]);
-      }
-
-      while (ip < limit) {
-        info = {};
-
-        info['part'] = (input[ip++] >> 4) & 0x3;
-        info['modulator'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7
-        };
-        info['carrier'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7
-        };
-        info['octaveSelect'] = input[ip++] & 0x3;
-
-        result.push(info);
-      }
-
-      return result;
-    }
-
-    /**
-     * @return {{part: number, switch: number}}
-     */
-    function parseVibrato() {
-      /** @type {number} */
-      let length = (input[ip++] << 8) | input[ip++];
-
-      // const
-      if (input[ip++] !== 1) {
-        throw new Error('invalid Vibrato const value:' + input[ip - 1]);
-      }
-
-      return {
-        'part': (input[ip++] >> 5) & 0x3,
-        'switch': (input[ip++] >> 6)
-      };
-    }
-
-    /**
-     * @return {{data: ByteArray}}
-     */
-    function parseDeviceSpecific() {
-      /** @type {number} */
-      let length = (input[ip++] << 8) | input[ip++];
-      /** @type {number} */
-      let limit = ip + length;
-
-      // const
-      if (input[ip++] !== 0x11) {
-        throw new Error('invalid DeviceSpecific const value:' + input[ip - 1]);
-      }
-
-      return {
-        'data': input.subarray(ip, ip += limit - ip)
-      };
-    }
-
     this.ip = ip;
-  };
+  }
 
   /**
    * @return {Object}
    */
   convertToMidiTracks() {
     /** @type {Object} */
-    let result = {
+    const result = {
       timeDivision: 48,
       trac: [],
-      plainTracks: []
+      plainTracks: [],
     };
     /** @type {Array.<Array.<Object>>} */
-    let tracks = result.tracks;
+    const tracks = result.tracks;
     /** @type {Array.<Array.<Array.<number>>>} */
-    let plainTracks = result.plainTracks;
+    const plainTracks = result.plainTracks;
     /** @type {Array.<Array.<Object>>} */
-    let mfiTracks = this.tracks;
+    const mfiTracks = this.tracks;
     /** @type {Array.<Object>} */
     let mfiTrack;
     /** @type {Object} */
@@ -510,7 +510,7 @@ export default class Mld {
     /** @type {number} */
     let jl;
     /** @type {Array.<number>} */
-    let channelTime = [];
+    const channelTime = [];
     /** @type {number} */
     let channel;
 
@@ -536,7 +536,7 @@ export default class Mld {
             break;
           case 'Note':
             tmpTrack[pos++] = mfiEvent;
-            // TODO: value: ... 形式になおす　
+            // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
               'id': pos,
               'type': 'internal',
@@ -545,7 +545,7 @@ export default class Mld {
               'key': mfiEvent['key'],
               'voice': mfiEvent['voice'],
               'velocity': mfiEvent['velocity'],
-              'octaveShift': mfiEvent['octaveShift']
+              'octaveShift': mfiEvent['octaveShift'],
             };
             pos++;
             break;
@@ -555,14 +555,14 @@ export default class Mld {
             if (mfiEvent['subType'] !== 'InstrumentLowPart') {
               throw new Error('broken instrument');
             }
-            // TODO: value: ... 形式になおす　
+            // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
               'id': pos,
               'type': 'internal',
               'subType': 'ProgramChange',
               'time': time,
               'part': mfiEvent['value']['part'],
-              'instrument': (prevEvent['value']['instrument'] << 6) | mfiEvent['value']['instrument']
+              'instrument': (prevEvent['value']['instrument'] << 6) | mfiEvent['value']['instrument'],
             };
             pos++;
             break;
@@ -571,7 +571,7 @@ export default class Mld {
             break;
         }
       }
-      tmpTrack.sort(function (a, b) {
+      tmpTrack.sort((a, b) => {
         return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
           a['id'] > b['id'] ? 1 : a['id'] < b['id'] ? -1 :
             0;
@@ -654,9 +654,9 @@ export default class Mld {
                 [
                   0xFF,
                   0x06,
-                  str.length
+                  str.length,
                 ],
-                str.split('').map(function (a) {
+                str.split('').map((a) => {
                   return a.charCodeAt(0);
                 })
               )
@@ -731,11 +731,11 @@ export default class Mld {
               ), [
                 0x00,
                 0xB0 | channel,
-                0x65, 0x00
+                0x65, 0x00,
               ], [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2
+                0x06, mfiEvent['value']['value'] * 2,
               ]
             );
             break;
@@ -750,11 +750,11 @@ export default class Mld {
               ), [
                 0x00,
                 0xB0 | channel,
-                0x65, 0x02
+                0x65, 0x02,
               ], [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2
+                0x06, mfiEvent['value']['value'] * 2,
               ]
             );
             break;
@@ -767,31 +767,31 @@ export default class Mld {
     }
 
     return this.toSMF(plainTracks);
-  };
+  }
 
   /**
    * @param {number} key
    * @param {number} octaveShift
-   * @returns {number}
+   * @return {number}
    */
   applyOctaveShift(key, octaveShift) {
     /** @type {Array.<number>} */
-    let table = [0, 12, -24, -12];
+    const table = [0, 12, -24, -12];
 
     if (table[octaveShift] !== void 0) {
       return key + table[octaveShift];
     }
 
     throw new Error('invalid OctaveShift value:' + octaveShift);
-  };
+  }
 
   /**
    * @param {Array.<Array.<ByteArray>>} plainTracks
-   * @returns {ByteArray}
+   * @return {ByteArray}
    */
   toSMF(plainTracks) {
     /** @type {number} @const */
-    let TimeDivision = 48;
+    const TimeDivision = 48;
     /** @type {Array.<number>} */
     let trackHeader;
     /** @type {Array.<number>} */
@@ -802,7 +802,7 @@ export default class Mld {
       0x00, 0x00, 0x00, 0x06, // Size
       0x00, 0x01, // Format
       0x00, 0x10, // number of track
-      (TimeDivision >> 8) & 0xff, TimeDivision & 0xff // Data
+      (TimeDivision >> 8) & 0xff, TimeDivision & 0xff, // Data
     ];
     /** @type {number} */
     let i;
@@ -815,15 +815,15 @@ export default class Mld {
 
     /**
      * @param {string} str
-     * @returns {Array.<number>}
+     * @return {Array.<number>}
      */
     function stringToArray(str) {
       /** @type {number} */
       let i;
       /** @type {number} */
-      let il = str.length;
+      const il = str.length;
       /** @type {Array.<number>} */
-      let array = new Array(il);
+      const array = new Array(il);
 
       for (i = 0; i < il; ++i) {
         array[i] = str.charCodeAt(i);
@@ -857,7 +857,7 @@ export default class Mld {
     */
 
     for (i = 0, il = plainTracks.length; i < il; ++i) {
-      let track = plainTracks[i];
+      const track = plainTracks[i];
       trackData = [];
       for (j = 0, jl = track.length; j < jl; ++j) {
         Array.prototype.push.apply(trackData, track[j]);
@@ -867,13 +867,13 @@ export default class Mld {
       trackHeader = [
         0x4D, 0x54, 0x72, 0x6B, // "MTrk"
         (jl >> 24) & 0xff, (jl >> 16) & 0xff,
-        (jl >> 8) & 0xff, (jl) & 0xff
+        (jl >> 8) & 0xff, (jl) & 0xff,
       ];
       result = result.concat(trackHeader, trackData);
     }
 
     return new Uint8Array(result);
-  };
+  }
 
   /**
    * @param {number} deltaTime
@@ -881,7 +881,7 @@ export default class Mld {
    */
   deltaTimeToByteArray(deltaTime) {
     /** @type {Array.<number>} */
-    let array = [];
+    const array = [];
 
     while (deltaTime >= 0x80) {
       array.unshift(deltaTime & 0x7f | (array.length === 0 ? 0 : 0x80));
@@ -890,6 +890,5 @@ export default class Mld {
     array.unshift(deltaTime | (array.length === 0 ? 0 : 0x80));
 
     return array;
-  };
-
-};
+  }
+}
