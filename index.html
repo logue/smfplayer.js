@@ -283,7 +283,7 @@
                           <option value="midifiles/SimCity2000.zip">SimCity 2000 Soundtrack</option>
                           <option value="midifiles/UO_MIDI_Music.zip">Ultima Online Soundtrack</option>
                           <option value="midifiles/Lemmings.zip">Lemmings Soundtrack</option>
-                          <option value="midifiles/sor.zip">Sourcerian</option>
+                          <option value="midifiles/sor.zip">Sorcerian</option>
                           <option value="midifiles/A-Train.zip">A-Train</option>
                         </optgroup>
                         <option value="midifiles/Sonic_the_Hedgehog.zip">Sonic the Hedgehog</option>
@@ -404,7 +404,7 @@
                 target="_blank">WebMidiLink <i class="fas fa-external-link-alt"></i></a> based synthesizer</small>
           </div>
         </div>
-        <div class="card-body" id="wml"></div>
+        <div class="card-body p-0" id="wml"></div>
       </div>
     </div>
   </main>
@@ -686,7 +686,8 @@
 
         // Zipファイルからファイル名一覧を取得
         var zip = select.zip = new Zlib.Unzip(input);
-        var filenames = zip.getFilenames();
+        var filenames = zip.getFilenames().sort();
+        //console.log(filenames);
 
         $('#info div').removeClass('progress-warning').addClass('progress-info').show();
 

@@ -57,6 +57,11 @@ meter {
     width: 2rem;
 }
 
+.bank,
+.bank select {
+    width: 4rem;
+}
+
 .program,
 .program select {
     width: 10rem;
@@ -73,15 +78,12 @@ meter {
     text-align: right;
 }
 
-.panpot {
-    padding: 0 0.1rem;
-    width: 4rem;
-}
-
+.panpot,
 .pitchBend {
     padding: 0 0.1rem;
-    width: 4rem;
+    min-width: 4rem;
 }
+
 
 .pitchBendSensitivity {
     width: 1rem;
@@ -98,13 +100,14 @@ meter {
     border: 1px solid #adb5bd;
 }
 
-.keys>div {
-    position: relative;
-    float: left;
-}
-
 .keys>.key {
     cursor: pointer;
+    position: relative;
+    float: left;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background-color: transparent;
 }
 
 .keys>.tone {
@@ -125,10 +128,12 @@ meter {
 }
 
 .keys>.semitone {
-    width: 5px;
+    width: 7px;
     height: 50%;
     left: 4px;
     margin-left: -6px;
+    border: 1px solid #343a40;
+    border-top:none;
     background-color: #343a40;
     /* 800 */
     z-index: 999;
@@ -214,7 +219,17 @@ meter {
 
     .panpot,
     .pitchBend {
-        width: 3.5rem;
+        min-width: 2rem;
+    }
+
+    .keys>.tone {
+        width: 6px;
+    }
+
+    .keys>.semitone {
+        width: 4px;
+        left: 2px;
+        margin-left: -4px;
     }
 
 }
@@ -223,7 +238,7 @@ meter {
 
     .panpot,
     .pitchBend {
-        width: 2rem;
+        min-width: 2rem;
     }
 
     .keys>.tone {
@@ -238,13 +253,51 @@ meter {
 }
 
 @media(max-width: 720px) {
+    .channel {
+        flex-wrap: wrap;
+    }
+
+    .panpot,
+    .pitchBend {
+        min-width: 4rem;
+    }
+
+    .keys {
+        height: 1.75rem;
+    }
+
     .keys>.tone {
-        width: 3px;
+        width: 7px;
     }
 
     .keys>.semitone {
-        width: 2px;
+        width: 5px;
+        left: 3px;
+        margin-left: -5px;
+    }
+}
+
+@media(max-width: 576px) {
+    .channel {
+        flex-wrap: wrap;
+    }
+
+    .panpot,
+    .pitchBend {
+        min-width: 2rem;
+    }
+
+    .keys {
+        height: 1.75rem;
+    }
+
+    .keys>.tone {
+        width: 6px;
+    }
+
+    .keys>.semitone {
+        width: 4px;
         left: 2px;
-        margin-left: -3px
+        margin-left: -4px;
     }
 }
