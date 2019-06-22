@@ -434,7 +434,7 @@
     var isReady = false;
 
     // QueryStrings
-    const params = queryString.parse(window.location.search);
+    const params = queryString.parse(window.location.hash);
 
     // SMF Player
     var player = new SMF.Player('#wml');
@@ -483,6 +483,8 @@
       $('#zips').on('change', function (e) {
         loadSample($(this).val());
       });
+      
+      console.log(params);
 
       if (params.zip && !initialized) {
         // クエリからZipファイルを選択
