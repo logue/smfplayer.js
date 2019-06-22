@@ -6,7 +6,12 @@
     "watch": "webpack --mode development --watch --color --progress",
     "dev": "webpack --mode development",
     "prod": "webpack --mode production --env.production",
-    "start": "webpack-dev-server --color --mode development"
+    "start": "webpack-dev-server --color --mode development",
+    "fix": "eslint --fix ./src"
+  },
+  "bin": {
+    "smf.parser.min.js": "bin/smf.parser.min.js",
+    "smf.player.min.js": "bin/smf.player.min.js"
   },
   "repository": {
     "type": "git",
@@ -33,10 +38,9 @@
     "closure-webpack-plugin": "^2.0.1",
     "eslint": "^5.16.0",
     "eslint-config-google": "^0.13.0",
-    "eslint-plugin-vue": "^5.2.2",
-    "google-closure-compiler": "^20190528.0.0",
-    "webpack": "^4.33.0",
-    "webpack-cli": "^3.3.3",
-    "webpack-dev-server": "^3.7.1"
+    "google-closure-compiler": "^20190528.1.0",
+    "webpack": "^4.35.0",
+    "webpack-cli": "^3.3.4",
+    "webpack-dev-server": "^3.7.2"
   }
 }

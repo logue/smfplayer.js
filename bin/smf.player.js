@@ -1373,6 +1373,20 @@ class Player {
 
       this.target.appendChild(iframe);
       this.window.addEventListener('message', process, false);
+
+      const resizeHeight = () => {
+        iframe.style.height = this.webMidiLink.contentWindow.document.body.scrollHeight + 'px';
+      };
+
+      this.window.addEventListener('load', resizeHeight, false);
+
+      let timer = 0;
+      this.window.addEventListener('resize', () => {
+        if (timer > 0) {
+          clearTimeout(timer);
+        }
+        timer = setTimeout(resizeHeight, 100);
+      }, false);
     } else {
       // Worker Mode
       this.webMidiLink.addEventListener('message', process, false);
