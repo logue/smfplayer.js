@@ -175,6 +175,7 @@ export class Player {
       this.window.addEventListener('message', (ev) => {
         if (ev.data === 'link,ready') {
           player.ready = true;
+          player.webMidiLink.style.height = this.webMidiLink.contentWindow.document.body.scrollHeight + 'px';
           player.playSequence();
         }
       }, false);
