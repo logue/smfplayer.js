@@ -184,7 +184,7 @@
           <div class="tab-content" id="plyaer-tab-contents">
             <div class="tab-pane fade show active" id="player-tab-content" role="tabpanel" aria-labelledby="player-tab">
               <!-- Player control -->
-              <div class="d-flex align-items-center">
+              <div class="d-sm-flex align-items-center">
                 <div>
                   <button type="button" class="btn btn-info btn-lg control-btn" id="prev" disabled="disabled"
                     title="Previous Music">
@@ -211,7 +211,7 @@
                   </button-->
                 </div>
                 <!-- time -->
-                <div class="flex-grow-1 ml-3">
+                <div class="flex-grow-1 ml-sm-3 my-3">
                   <!--div class="Clock-Wrapper">
                     <span class="Clock-Time-Background h4">
                       ~:~~:~~ / ~:~~:~~
@@ -385,9 +385,9 @@
             <h2 class="h5 mb-0"><label for="synth">Synthesyther</label></h2>
             <select id="synth" class="form-control">
               <option value="./wml.html?soundfont=Yamaha XG Sound Set.sf2">Yamaha XG Sound Set.sf2</option>
-              <option value="./wml.html?soundfont=Yamaha XG Sound Set ver.2.0.sf2" selected="selected">Yamaha XG Sound
+              <option value="./wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2" selected="selected">Yamaha XG Sound
                 Set Ver2.0.sf2</option>
-              <option value="./wml.html?soundfont=Yamaha XG Sound Set ver.2.0.sf2&amp;ui=false">Yamaha XG Sound Set.sf2
+              <option value="./wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2&amp;ui=false">Yamaha XG Sound Set.sf2
                 (Disable Keyboard)</option>
               <option value="//g200kg.com/en/docs/gmplayer">GMPlayer</option>
               <option value="//webmusicdevelopers.appspot.com/webtg/gmplayer/index.html">GMPlayer(2)</option>
@@ -423,11 +423,14 @@
     integrity="sha256-fzFFyH01cBVPYzl16KT40wqjhgPtq6FFUB6ckN2+GGw=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/unzip.min.js"
     integrity="sha256-pKobUkzPTKMnWX5yXGUt55Lp7W9pboaAhaXiI/hgIr4=" crossorigin="anonymous"></script>
-  <script src="./js/jquery.socialthings.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/Takazudo/jQuery.socialthings@0.1.10/jquery.socialthings.min.js"
+    integrity="sha256-x1bbXqksATv7EnepzQLhlHlbt2DOHbU+8+/nodOpdpk=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@1.0.29/encoding.min.js"
     integrity="sha256-43tAJsbifpKXUsuWt6SOpBWF8BQHF2zSwFVfPCeua+w=" crossorigin="anonymous"></script>
-  <script src="./js/smf.player.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/query-string@1.0.1/query-string.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/query-string@1.0.1/query-string.js"
+    integrity="sha256-grrS5HRy2p4Z2sCglfc9r6rqRBewKCdWzuWhbUpIEJ4=" crossorigin="anonymous"></script>
+
+  <script src="https://cdn.jsdelivr.net/gh/logue/smfplayer.js/bin/smf.player.min.js"></script>
   <script>
     /*<![CDATA[*/
     // インターバル関数用。準備完了フラグ
@@ -472,8 +475,7 @@
       player.setMasterVolume($('#volume').val() * 16383);
       // player.setMasterChannel(new TimerMasterChannel(TimerMasterChannel.MODE_DEFAULT));
       // WebMidiLink設定
-      //player.setWebMidiLink('//cdn.rawgit.com/logue/smfplayer.js/gh-pages/wml.html', 'wml');
-      player.setWebMidiLink('wml.html?soundfont=Yamaha XG Sound Set ver.2.0.sf2', 'wml');
+      player.setWebMidiLink('wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2', 'wml');
 
       // Zipファイルの取得
       $('#files').on('change', function (e) {
@@ -483,7 +485,7 @@
       $('#zips').on('change', function (e) {
         loadSample($(this).val());
       });
-      
+
       console.log(params);
 
       if (params.zip && !initialized) {
@@ -492,7 +494,7 @@
         loadSample(params.zip);
 
       } else {
-        zips.selectedIndex = $('#zips').length * Math.random();
+        randomArchive();
         loadSample($('#zips').val());
       }
 
@@ -574,6 +576,8 @@
       // 停止ボタン
       $('#stop').on('click', function () {
         handleSelect(document.getElementById('files'));
+        // ハッシュを削除
+        history.pushState("", document.title, window.location.pathname);
         setTimeout(function () {
           player.stop();
         }, 51); // よく分からんが非同期で止めるらしい
@@ -674,6 +678,86 @@
      * Zipファイルの内容を取得し、selectタグに割り当てる
      */
     function loadSample(zipfile) {
+      const ready = (stream) => {
+        var input = new Uint8Array(stream);
+
+        // ファイルリストの子要素を一括削除
+        var select = document.getElementById('files');
+        while (select.firstChild) select.removeChild(select.firstChild);
+
+        // Zipファイルからファイル名一覧を取得
+        var zip = select.zip = new Zlib.Unzip(input);
+        var filenames = zip.getFilenames().sort();
+        //console.log(filenames);
+
+        $('#info div').removeClass('progress-warning').addClass('progress-info').show();
+
+        // ファイル名一覧をセレクトボックスに流し込む
+        filenames.forEach(function (name, i) {
+          var ext = name.slice(name.lastIndexOf('.')).toLowerCase();
+          var percentLoaded = Math.round((i / filenames.length) * 10000);
+
+          $('#info p').text('Parsing zip file...');
+          $('#info div div').css('width', percentLoaded).text(percentLoaded + '%');
+
+          // 拡張子がmid、midi、mldでない場合はスキップ
+          if (ext === '/' || !ext === 'mid' || !ext === 'midi' || !ext === 'mld') {
+            return;
+          }
+
+          var option = document.createElement('option');
+          // 項目名
+          option.textContent = Encoding.convert(name, 'UNICODE', 'SJIS');
+          // 実際のファイル名
+          option.setAttribute('data-midiplayer-filename', name);
+          // selectタグに流し込む
+          select.appendChild(option);
+        });
+
+        // 初期値が一番上の項目になるとつまらないのでランダム化
+        var prev = select.selectedIndex;
+        var next = prev;
+        while (prev == next) {
+          next = ~~(select.length * Math.random());
+        }
+        select.selectedIndex = next;
+
+        $('#info p').text('Ready.');
+        $('#info div').removeClass('progress-info').hide();
+        $('#info').removeClass('alert-warning').addClass('alert-success');
+        $(':input').removeAttr("disabled ");
+
+        if (params.file && !initialized) {
+          // クエリにファイル名が含まれている場合、それを選択
+          $('#files').val(params.file);
+          handleSelect(document.getElementById('files'));
+        }
+        initialized = true;
+      };
+
+      window.caches.open('zip').then((cache) => {
+        cache
+          .match(zipfile)
+          .then(response => response.arrayBuffer())
+          .then(stream => ready(stream))
+          .catch(() => {
+            // キャッシュ処理
+            fetch(zipfile)
+              .then(response => {
+                if (!response.ok) {
+                  throw new Error('Network response was not ok.');
+                }
+                const copy = response.clone();
+                cache.put(zipfile, response);
+                return copy.arrayBuffer();
+              })
+              .then(stream => ready(stream))
+              .catch(e => console.error('There has been a problem with your fetch operation: ' + e.message));
+            //.catch(e => alert('Save to cache. please reselect zip file.'));
+          });
+      });
+
+      /*
       var xhr = new XMLHttpRequest();
 
       // ZipファイルをXHRで読み込む（※jqueryのajax命令はarraybuffer非対応なため使えない）
@@ -778,6 +862,7 @@
 
       // xhr開始
       xhr.send();
+      */
     }
     /**
      * 選択されたファイルを解凍
@@ -815,11 +900,11 @@
           via: 'logue256'
         });
 
-        $('#socialbuttons .facebook').click(function () {
+        $('#socialbuttons .facebook').click(()  => {
           window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url) + '&t=' +
             encodeURIComponent(document.title), "Facebook", "width=400,height=400");
         });
-        $('#socialbuttons .line').click(function () {
+        $('#socialbuttons .line').click(() => {
           window.open('http://line.me/R/msg/text/?' + encodeURIComponent(document.title + "\n" + url), "Line",
             "width=600,height=600");
         });
@@ -872,6 +957,12 @@
      */
     function randomPlay() {
       var select = document.getElementById('files');
+      select.selectedIndex = ~~(select.length * Math.random());
+      handleSelect(select);
+    }
+    
+    function randomArchive() {
+      var select = document.getElementById('zips');
       select.selectedIndex = ~~(select.length * Math.random());
       handleSelect(select);
     }
@@ -953,23 +1044,6 @@
         $('#time-now').text(player.getTime(player.time));
       }
     }, 100);
-
-
-    // Google Analytics
-    (function (i, s, o, g, r, a, m) {
-      i['GoogleAnalyticsObject'] = r;
-      i[r] = i[r] || function () {
-        (i[r].q = i[r].q || []).push(arguments)
-      }, i[r].l = 1 * new Date();
-      a = s.createElement(o), m = s.getElementsByTagName(o)[0];
-      a.async = 1;
-      a.src = g;
-      m.parentNode.insertBefore(a,
-        m)
-    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
-    ga('create', 'UA-33600926-1',
-      'auto');
-    ga('send', 'pageview');
     /*]]>*/
   </script>
 </body>
