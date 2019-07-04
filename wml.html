@@ -66,7 +66,7 @@
     if (qs.ui === 'false') {
       option.drawSynth = false;
     }
-    const sf = qs.soundfont ? qs.soundfont : 'Yamaha XG Sound Set.sf2';
+    const sf = qs.soundfont ? decodeURIComponent(qs.soundfont) : 'Yamaha XG Sound Set.sf2';
     document.getElementById('soundfont').innerText = sf;
     option.placeholder = 'placeholder';
     const wml = new SoundFont.WebMidiLink(option);
