@@ -2,6 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
   <meta name="robots" content="noindex" />
   <title>Web Midi Link</title>
   <!-- Global site tag (gtag.js) - Google Analytics -->
@@ -21,70 +24,51 @@
 <body>
   <div class="container-fluid">
     <header class="d-flex justify-content-between align-items-end">
-      <h1 class="h2">SoundFont:
-        <span id="soundfont">Yamaha XG Sound Set <span class="text-danger">Ver.2.0</span>.sf2</span>
-      </h1>
+      <h1 class="h2">SoundFont:<span id="soundfont"></span></h1>
       <p class="text-right">
         By
         <a href="https://logue.be/" target="_blank">Logue</a> /
-        <small>Last Modified: 2019/06/11</small>
+        <small>Last Modified: 2019/07/04</small>
       </p>
     </header>
     <main>
       <div id="message" class="alert alert-warning">Loading...</div>
-      <div class="custom-control custom-switch">
-        <input type="checkbox" class="custom-control-input" id="reverb" checked="checked" />
-        <label class="custom-control-label" for="reverb">Reverb</label>
-      </div>
-      <!--div class="custom-control custom-checkbox custom-control-inline">
-        <input type="checkbox" class="custom-control-input" id="velocity" />
-        <label class="custom-control-label" for="velocity">Display Velocity</label>
-      </div-->
-      <div id="wml-placeholder"></div>
-      <div class="alert alert-info" id="droparea">
-        <div class="custom-file">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="custom-control custom-switch">
+          <input type="checkbox" class="custom-control-input" id="reverb" checked="checked" />
+          <label class="custom-control-label" for="reverb">Reverb</label>
+        </div>
+        <!--div class="custom-control custom-checkbox custom-control-inline">
+          <input type="checkbox" class="custom-control-input" id="velocity" />
+          <label class="custom-control-label" for="velocity">Display Velocity</label>
+        </div-->
+        <div class="custom-file form-control-sm ml-3">
           <input type="file" class="custom-file-input" id="file" accept="audio/x-soundfont">
           <label class="custom-file-label" for="file">Load SoundFont2 file
-            <small>(drag and drop here *.sf2 file to change sound font)</small>
+            <small class="d-none d-sm-inline">(drag and drop here *.sf2 file to change sound font)</small>
           </label>
         </div>
       </div>
+      <hr />
+      <div id="placeholder"></div>
     </main>
   </div>
-  <script src="https://cdn.jsdelivr.net/gh/logue/sf2synth.js@develop/bin/sf2.synth.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/query-string@1.0.1/query-string.js"
+    integrity="sha256-grrS5HRy2p4Z2sCglfc9r6rqRBewKCdWzuWhbUpIEJ4=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/gh/g200kg/WAAPISim@master/waapisim.min.js"></script>
-  <script type="text/javascript">
+  <script src="https://cdn.jsdelivr.net/gh/logue/sf2synth.js@develop/bin/sf2.synth.min.js"></script>
+  
+  <script>
     /*<![CDATA[*/
-    const QueryString = {
-      parse: function (text, sep, eq, isDecode) {
-        text = text || location.search.substr(1);
-        sep = sep || '&';
-        eq = eq || '=';
-        var decode = (isDecode) ? decodeURIComponent : function (a) { return a; };
-        return text.split(sep).reduce(function (obj, v) {
-          var pair = v.split(eq);
-          obj[pair[0]] = decode(pair[1]);
-          return obj;
-        }, {});
-      },
-      stringify: function (value, sep, eq, isEncode) {
-        sep = sep || '&';
-        eq = eq || '=';
-        var encode = (isEncode) ? encodeURIComponent : function (a) { return a; };
-        return Object.keys(value).map(function (key) {
-          return key + eq + encode(value[key]);
-        }).join(sep);
-      },
-    };
     const message = document.getElementById('message');
-    const qs = QueryString.parse(window.location.search);
+    const qs = queryString.parse(window.location.search);
     var option = {};
-    console.log(qs);
     if (qs.ui === 'false') {
-      option.disableDrawSynth = true;
+      option.drawSynth = false;
     }
-    const sf = qs.soundfont ? qs.soundfont : 'Yamaha XG Sound Set ver.2.0.sf2';
-    option.placeholder = 'wml-placeholder';
+    const sf = qs.soundfont ? qs.soundfont : 'Yamaha XG Sound Set Ver2.0.sf2';
+    document.getElementById('soundfont').innerText = sf;
+    option.placeholder = 'placeholder';
     const wml = new SoundFont.WebMidiLink(option);
     wml.setLoadCallback(function () {
       message.style.display = 'none';
@@ -115,7 +99,7 @@
           let percentLoaded = Math.round((e.loaded / e.total) * 10000);
           message.innerHTML = '<div class="progress"><div class="progress-bar" role="progressbar" aria-valuenow="' +
             percentLoaded + '" aria-valuemin="0" aria-valuemax="100" style="width: ' + percentLoaded + '%;">' +
-            percentLoaded + '%</div></div>';
+            percentLoaded + ' %</div></div>';
         }
       }
     }
@@ -130,14 +114,14 @@
         event.preventDefault();
       }, false);
 
-      const droparea = document.getElementById('droparea');
+      const droparea = document.getElementById('placeholder');
       droparea.addEventListener('dragover', (e) => {
-        droparea.className = "alert alert-danger";
+        droparea.className = "alert-danger";
         e.preventDefault();
       }, true);
 
       droparea.addEventListener('drop', (e) => {
-        document.getElementById('droparea').className = "alert alert-info";
+        droparea.className = "";
         var dt = e.dataTransfer;
         var files = dt.files;
         e.stopPropagation();
@@ -146,7 +130,7 @@
       }, true);
 
       droparea.addEventListener('dragleave', (e) => {
-        document.getElementById('droparea').className = "alert alert-info";
+        droparea.className = "";
       }, true);
 
       // Reverb checkbox
