@@ -309,7 +309,7 @@ export default class SMF {
               }
               break;
             default:
-              console.log('unknown message:', status.toString(16));
+              console.warn('unknown message:', status.toString(16));
           }
           break;
         // error

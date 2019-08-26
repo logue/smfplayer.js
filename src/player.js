@@ -1,6 +1,6 @@
 import SMF from './smf';
 import Mld from './mld';
-
+import Ms2Mml from './ms2mml';
 /**
  * Midi Player Class
  */
@@ -465,8 +465,20 @@ export class Player {
     this.init();
     parser.parse();
 
-    // this.mergeMidiTracks(parser.convertToMidiTracks());
-    this.loadMidiFile(parser.convertToMidiTracks());
+    this.mergeMidiTracks(parser.convertToMidiTracks());
+  }
+
+  /**
+   * @param {ArrayBuffer} buffer
+   */
+  loadMs2MmlFile(buffer) {
+    /** @type {Ms2Mml} */
+    const parser = new Ms2Mml(buffer);
+
+    this.init();
+    parser.parse();
+
+    this.mergeMidiTracks(parser);
   }
 
   /**
@@ -593,6 +605,7 @@ export class Player {
   }
 
   /**
+   * TODO: ちゃんと動いていない
    * @param {number} time
    * @return {string}
    */

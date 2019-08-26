@@ -11,6 +11,8 @@ export default class Mld {
     this.input = input;
     /** @type {number} */
     this.ip = optParams.index || 0;
+    /** @type {number} */
+    this.timeDivision = optParams.timeDivision || 48;
     /** @type {Object} */
     this.header;
     /** @type {Object} */
@@ -473,8 +475,9 @@ export default class Mld {
   convertToMidiTracks() {
     /** @type {Object} */
     const result = {
-      timeDivision: 48,
+      timeDivision: this.timeDivision,
       trac: [],
+      tracks: [],
       plainTracks: [],
     };
     /** @type {Array.<Array.<Object>>} */
@@ -765,6 +768,7 @@ export default class Mld {
         channelTime[channel] = mfiEvent['time'];
       }
     }
+    console.log(plainTracks);
 
     return this.toSMF(plainTracks);
   }
