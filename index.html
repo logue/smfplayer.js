@@ -944,6 +944,9 @@
         case '.midi':
           player.loadMidiFile(buffer);
           break;
+        case '.ms2mml':
+          player.loadMs2MmlFile(buffer);
+          break;
       }
       // マスターボリュームが低いままになるので
       player.setMasterVolume($('#volume').val() * 16383);
