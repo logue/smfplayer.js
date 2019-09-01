@@ -1,68 +1,65 @@
 import PSGConverter from './PSGConverter';
-import Mld from './mld';
-
+import MakiMabiSequence from './mms';
+import { MetaEvent } from './midi_event';
 /**
  * MapleStory2 Mml Parser
  *
  * @author Logue <logue@hotmail.co.jp>
- * @copyright 2007-2013,2018,2019 Logue <http://logue.be/> All rights reserved.
+ * @copyright 2019 Logue <http://logue.be/> All rights reserved.
  * @license MIT
  */
-export default class Ms2Mml extends Mld {
+export default class Ms2Mml extends MakiMabiSequence {
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
    */
-  constructor(input, optParams) {
+  constructor(input, optParams = {}) {
     super(input, optParams);
-    /** @type {ByteArray} */
-    this.input = input;
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {DOMParser} */
+    const parser = new DOMParser();
+    /** @type {Document} */
+    const doc = parser.parseFromString(String.fromCharCode.apply('', new Uint16Array(input)), 'text/xml');
+    /** @param {Element} */
+    this.input = doc.querySelectorAll('ms2 > *');
+    /** @type {number} 解像度 */
+    this.timeDivision = optParams.timeDivision || 96;
+    /** @type {Array.<Array.<Object>>} 変換結果 */
     this.tracks = [];
+    /** @type {array} WML用変換結果 */
+    this.plainTracks = [];
+    /** @type {array} */
+    this.dataInformation = [];
   }
   /**
    */
   parse() {
-    this.parseHeader();
+    // this.parseHeader();
     // this.parseDataInformation();
     this.parseTracks();
-  };
-  /**
-   */
-  parseHeader() {
-    /** @type {DOMParser} */
-    const parser = new DOMParser();
-    /** @type {Document} */
-    const doc = parser.parseFromString(String.fromCharCode.apply('', new Uint16Array(this.input)), 'text/xml');
-    /** @param {Element} */
-    this.trackElements = doc.querySelectorAll('ms2 > *');
-    /** @param {array} */
-    this.tracks = [];
-    /** @param {number} */
-    this.timeDivision = 96;
 
-    this.dataInformation = [];
+    this.toPlainTrack();
 
-    this.plainTracks = [];
+    console.log(this);
   };
+
   /**
    * MML parse
    */
   parseTracks() {
+    /** @type {array} MIDIイベント */
     let track = [];
-    let plainTrack = [];
-    for (let i = 0; i < this.trackElements.length; i++) {
+    /** @type {array} 終了時間比較用 */
+    const endTimes = [];
+
+    for (let i = 0; i < this.input.length; i++) {
       /** @param {PSGConverter} */
-      const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision });
-      /** @param {array} */
-      const events = mml2Midi.parse(this.trackElements[i].textContent.trim(), 0);
-      track = track.concat(events);
-      const plainEvents = mml2Midi.toPlainTrack(events);
-      plainTrack = plainTrack.concat(plainEvents);
+      const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: 0, mml: this.input[i].textContent.trim() });
+      track = track.concat(mml2Midi.events);
+      endTimes.push(mml2Midi.endTime);
     }
 
-    // channel.push(new MetaEvent('EndOfTrack', 0, mml2Midi.time));
+    // トラック終了
+    track.concat(new MetaEvent('EndOfTrack', 0, Math.max(endTimes)));
     this.tracks.push(track);
-    this.plainTracks.push(plainTrack);
   }
 }

@@ -768,8 +768,6 @@ export default class Mld {
         channelTime[channel] = mfiEvent['time'];
       }
     }
-    console.log(plainTracks);
-
     return this.toSMF(plainTracks);
   }
 

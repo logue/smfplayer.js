@@ -1,4 +1,4 @@
-/*! @logue/smfplayer v0.2.2 | imaya / GREE Inc. / Logue | license: MIT */
+/*! @logue/smfplayer v0.2.3 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -110,7 +110,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SystemExclusiveEvent", function() { return SystemExclusiveEvent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MetaEvent", function() { return MetaEvent; });
 /**
- * Midi Event abstract class
+ * Midi Event abstract Structure
  */
 class Event {
   /**
@@ -129,7 +129,7 @@ class Event {
 }
 
 /**
- * Midi Channel Event Class
+ * Midi Channel Event Structure
  * @extends {Event}
  */
 class ChannelEvent extends Event {
@@ -153,7 +153,7 @@ class ChannelEvent extends Event {
 }
 
 /**
- * System Exclusive Event Class
+ * System Exclusive Event Structure
  * @extends {Event}
  */
 class SystemExclusiveEvent extends Event {
@@ -171,7 +171,7 @@ class SystemExclusiveEvent extends Event {
 }
 
 /**
- * Midi Meta Event Class
+ * Midi Meta Event Structure
  * @extends {Event}
  */
 class MetaEvent extends Event {
@@ -498,7 +498,7 @@ class SMF {
 
       // TODO
       const table = [, , , , , , , ,
-        'NoteOff',
+        'NoteOff', // 0x8
         'NoteOn',
         'NoteAftertouch',
         'ControlChange',

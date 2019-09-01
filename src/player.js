@@ -1,6 +1,7 @@
 import SMF from './smf';
 import Mld from './mld';
 import Ms2Mml from './ms2mml';
+import MakiMabiSequence from './mms';
 /**
  * Midi Player Class
  */
@@ -482,6 +483,19 @@ export class Player {
   }
 
   /**
+   * @param {ArrayBuffer} buffer
+   */
+  loadMakiMabiSequenceFile(buffer) {
+    /** @type {MakiMabiSequence} */
+    const parser = new MakiMabiSequence(buffer);
+
+    this.init();
+    parser.parse();
+
+    this.mergeMidiTracks(parser);
+  }
+
+  /**
    * @param {Object} midi
    */
   mergeMidiTracks(midi) {
@@ -546,6 +560,7 @@ export class Player {
           a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
             0;
     });
+
 
     // トータルの演奏時間
     this.timeTotal = mergedTrack.slice(-1)[0].time;

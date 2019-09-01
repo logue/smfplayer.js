@@ -168,7 +168,7 @@ export default class SMF {
 
       // TODO
       const table = [, , , , , , , ,
-        'NoteOff',
+        'NoteOff', // 0x8
         'NoteOn',
         'NoteAftertouch',
         'ControlChange',

@@ -1,5 +1,5 @@
 /**
- * Midi Event abstract class
+ * Midi Event abstract Structure
  */
 class Event {
   /**
@@ -18,7 +18,7 @@ class Event {
 }
 
 /**
- * Midi Channel Event Class
+ * Midi Channel Event Structure
  * @extends {Event}
  */
 class ChannelEvent extends Event {
@@ -42,7 +42,7 @@ class ChannelEvent extends Event {
 }
 
 /**
- * System Exclusive Event Class
+ * System Exclusive Event Structure
  * @extends {Event}
  */
 class SystemExclusiveEvent extends Event {
@@ -60,7 +60,7 @@ class SystemExclusiveEvent extends Event {
 }
 
 /**
- * Midi Meta Event Class
+ * Midi Meta Event Structure
  * @extends {Event}
  */
 class MetaEvent extends Event {

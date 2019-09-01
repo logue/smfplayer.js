@@ -1,4 +1,4 @@
-/*! @logue/smfplayer v0.2.2 | imaya / GREE Inc. / Logue | license: MIT */
+/*! @logue/smfplayer v0.2.3 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -97,6 +97,211 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ({
 
+/***/ "./node_modules/ini/ini.js":
+/*!*********************************!*\
+  !*** ./node_modules/ini/ini.js ***!
+  \*********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+exports.parse = exports.decode = decode
+
+exports.stringify = exports.encode = encode
+
+exports.safe = safe
+exports.unsafe = unsafe
+
+var eol = typeof process !== 'undefined' &&
+  process.platform === 'win32' ? '\r\n' : '\n'
+
+function encode (obj, opt) {
+  var children = []
+  var out = ''
+
+  if (typeof opt === 'string') {
+    opt = {
+      section: opt,
+      whitespace: false
+    }
+  } else {
+    opt = opt || {}
+    opt.whitespace = opt.whitespace === true
+  }
+
+  var separator = opt.whitespace ? ' = ' : '='
+
+  Object.keys(obj).forEach(function (k, _, __) {
+    var val = obj[k]
+    if (val && Array.isArray(val)) {
+      val.forEach(function (item) {
+        out += safe(k + '[]') + separator + safe(item) + '\n'
+      })
+    } else if (val && typeof val === 'object') {
+      children.push(k)
+    } else {
+      out += safe(k) + separator + safe(val) + eol
+    }
+  })
+
+  if (opt.section && out.length) {
+    out = '[' + safe(opt.section) + ']' + eol + out
+  }
+
+  children.forEach(function (k, _, __) {
+    var nk = dotSplit(k).join('\\.')
+    var section = (opt.section ? opt.section + '.' : '') + nk
+    var child = encode(obj[k], {
+      section: section,
+      whitespace: opt.whitespace
+    })
+    if (out.length && child.length) {
+      out += eol
+    }
+    out += child
+  })
+
+  return out
+}
+
+function dotSplit (str) {
+  return str.replace(/\1/g, '\u0002LITERAL\\1LITERAL\u0002')
+    .replace(/\\\./g, '\u0001')
+    .split(/\./).map(function (part) {
+      return part.replace(/\1/g, '\\.')
+      .replace(/\2LITERAL\\1LITERAL\2/g, '\u0001')
+    })
+}
+
+function decode (str) {
+  var out = {}
+  var p = out
+  var section = null
+  //          section     |key      = value
+  var re = /^\[([^\]]*)\]$|^([^=]+)(=(.*))?$/i
+  var lines = str.split(/[\r\n]+/g)
+
+  lines.forEach(function (line, _, __) {
+    if (!line || line.match(/^\s*[;#]/)) return
+    var match = line.match(re)
+    if (!match) return
+    if (match[1] !== undefined) {
+      section = unsafe(match[1])
+      p = out[section] = out[section] || {}
+      return
+    }
+    var key = unsafe(match[2])
+    var value = match[3] ? unsafe(match[4]) : true
+    switch (value) {
+      case 'true':
+      case 'false':
+      case 'null': value = JSON.parse(value)
+    }
+
+    // Convert keys with '[]' suffix to an array
+    if (key.length > 2 && key.slice(-2) === '[]') {
+      key = key.substring(0, key.length - 2)
+      if (!p[key]) {
+        p[key] = []
+      } else if (!Array.isArray(p[key])) {
+        p[key] = [p[key]]
+      }
+    }
+
+    // safeguard against resetting a previously defined
+    // array by accidentally forgetting the brackets
+    if (Array.isArray(p[key])) {
+      p[key].push(value)
+    } else {
+      p[key] = value
+    }
+  })
+
+  // {a:{y:1},"a.b":{x:2}} --> {a:{y:1,b:{x:2}}}
+  // use a filter to return the keys that have to be deleted.
+  Object.keys(out).filter(function (k, _, __) {
+    if (!out[k] ||
+      typeof out[k] !== 'object' ||
+      Array.isArray(out[k])) {
+      return false
+    }
+    // see if the parent section is also an object.
+    // if so, add it to that, and mark this one for deletion
+    var parts = dotSplit(k)
+    var p = out
+    var l = parts.pop()
+    var nl = l.replace(/\\\./g, '.')
+    parts.forEach(function (part, _, __) {
+      if (!p[part] || typeof p[part] !== 'object') p[part] = {}
+      p = p[part]
+    })
+    if (p === out && nl === l) {
+      return false
+    }
+    p[nl] = out[k]
+    return true
+  }).forEach(function (del, _, __) {
+    delete out[del]
+  })
+
+  return out
+}
+
+function isQuoted (val) {
+  return (val.charAt(0) === '"' && val.slice(-1) === '"') ||
+    (val.charAt(0) === "'" && val.slice(-1) === "'")
+}
+
+function safe (val) {
+  return (typeof val !== 'string' ||
+    val.match(/[=\r\n]/) ||
+    val.match(/^\[/) ||
+    (val.length > 1 &&
+     isQuoted(val)) ||
+    val !== val.trim())
+      ? JSON.stringify(val)
+      : val.replace(/;/g, '\\;').replace(/#/g, '\\#')
+}
+
+function unsafe (val, doUnesc) {
+  val = (val || '').trim()
+  if (isQuoted(val)) {
+    // remove the single quotes before calling JSON.parse
+    if (val.charAt(0) === "'") {
+      val = val.substr(1, val.length - 2)
+    }
+    try { val = JSON.parse(val) } catch (_) {}
+  } else {
+    // walk the val to find the first not-escaped ; character
+    var esc = false
+    var unesc = ''
+    for (var i = 0, l = val.length; i < l; i++) {
+      var c = val.charAt(i)
+      if (esc) {
+        if ('\\;#'.indexOf(c) !== -1) {
+          unesc += c
+        } else {
+          unesc += '\\' + c
+        }
+        esc = false
+      } else if (';#'.indexOf(c) !== -1) {
+        break
+      } else if (c === '\\') {
+        esc = true
+      } else {
+        unesc += c
+      }
+    }
+    if (esc) {
+      unesc += '\\'
+    }
+    return unesc.trim()
+  }
+  return val
+}
+
+
+/***/ }),
+
 /***/ "./src/PSGConverter.js":
 /*!*****************************!*\
   !*** ./src/PSGConverter.js ***!
@@ -124,30 +329,15 @@ class PSGConverter {
    */
   constructor(optParams = {}) {
     /** @type {number} 解像度 */
-    this.timeDivision = optParams.division || 96;
-  }
-  /**
-   * Parse MML
-   * @param {string} mml
-   * @param {int} channel
-   * @return {array}
-   */
-  parse(mml, channel) {
-    /** @type {number} 現在の音階 */
-    let cNote = 0;
-    /** @type {boolean} タイ記号 */
-    let tieEnabled = false;
-    /** @type {number} 現在のボリューム(0～15)*/
-    let cVolume = 8;
-    /** @type {number} 現在のオクターブ(1~8)*/
-    let cOctave = 4;
-    /** @type {number} 現在の音の長さ */
-    let cLength = this.timeDivision;
-
+    this.timeDivision = parseInt(optParams.timeDivision) || 96;
+    /** @type {number} チャンネル */
+    this.channel = parseInt(optParams.channel) || 0;
+    /** @type {number} 演奏開始までのオフセット時間 */
+    this.timeOffset = parseInt(optParams.timeOffset) || 0;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
-    const PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
+    this.PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
-    const NOTE_TABLE = {
+    this.NOTE_TABLE = {
       'c': 0,
       'd': 2,
       'e': 4,
@@ -156,17 +346,41 @@ class PSGConverter {
       'a': 9,
       'b': 11,
     };
+    /** @type {number} １拍（Tick連動） */
+    this.MINIM = this.timeDivision * 2;
+    /** @type {number} 1小節 */
+    this.SEMIBREVE = this.timeDivision * 4;
+    /** @type {array} MML */
+    this.mml = optParams.mml.match(this.PATTERN);
+    /** @type {array} イベント */
+    this.events = [];
+    /** @type {array} WML送信用イベント */
+    this.plainEvents = [];
+    /** @type {number} 終了時間 */
+    this.endTime = 0;
+    // 変換実行
+    this.parse();
+  }
+  /**
+   * Parse MML
+   */
+  parse() {
     /** @type {Array} MMLストリーム */
-    const notes = mml.match(PATTERN);
+    const notes = this.mml;
+    /** @type {number} タイムスタンプ */
+    let time = this.timeOffset;
+    /** @type {number} 現在の音の長さ */
+    let cLength = this.timeDivision;
+    /** @type {number} 現在の音階 */
+    let cNote = 0;
+    /** @type {boolean} タイ記号 */
+    let tieEnabled = false;
+    /** @type {number} 現在のボリューム(0～15)*/
+    let cVolume = 8;
+    /** @type {number} 現在のオクターブ(1~8)*/
+    let cOctave = 4;
     /** @type {Array} イベント */
     const events = [];
-
-    /** @type {number} １拍（Tick連動） */
-    const MINIM = this.timeDivision * 2;
-    /** @type {number} 1小節 */
-    const SEMIBREVE = this.timeDivision * 4;
-    /** @type {number} タイムスタンプ */
-    let time = 0;
 
     for (const mnid in notes) {
       if (notes.hasOwnProperty(mnid)) {
@@ -181,14 +395,14 @@ class PSGConverter {
           if (tieEnabled == true && RegExp.$4 !== '&') {
             // タイ記号
             tieEnabled = false;
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, channel, cNote));
+            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
           }
           switch (RegExp.$1) {
             case 'L':
             case 'l':
               // 音長設定 Ln[.] (n=1～192)
-              if (val >= 1 && val <= MINIM) {
-                cLength = Math.floor(SEMIBREVE / val);
+              if (val >= 1 && val <= this.MINIM) {
+                cLength = Math.floor(this.SEMIBREVE / val);
                 if (RegExp.$3 == '.') {
                   cLength = Math.floor(cLength * 1.5);
                 }
@@ -234,15 +448,15 @@ class PSGConverter {
           } else {
             // [A-G]：音名表記
             // 音符の長さ指定: n分音符→128分音符×tick数
-            if (1 <= val && val <= MINIM) {
-              tick = Math.floor(SEMIBREVE / val); // L1 -> 384tick .. L64 -> 6tick
+            if (1 <= val && val <= this.MINIM) {
+              tick = Math.floor(this.SEMIBREVE / val); // L1 -> 384tick .. L64 -> 6tick
             }
             if (RegExp.$4 === '.') {
               tick = Math.floor(tick * 1.5); // 付点つき -> 1.5倍
             }
 
             // 音名→音階番号変換(C1 -> 12, C4 -> 48, ..)
-            note = 12 * cOctave + NOTE_TABLE[RegExp.$1.toLowerCase()];
+            note = 12 * cOctave + this.NOTE_TABLE[RegExp.$1.toLowerCase()];
 
             // 調音記号の処理
             if (RegExp.$2 === '+' || RegExp.$2 === '#') {
@@ -256,34 +470,35 @@ class PSGConverter {
 
           // 前回タイ記号が無いときのみノートオン
           if (tieEnabled == false) {
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOn', 0, time, channel, note, 8 * cVolume));
+            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOn', 0, time, this.channel, note, 8 * cVolume));
           }
 
           // c&dなど無効なタイの処理
           if (tieEnabled == true && note !== cNote) {
             tieEnabled = false;
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, channel, cNote));
+            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
           }
 
           // タイムカウンタを音符の長さだけ進める
           time += tick;
 
           // ノートオフ命令の追加
-          if (RegExp.$5 == '&') { // タイ記号の処理
+          if (RegExp.$5 === '&') {
+            // タイ記号の処理
             tieEnabled = true;
             cNote = note; // 直前の音階を保存
           } else {
             tieEnabled = false;
             // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, channel, note));
+            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', -1, time, this.channel, note));
           }
         } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
           // 休符設定 R[n][.] (n=1～64)
           val = parseInt(RegExp.$1, 10);
 
-          if (1 <= val && val <= MINIM) {
+          if (1 <= val && val <= this.MINIM) {
             // L1 -> 128tick .. L64 -> 2tick
-            tick = Math.floor(SEMIBREVE / val);
+            tick = Math.floor(this.SEMIBREVE / val);
           }
 
           if (RegExp.$2 == '.') {
@@ -297,54 +512,12 @@ class PSGConverter {
         }
         if (tieEnabled == true) { // 無効なタイの処理
           tieEnabled = false;
-          events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, channel, cNote));
+          events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
         }
       }
     }
-    return events;
-  };
-
-  /**
-   * ダミー
-   * @param {array} events
-   * @return {array}
-   */
-  toPlainTrack(events) {
-    /** @var {array} */
-    const rawEvents = [];
-
-    for (const i in events) {
-      if (events.hasOwnProperty(i)) {
-        /** @var {Event} */
-        const event = events[i];
-        /** @var {Uint8Array} */
-        let raw;
-
-        if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]) {
-          switch (event.subtype) {
-            case 'NoteOn':
-              // console.log(event);
-              if ((event).parameter2 === 0) {
-                raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
-              } else {
-                raw = new Uint8Array([0x90 | event.channel, event.parameter1, event.parameter2]);
-              }
-              break;
-            case 'NoteOff':
-              raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
-              break;
-          }
-        } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"]) {
-          switch (event.subtype) {
-            case 'SetTempo':
-              raw = new Uint8Array([0xFF, 0x51, 0x03, 0x07, 0xA1, 0x20]);
-              break;
-          }
-        }
-        rawEvents.push(raw);
-      }
-    }
-    return rawEvents;
+    this.events = events;
+    this.endTime = time;
   }
 }
 
@@ -364,7 +537,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SystemExclusiveEvent", function() { return SystemExclusiveEvent; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "MetaEvent", function() { return MetaEvent; });
 /**
- * Midi Event abstract class
+ * Midi Event abstract Structure
  */
 class Event {
   /**
@@ -383,7 +556,7 @@ class Event {
 }
 
 /**
- * Midi Channel Event Class
+ * Midi Channel Event Structure
  * @extends {Event}
  */
 class ChannelEvent extends Event {
@@ -407,7 +580,7 @@ class ChannelEvent extends Event {
 }
 
 /**
- * System Exclusive Event Class
+ * System Exclusive Event Structure
  * @extends {Event}
  */
 class SystemExclusiveEvent extends Event {
@@ -425,7 +598,7 @@ class SystemExclusiveEvent extends Event {
 }
 
 /**
- * Midi Meta Event Class
+ * Midi Meta Event Structure
  * @extends {Event}
  */
 class MetaEvent extends Event {
@@ -1227,8 +1400,6 @@ class Mld {
         channelTime[channel] = mfiEvent['time'];
       }
     }
-    console.log(plainTracks);
-
     return this.toSMF(plainTracks);
   }
 
@@ -1359,6 +1530,172 @@ class Mld {
 
 /***/ }),
 
+/***/ "./src/mms.js":
+/*!********************!*\
+  !*** ./src/mms.js ***!
+  \********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MakiMabiSequence; });
+/* harmony import */ var _PSGConverter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PSGConverter */ "./src/PSGConverter.js");
+/* harmony import */ var _mld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mld */ "./src/mld.js");
+/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ini */ "./node_modules/ini/ini.js");
+/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(ini__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
+
+
+
+
+/**
+ * MakiMabi Sequence file Parser
+ *
+ * @author Logue <logue@hotmail.co.jp>
+ * @copyright 2019 Logue <http://logue.be/> All rights reserved.
+ * @license MIT
+ */
+class MakiMabiSequence extends _mld__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  /**
+   * @param {ByteArray} input
+   * @param {Object=} optParams
+   */
+  constructor(input, optParams = {}) {
+    super(input, optParams);
+    /** @type {string} */
+    const string = String.fromCharCode.apply('', new Uint16Array(input));
+    /** @type {Ini} */
+    this.input = ini__WEBPACK_IMPORTED_MODULE_2___default.a.parse(string);
+
+    /** @type {Array.<Array.<Object>>} */
+    this.tracks = [];
+    this.dataInformation = [];
+
+    this.plainTracks = [];
+  }
+  /**
+   */
+  parse() {
+    this.parseHeader();
+    // this.parseDataInformation();
+    this.parseTracks();
+
+    this.toPlainTrack();
+
+    console.log(this);
+  };
+  /**
+   */
+  parseHeader() {
+    const header = this.input.infomation; // informationじゃない
+    /** @param {string} */
+    this.title = header.title;
+    /** @param {string} */
+    this.author = header.auther; // authorじゃない。
+    /** @param {number} */
+    this.timeDivision = parseInt(header.timeBase);
+    // informationおよびmms-fileを取り除く
+    delete this.input['infomation'];
+    delete this.input['mms-file'];
+  };
+  /**
+   * MML parse
+   */
+  parseTracks() {
+    const input = this.input;
+    /** @type {array} MIDIイベント */
+    let track = [];
+    /** @type {array} 終了時間比較用 */
+    const endTimes = [];
+    /** @type {number} チャンネル */
+    let channel = 0;
+
+    for (const part in input) {
+      if (input.hasOwnProperty(part)) {
+        /** @param {array} */
+        const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
+
+        // 楽器
+        // track.push(new MetaEvent('InstrumentName', 0, 48, [input[part].name]));
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_3__["ChannelEvent"]('ProgramChange', 0, 96, channel, parseInt(input[part].instrument)));
+        // パン
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_3__["ChannelEvent"]('ControlChange', 0, 154, channel, parseInt(input[part].panpot)));
+
+        // MMLの各チャンネルの処理
+        for (let chord = 0; chord < mmls.length; chord++) {
+          /** @param {PSGConverter} */
+          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: channel, timeOffset: 386, mml: mmls[chord] });
+          // トラックにマージ
+          track = track.concat(mml2Midi.events);
+          endTimes.push(mml2Midi.endTime);
+        }
+        // トラック終了
+        track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_3__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
+        this.tracks.push(track);
+        channel++;
+      }
+    }
+  }
+
+  /**
+   * WebMidiLink信号に変換
+   */
+  toPlainTrack() {
+    /** @type {array} */
+    const rawEvents = [];
+
+    console.log(this.tracks);
+    for (let i = 0; i < this.tracks.length; i++) {
+      /** @type {array} */
+      const events = this.tracks[i];
+
+      for (let j = 0; j < events.length; j++) {
+        /** @type {Event} */
+        const event = events[j];
+        /** @var {Uint8Array} */
+        let raw;
+
+        if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_3__["ChannelEvent"]) {
+          switch (event.subtype) {
+            case 'NoteOn':
+              // console.log(event);
+              if ((event).parameter2 === 0) {
+                raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
+              } else {
+                raw = new Uint8Array([0x90 | event.channel, event.parameter1, event.parameter2]);
+              }
+              break;
+            case 'NoteOff':
+              raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
+              break;
+            case 'ControlChange':
+              raw = new Uint8Array([0xB | event.channel, event.parameter1, event.parameter2]);
+              break;
+            case 'ProgramChange':
+              raw = new Uint8Array([0xC | event.channel, event.parameter1, event.parameter2]);
+              break;
+          }
+        } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_3__["MetaEvent"]) {
+          switch (event.subtype) {
+            case 'SetTempo':
+              // TODO: 影響ないが間違っている
+              raw = new Uint8Array([0xFF, 0x51, 0x03, 0x07, 0xA1, 0x20]);
+              break;
+          }
+        }
+        rawEvents.push(raw);
+      }
+    }
+    this.plainTracks.push(rawEvents);
+  }
+}
+
+
+
+
+/***/ }),
+
 /***/ "./src/ms2mml.js":
 /*!***********************!*\
   !*** ./src/ms2mml.js ***!
@@ -1370,7 +1707,8 @@ class Mld {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Ms2Mml; });
 /* harmony import */ var _PSGConverter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PSGConverter */ "./src/PSGConverter.js");
-/* harmony import */ var _mld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mld */ "./src/mld.js");
+/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
+/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
 
 
 
@@ -1378,65 +1716,62 @@ __webpack_require__.r(__webpack_exports__);
  * MapleStory2 Mml Parser
  *
  * @author Logue <logue@hotmail.co.jp>
- * @copyright 2007-2013,2018,2019 Logue <http://logue.be/> All rights reserved.
+ * @copyright 2019 Logue <http://logue.be/> All rights reserved.
  * @license MIT
  */
-class Ms2Mml extends _mld__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class Ms2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
    */
-  constructor(input, optParams) {
+  constructor(input, optParams = {}) {
     super(input, optParams);
-    /** @type {ByteArray} */
-    this.input = input;
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {DOMParser} */
+    const parser = new DOMParser();
+    /** @type {Document} */
+    const doc = parser.parseFromString(String.fromCharCode.apply('', new Uint16Array(input)), 'text/xml');
+    /** @param {Element} */
+    this.input = doc.querySelectorAll('ms2 > *');
+    /** @type {number} 解像度 */
+    this.timeDivision = optParams.timeDivision || 96;
+    /** @type {Array.<Array.<Object>>} 変換結果 */
     this.tracks = [];
+    /** @type {array} WML用変換結果 */
+    this.plainTracks = [];
+    /** @type {array} */
+    this.dataInformation = [];
   }
   /**
    */
   parse() {
-    this.parseHeader();
+    // this.parseHeader();
     // this.parseDataInformation();
     this.parseTracks();
-  };
-  /**
-   */
-  parseHeader() {
-    /** @type {DOMParser} */
-    const parser = new DOMParser();
-    /** @type {Document} */
-    const doc = parser.parseFromString(String.fromCharCode.apply('', new Uint16Array(this.input)), 'text/xml');
-    /** @param {Element} */
-    this.trackElements = doc.querySelectorAll('ms2 > *');
-    /** @param {array} */
-    this.tracks = [];
-    /** @param {number} */
-    this.timeDivision = 96;
 
-    this.dataInformation = [];
+    this.toPlainTrack();
 
-    this.plainTracks = [];
+    console.log(this);
   };
+
   /**
    * MML parse
    */
   parseTracks() {
+    /** @type {array} MIDIイベント */
     let track = [];
-    let plainTrack = [];
-    for (let i = 0; i < this.trackElements.length; i++) {
+    /** @type {array} 終了時間比較用 */
+    const endTimes = [];
+
+    for (let i = 0; i < this.input.length; i++) {
       /** @param {PSGConverter} */
-      const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision });
-      /** @param {array} */
-      const events = mml2Midi.parse(this.trackElements[i].textContent.trim(), 0);
-      track = track.concat(events);
-      const plainEvents = mml2Midi.toPlainTrack(events);
-      plainTrack = plainTrack.concat(plainEvents);
+      const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: 0, mml: this.input[i].textContent.trim() });
+      track = track.concat(mml2Midi.events);
+      endTimes.push(mml2Midi.endTime);
     }
 
-    // channel.push(new MetaEvent('EndOfTrack', 0, mml2Midi.time));
+    // トラック終了
+    track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
     this.tracks.push(track);
-    this.plainTracks.push(plainTrack);
   }
 }
 
@@ -1456,6 +1791,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _smf__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./smf */ "./src/smf.js");
 /* harmony import */ var _mld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mld */ "./src/mld.js");
 /* harmony import */ var _ms2mml__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ms2mml */ "./src/ms2mml.js");
+/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
+
 
 
 
@@ -1940,6 +2277,19 @@ class Player {
   }
 
   /**
+   * @param {ArrayBuffer} buffer
+   */
+  loadMakiMabiSequenceFile(buffer) {
+    /** @type {MakiMabiSequence} */
+    const parser = new _mms__WEBPACK_IMPORTED_MODULE_3__["default"](buffer);
+
+    this.init();
+    parser.parse();
+
+    this.mergeMidiTracks(parser);
+  }
+
+  /**
    * @param {Object} midi
    */
   mergeMidiTracks(midi) {
@@ -2004,6 +2354,7 @@ class Player {
           a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
             0;
     });
+
 
     // トータルの演奏時間
     this.timeTotal = mergedTrack.slice(-1)[0].time;
@@ -2390,7 +2741,7 @@ class SMF {
 
       // TODO
       const table = [, , , , , , , ,
-        'NoteOff',
+        'NoteOff', // 0x8
         'NoteOn',
         'NoteAftertouch',
         'ControlChange',
