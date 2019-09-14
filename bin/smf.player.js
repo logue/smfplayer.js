@@ -313,11 +313,8 @@ function unsafe (val, doUnesc) {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ThreeMacroLanguageEditor; });
 /* harmony import */ var _PSGConverter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PSGConverter */ "./src/PSGConverter.js");
-/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ini */ "./node_modules/ini/ini.js");
-/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(ini__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
-/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
-
+/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
+/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
 
 
 
@@ -325,26 +322,16 @@ __webpack_require__.r(__webpack_exports__);
  * 3MLE mml file Parser
  *
  * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <http://logue.be/> All rights reserved.
+ * @copyright 2019 Logue <https://logue.dev/> All rights reserved.
  * @license MIT
  */
-class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_3__["default"] {
+class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["default"] {
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
-    /** @type {string} */
-    const string = String.fromCharCode.apply('', new Uint16Array(input));
-    /** @type {Ini} */
-    this.input = ini__WEBPACK_IMPORTED_MODULE_1___default.a.parse(string);
-
-    /** @type {Array.<Array.<Object>>} */
-    this.tracks = [];
-    this.dataInformation = [];
-
-    this.plainTracks = [];
   }
   /**
    */
@@ -360,110 +347,119 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_3__["defaul
   /**
    */
   parseHeader() {
-    const header = this.input.Settings; // informationじゃない
+    const header = this.input.Settings;
     /** @param {string} */
     this.title = header.Title;
     /** @param {string} */
     this.author = header.Source;
     /** @param {number} */
-    this.TimeBase = parseInt(header.TimeBase);
+    this.timeDivision = header.TimeBase | 0 || 32;
     // 3MLE EXTENSION、Settingsを取り除く
     delete this.input['3MLE EXTENSION'];
     delete this.input['Settings'];
+
+    // 曲名と著者情報を付加
+
+    /** @type {array}  */
+    const headerTrack = [];
+    // GM Reset
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('EndOfTrack', 0, 0));
+    this.tracks.push(headerTrack);
   };
+
   /**
    * MML parse
    */
   parseTracks() {
     const input = this.input;
-    /** @type {array} MIDIイベント */
-    let track = [];
     /** @type {array} 終了時間比較用 */
     const endTimes = [];
-    /** @type {number} チャンネル */
-    let channel = 0;
 
-    for (const part in input) {
-      if (input.hasOwnProperty(part)) {
-        /** @param {array} */
-        const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
+    /** @type {array} 各ブロックのMML */
+    const mmls = [];
+    /** @type {array} 各ブロックの演奏情報 */
+    const settings = [];
 
-        // 楽器
-        // track.push(new MetaEvent('InstrumentName', 0, 48, [input[part].name]));
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, channel, parseInt(input[part].instrument)));
+    for (const block in input) {
+      if (input.hasOwnProperty(block)) {
+        if (block.match(/^Channel(\d+)$/i)) {
+          // MMLは[Channel[n]]ブロックのキー
+
+          // ひどいファイル形式だ・・・。
+          mmls[(RegExp.$1 | 0) - 1] = Object.keys(input[block]).join('').replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
+        }
+
+        if (block.match(/^ChannelProperty(\d+)$/i)) {
+          // 各パートの楽器情報などは[ChannelProperty[n]]に格納されている
+          settings[(RegExp.$1 | 0) - 1] = {
+            name: input[block].Name,
+            instrument: input[block].Patch | 0,
+            panpot: input[block].Pan | 0,
+          };
+        }
+      }
+    }
+
+    /** @type {array} 整形済みデータ */
+    const data = [];
+
+    // データを整形
+    for (const no in mmls) {
+      if (mmls.hasOwnProperty(no)) {
+        if (settings[no] !== void 0) {
+          data[no] = {
+            mml: mmls[no],
+            name: settings[no].name || '',
+            instrument: settings[no].instrument || 0,
+            panpot: settings[no].panpot || 64,
+          };
+        } else {
+          data[no] = {
+            mml: mmls[no],
+            name: '',
+            instrument: 0,
+            panpot: 64,
+          };
+        }
+      }
+    }
+
+    // console.log(data);
+
+    for (const part in data) {
+      if (data.hasOwnProperty(part)) {
+        /** @type {array} MIDIイベント */
+        let track = [];
+        if (data[part].mml === '') {
+          // 空っぽのMMLトラックの場合処理しない
+          continue;
+        }
+
+        // 楽器名
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('InsturumentName', 0, 48, [data[part].name]));
+        // プログラムチェンジ
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"]('ProgramChange', 0, 96, part, data[part].instrument));
         // パン
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, channel, parseInt(input[part].panpot)));
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"]('ControlChange', 0, 154, part, 10, data[part].panpot));
 
-        // MMLの各チャンネルの処理
-        for (let chord = 0; chord < mmls.length; chord++) {
-          /** @param {PSGConverter} */
-          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: channel, timeOffset: 386, mml: mmls[chord] });
-          // トラックにマージ
-          track = track.concat(mml2Midi.events);
-          endTimes.push(mml2Midi.endTime);
-        }
+        /** @param {PSGConverter} */
+        const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: part, timeOffset: 386, mml: data[part].mml });
+        // トラックにマージ
+        track = track.concat(mml2Midi.events);
+        // 演奏時間を更新
+        endTimes.push(mml2Midi.endTime);
+
         // トラック終了
-        track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
+        track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
         this.tracks.push(track);
-        channel++;
       }
     }
-  }
-
-  /**
-   * WebMidiLink信号に変換
-   */
-  toPlainTrack() {
-    /** @type {array} */
-    const rawEvents = [];
-
-    console.log(this.tracks);
-    for (let i = 0; i < this.tracks.length; i++) {
-      /** @type {array} */
-      const events = this.tracks[i];
-
-      for (let j = 0; j < events.length; j++) {
-        /** @type {Event} */
-        const event = events[j];
-        /** @var {Uint8Array} */
-        let raw;
-
-        if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]) {
-          switch (event.subtype) {
-            case 'NoteOn':
-              // console.log(event);
-              if ((event).parameter2 === 0) {
-                raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
-              } else {
-                raw = new Uint8Array([0x90 | event.channel, event.parameter1, event.parameter2]);
-              }
-              break;
-            case 'NoteOff':
-              raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
-              break;
-            case 'ControlChange':
-              raw = new Uint8Array([0xB | event.channel, event.parameter1, event.parameter2]);
-              break;
-            case 'ProgramChange':
-              raw = new Uint8Array([0xC | event.channel, event.parameter1, event.parameter2]);
-              break;
-          }
-        } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]) {
-          switch (event.subtype) {
-            case 'SetTempo':
-              // TODO: 影響ないが間違っている
-              raw = new Uint8Array([0xFF, 0x51, 0x03, 0x07, 0xA1, 0x20]);
-              break;
-          }
-        }
-        rawEvents.push(raw);
-      }
-    }
-    this.plainTracks.push(rawEvents);
+    this.numberOfTracks = this.tracks.length;
   }
 }
-
-
 
 
 /***/ }),
@@ -1712,7 +1708,7 @@ __webpack_require__.r(__webpack_exports__);
  * MakiMabi Sequence file Parser
  *
  * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <http://logue.be/> All rights reserved.
+ * @copyright 2019 Logue <https://logue.dev/> All rights reserved.
  * @license MIT
  */
 class MakiMabiSequence {
@@ -1735,21 +1731,17 @@ class MakiMabiSequence {
     this.timeDivision = optParams.timeDivision || 96;
   }
   /**
+   * パース処理
    */
   parse() {
     this.parseHeader();
     this.parseTracks();
-
     this.toPlainTrack();
-
-    console.log(this);
   };
   /**
    * ヘッダーメタ情報をパース
    */
   parseHeader() {
-    /** @type {TextEncoder} */
-    this.encoder = new TextEncoder('shift_jis');
     /** @type {object} インフォメーション情報 */
     const header = this.input.infomation; // informationじゃない
     /** @param {string} タイトル */
@@ -1789,7 +1781,7 @@ class MakiMabiSequence {
       if (input.hasOwnProperty(part)) {
         /** @param {array} MMLの配列 */
         const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
-
+        /** @param {number} パンポット */
         const panpot = input[part].panpot | 0 + 64;
 
         // 楽器名
@@ -1888,8 +1880,6 @@ class MakiMabiSequence {
     }
   }
 }
-
-
 
 
 /***/ }),

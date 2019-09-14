@@ -5,7 +5,7 @@ import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
  * MakiMabi Sequence file Parser
  *
  * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <http://logue.be/> All rights reserved.
+ * @copyright 2019 Logue <https://logue.dev/> All rights reserved.
  * @license MIT
  */
 export default class MakiMabiSequence {
@@ -28,21 +28,17 @@ export default class MakiMabiSequence {
     this.timeDivision = optParams.timeDivision || 96;
   }
   /**
+   * パース処理
    */
   parse() {
     this.parseHeader();
     this.parseTracks();
-
     this.toPlainTrack();
-
-    console.log(this);
   };
   /**
    * ヘッダーメタ情報をパース
    */
   parseHeader() {
-    /** @type {TextEncoder} */
-    this.encoder = new TextEncoder('shift_jis');
     /** @type {object} インフォメーション情報 */
     const header = this.input.infomation; // informationじゃない
     /** @param {string} タイトル */
@@ -82,7 +78,7 @@ export default class MakiMabiSequence {
       if (input.hasOwnProperty(part)) {
         /** @param {array} MMLの配列 */
         const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
-
+        /** @param {number} パンポット */
         const panpot = input[part].panpot | 0 + 64;
 
         // 楽器名
@@ -181,5 +177,3 @@ export default class MakiMabiSequence {
     }
   }
 }
-
-
