@@ -2,6 +2,7 @@ import SMF from './smf';
 import Mld from './mld';
 import Ms2Mml from './ms2mml';
 import MakiMabiSequence from './mms';
+import ThreeMacroLanguageEditor from './3mle';
 /**
  * Midi Player Class
  */
@@ -453,6 +454,8 @@ export class Player {
     this.init();
     parser.parse();
 
+    console.log(parser);
+
     this.mergeMidiTracks(parser);
   };
 
@@ -488,6 +491,19 @@ export class Player {
   loadMakiMabiSequenceFile(buffer) {
     /** @type {MakiMabiSequence} */
     const parser = new MakiMabiSequence(buffer);
+
+    this.init();
+    parser.parse();
+
+    this.mergeMidiTracks(parser);
+  }
+
+  /**
+   * @param {ArrayBuffer} buffer
+   */
+  load3MleFile(buffer) {
+    /** @type {MakiMabiSequence} */
+    const parser = new ThreeMacroLanguageEditor(buffer);
 
     this.init();
     parser.parse();

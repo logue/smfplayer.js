@@ -1,7 +1,6 @@
 import PSGConverter from './PSGConverter';
-import Mld from './mld';
 import Ini from 'ini';
-import { MetaEvent, ChannelEvent } from './midi_event';
+import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
 /**
  * MakiMabi Sequence file Parser
  *
@@ -9,29 +8,29 @@ import { MetaEvent, ChannelEvent } from './midi_event';
  * @copyright 2019 Logue <http://logue.be/> All rights reserved.
  * @license MIT
  */
-export default class MakiMabiSequence extends Mld {
+export default class MakiMabiSequence {
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
-    super(input, optParams);
     /** @type {string} */
     const string = String.fromCharCode.apply('', new Uint16Array(input));
-    /** @type {Ini} */
+    /** @type {Ini} MMSファイルをパースしたもの */
     this.input = Ini.parse(string);
-
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
-    this.dataInformation = [];
-
+    /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
     this.plainTracks = [];
+    /** @param {number} トラック数 */
+    this.numberOfTracks = 1;
+    /** @type {number} 解像度 */
+    this.timeDivision = optParams.timeDivision || 96;
   }
   /**
    */
   parse() {
     this.parseHeader();
-    // this.parseDataInformation();
     this.parseTracks();
 
     this.toPlainTrack();
@@ -39,18 +38,33 @@ export default class MakiMabiSequence extends Mld {
     console.log(this);
   };
   /**
+   * ヘッダーメタ情報をパース
    */
   parseHeader() {
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('shift_jis');
+    /** @type {object} インフォメーション情報 */
     const header = this.input.infomation; // informationじゃない
-    /** @param {string} */
+    /** @param {string} タイトル */
     this.title = header.title;
-    /** @param {string} */
+    /** @param {string} 著者情報 */
     this.author = header.auther; // authorじゃない。
-    /** @param {number} */
-    this.timeDivision = parseInt(header.timeBase);
-    // informationおよびmms-fileを取り除く
+    /** @param {number} 解像度 */
+    this.timeDivision = header.timeBase | 0 || 96;
+    // infomationおよびmms-fileを取り除く
     delete this.input['infomation'];
     delete this.input['mms-file'];
+
+    // 曲名と著者情報を付加
+
+    /** @type {array}  */
+    const headerTrack = [];
+    // GM Reset
+    headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
+    headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
+    this.tracks.push(headerTrack);
   };
   /**
    * MML parse
@@ -62,51 +76,57 @@ export default class MakiMabiSequence extends Mld {
     /** @type {array} 終了時間比較用 */
     const endTimes = [];
     /** @type {number} チャンネル */
-    let channel = 0;
+    let ch = 0;
 
     for (const part in input) {
       if (input.hasOwnProperty(part)) {
-        /** @param {array} */
+        /** @param {array} MMLの配列 */
         const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
 
-        // 楽器
-        // track.push(new MetaEvent('InstrumentName', 0, 48, [input[part].name]));
-        track.push(new ChannelEvent('ProgramChange', 0, 96, channel, parseInt(input[part].instrument)));
+        const panpot = input[part].panpot | 0 + 64;
+
+        // 楽器名
+        track.push(new MetaEvent('InsturumentName', 0, 48, [input[part].name]));
+        // プログラムチェンジ
+        track.push(new ChannelEvent('ProgramChange', 0, 96, ch, input[part].instrument | 0));
         // パン
-        track.push(new ChannelEvent('ControlChange', 0, 154, channel, parseInt(input[part].panpot)));
+        track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, panpot));
 
         // MMLの各チャンネルの処理
         for (let chord = 0; chord < mmls.length; chord++) {
           /** @param {PSGConverter} */
-          const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: channel, timeOffset: 386, mml: mmls[chord] });
+          const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: mmls[chord] });
           // トラックにマージ
           track = track.concat(mml2Midi.events);
           endTimes.push(mml2Midi.endTime);
         }
+        ch++;
         // トラック終了
         track.concat(new MetaEvent('EndOfTrack', 0, Math.max(endTimes)));
         this.tracks.push(track);
-        channel++;
       }
     }
+    this.numberOfTracks = this.tracks.length;
   }
 
   /**
    * WebMidiLink信号に変換
    */
   toPlainTrack() {
-    /** @type {array} */
-    const rawEvents = [];
-
-    console.log(this.tracks);
     for (let i = 0; i < this.tracks.length; i++) {
+      /** @type {array} トラックのイベント*/
+      let rawTrackEvents = [];
+
+      /** @type {array} 全イベント */
+      let rawEvents = [];
+
       /** @type {array} */
       const events = this.tracks[i];
 
       for (let j = 0; j < events.length; j++) {
-        /** @type {Event} */
+        /** @type {Event} イベント */
         const event = events[j];
-        /** @var {Uint8Array} */
+        /** @var {Uint8Array} WebMidiLink信号 */
         let raw;
 
         if (event instanceof ChannelEvent) {
@@ -123,24 +143,42 @@ export default class MakiMabiSequence extends Mld {
               raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
               break;
             case 'ControlChange':
-              raw = new Uint8Array([0xB | event.channel, event.parameter1, event.parameter2]);
+              raw = new Uint8Array([0xB0 | event.channel, event.parameter1, event.parameter2]);
               break;
             case 'ProgramChange':
-              raw = new Uint8Array([0xC | event.channel, event.parameter1, event.parameter2]);
+              raw = new Uint8Array([0xC0, 0x40 | event.channel, event.parameter1]);
               break;
           }
         } else if (event instanceof MetaEvent) {
+          // Metaイベントの内容は実際使われない。単なる配列の数合わせのためのプレースホルダ（音を鳴らすことには関係ない処理だから）
+          /** @type {Uint8Array} */
+          const data = this.encoder.encode(event.data);
           switch (event.subtype) {
+            case 'SequenceTrackName':
+              raw = new Uint8Array([0xFF, 0x03].concat(data));
+              break;
+            case 'CopyrightNotice':
+              raw = new Uint8Array([0xFF, 0x02].concat(data));
+              break;
+            case 'InsturumentName':
+              raw = new Uint8Array([0xFF, 0x04].concat(data));
+              break;
             case 'SetTempo':
-              // TODO: 影響ないが間違っている
-              raw = new Uint8Array([0xFF, 0x51, 0x03, 0x07, 0xA1, 0x20]);
+              raw = new Uint8Array([0xFF, 0x51].concat(data));
+              break;
+            case 'EndOfTrack':
+              raw = new Uint8Array([0xFF, 0x2F]);
               break;
           }
+        } else if (event instanceof SystemExclusiveEvent) {
+          raw = new Uint8Array([0xF0, 0x05].concat(event.data));
         }
-        rawEvents.push(raw);
+        rawEvents = rawEvents.concat(raw);
       }
+      rawTrackEvents = rawTrackEvents.concat(rawEvents);
+
+      this.plainTracks[i] = rawTrackEvents;
     }
-    this.plainTracks.push(rawEvents);
   }
 }
 

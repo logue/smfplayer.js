@@ -302,6 +302,172 @@ function unsafe (val, doUnesc) {
 
 /***/ }),
 
+/***/ "./src/3mle.js":
+/*!*********************!*\
+  !*** ./src/3mle.js ***!
+  \*********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return ThreeMacroLanguageEditor; });
+/* harmony import */ var _PSGConverter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PSGConverter */ "./src/PSGConverter.js");
+/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ini */ "./node_modules/ini/ini.js");
+/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(ini__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
+/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
+
+
+
+
+/**
+ * 3MLE mml file Parser
+ *
+ * @author Logue <logue@hotmail.co.jp>
+ * @copyright 2019 Logue <http://logue.be/> All rights reserved.
+ * @license MIT
+ */
+class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_3__["default"] {
+  /**
+   * @param {ByteArray} input
+   * @param {Object=} optParams
+   */
+  constructor(input, optParams = {}) {
+    super(input, optParams);
+    /** @type {string} */
+    const string = String.fromCharCode.apply('', new Uint16Array(input));
+    /** @type {Ini} */
+    this.input = ini__WEBPACK_IMPORTED_MODULE_1___default.a.parse(string);
+
+    /** @type {Array.<Array.<Object>>} */
+    this.tracks = [];
+    this.dataInformation = [];
+
+    this.plainTracks = [];
+  }
+  /**
+   */
+  parse() {
+    this.parseHeader();
+    // this.parseDataInformation();
+    this.parseTracks();
+
+    this.toPlainTrack();
+
+    console.log(this);
+  };
+  /**
+   */
+  parseHeader() {
+    const header = this.input.Settings; // informationじゃない
+    /** @param {string} */
+    this.title = header.Title;
+    /** @param {string} */
+    this.author = header.Source;
+    /** @param {number} */
+    this.TimeBase = parseInt(header.TimeBase);
+    // 3MLE EXTENSION、Settingsを取り除く
+    delete this.input['3MLE EXTENSION'];
+    delete this.input['Settings'];
+  };
+  /**
+   * MML parse
+   */
+  parseTracks() {
+    const input = this.input;
+    /** @type {array} MIDIイベント */
+    let track = [];
+    /** @type {array} 終了時間比較用 */
+    const endTimes = [];
+    /** @type {number} チャンネル */
+    let channel = 0;
+
+    for (const part in input) {
+      if (input.hasOwnProperty(part)) {
+        /** @param {array} */
+        const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
+
+        // 楽器
+        // track.push(new MetaEvent('InstrumentName', 0, 48, [input[part].name]));
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, channel, parseInt(input[part].instrument)));
+        // パン
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, channel, parseInt(input[part].panpot)));
+
+        // MMLの各チャンネルの処理
+        for (let chord = 0; chord < mmls.length; chord++) {
+          /** @param {PSGConverter} */
+          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: channel, timeOffset: 386, mml: mmls[chord] });
+          // トラックにマージ
+          track = track.concat(mml2Midi.events);
+          endTimes.push(mml2Midi.endTime);
+        }
+        // トラック終了
+        track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
+        this.tracks.push(track);
+        channel++;
+      }
+    }
+  }
+
+  /**
+   * WebMidiLink信号に変換
+   */
+  toPlainTrack() {
+    /** @type {array} */
+    const rawEvents = [];
+
+    console.log(this.tracks);
+    for (let i = 0; i < this.tracks.length; i++) {
+      /** @type {array} */
+      const events = this.tracks[i];
+
+      for (let j = 0; j < events.length; j++) {
+        /** @type {Event} */
+        const event = events[j];
+        /** @var {Uint8Array} */
+        let raw;
+
+        if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]) {
+          switch (event.subtype) {
+            case 'NoteOn':
+              // console.log(event);
+              if ((event).parameter2 === 0) {
+                raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
+              } else {
+                raw = new Uint8Array([0x90 | event.channel, event.parameter1, event.parameter2]);
+              }
+              break;
+            case 'NoteOff':
+              raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
+              break;
+            case 'ControlChange':
+              raw = new Uint8Array([0xB | event.channel, event.parameter1, event.parameter2]);
+              break;
+            case 'ProgramChange':
+              raw = new Uint8Array([0xC | event.channel, event.parameter1, event.parameter2]);
+              break;
+          }
+        } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]) {
+          switch (event.subtype) {
+            case 'SetTempo':
+              // TODO: 影響ないが間違っている
+              raw = new Uint8Array([0xFF, 0x51, 0x03, 0x07, 0xA1, 0x20]);
+              break;
+          }
+        }
+        rawEvents.push(raw);
+      }
+    }
+    this.plainTracks.push(rawEvents);
+  }
+}
+
+
+
+
+/***/ }),
+
 /***/ "./src/PSGConverter.js":
 /*!*****************************!*\
   !*** ./src/PSGConverter.js ***!
@@ -319,7 +485,7 @@ __webpack_require__.r(__webpack_exports__);
  * v3.0
  *
  * @author Logue <logue@hotmail.co.jp>
- * @copyright 2007-2013,2018,2019 Logue <http://logue.be/> All rights reserved.
+ * @copyright 2007-2013,2018-2019 Logue <http://logue.be/> All rights reserved.
  * @license MIT
  */
 class PSGConverter {
@@ -331,9 +497,9 @@ class PSGConverter {
     /** @type {number} 解像度 */
     this.timeDivision = parseInt(optParams.timeDivision) || 96;
     /** @type {number} チャンネル */
-    this.channel = parseInt(optParams.channel) || 0;
+    this.channel = optParams.channel | 0;
     /** @type {number} 演奏開始までのオフセット時間 */
-    this.timeOffset = parseInt(optParams.timeOffset) || 0;
+    this.timeOffset = optParams.timeOffset | 0;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
     this.PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
@@ -385,14 +551,14 @@ class PSGConverter {
     for (const mnid in notes) {
       if (notes.hasOwnProperty(mnid)) {
         /** @type {number} 現在の音符の長さ */
-        let tick = cLength;
+        let tick = cLength | 0;
         /** @type {number} 値*/
         let val = 0;
 
         // 音長(L)、オクターブ(O<>)、テンポ（T）、ボリューム（V）をパース
         if (notes[mnid].match(/([LOTV<>])([1-9][0-9]*|0?)(\.?)(&?)/i)) {
           val = parseInt(RegExp.$2);
-          if (tieEnabled == true && RegExp.$4 !== '&') {
+          if (tieEnabled && RegExp.$4 !== '&') {
             // タイ記号
             tieEnabled = false;
             events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
@@ -404,6 +570,7 @@ class PSGConverter {
               if (val >= 1 && val <= this.MINIM) {
                 cLength = Math.floor(this.SEMIBREVE / val);
                 if (RegExp.$3 == '.') {
+                  // 付点の場合音長を1.5倍する
                   cLength = Math.floor(cLength * 1.5);
                 }
               }
@@ -440,7 +607,7 @@ class PSGConverter {
           // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
           /** @type {number} 音階 */
           let note = 0;
-          val = parseInt(RegExp.$3, 10);
+          val = RegExp.$3 | 0;
 
           if (RegExp.$1 === 'n' || RegExp.$1 === 'N') {
             // Nn：絶対音階指定 Lで指定した長さに設定
@@ -468,15 +635,13 @@ class PSGConverter {
           // 1オクターブ低く演奏される不具合を修正 060426
           note += 12;
 
-          // 前回タイ記号が無いときのみノートオン
-          if (tieEnabled == false) {
+          if (!tieEnabled) {
+            // 前回タイ記号が無いときのみノートオン
             events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOn', 0, time, this.channel, note, 8 * cVolume));
-          }
-
-          // c&dなど無効なタイの処理
-          if (tieEnabled == true && note !== cNote) {
-            tieEnabled = false;
+          } else if (note !== cNote) {
+            // c&dなど無効なタイの処理
             events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
+            tieEnabled = false;
           }
 
           // タイムカウンタを音符の長さだけ進める
@@ -490,18 +655,18 @@ class PSGConverter {
           } else {
             tieEnabled = false;
             // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', -1, time, this.channel, note));
+            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, note));
           }
         } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
           // 休符設定 R[n][.] (n=1～64)
-          val = parseInt(RegExp.$1, 10);
+          val = RegExp.$1 | 0;
 
           if (1 <= val && val <= this.MINIM) {
             // L1 -> 128tick .. L64 -> 2tick
             tick = Math.floor(this.SEMIBREVE / val);
           }
 
-          if (RegExp.$2 == '.') {
+          if (RegExp.$2 === '.') {
             // 付点つき -> 1.5倍
             tick = Math.floor(tick * 1.5);
           }
@@ -509,10 +674,6 @@ class PSGConverter {
           time += tick; // タイムカウンタを休符の長さだけ進める
         } else {
           console.warn('unknown signeture.', notes[mnid]);
-        }
-        if (tieEnabled == true) { // 無効なタイの処理
-          tieEnabled = false;
-          events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
         }
       }
     }
@@ -1541,11 +1702,9 @@ class Mld {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MakiMabiSequence; });
 /* harmony import */ var _PSGConverter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PSGConverter */ "./src/PSGConverter.js");
-/* harmony import */ var _mld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mld */ "./src/mld.js");
-/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ini */ "./node_modules/ini/ini.js");
-/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(ini__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
-
+/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ini */ "./node_modules/ini/ini.js");
+/* harmony import */ var ini__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(ini__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
 
 
 
@@ -1556,29 +1715,29 @@ __webpack_require__.r(__webpack_exports__);
  * @copyright 2019 Logue <http://logue.be/> All rights reserved.
  * @license MIT
  */
-class MakiMabiSequence extends _mld__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class MakiMabiSequence {
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
-    super(input, optParams);
     /** @type {string} */
     const string = String.fromCharCode.apply('', new Uint16Array(input));
-    /** @type {Ini} */
-    this.input = ini__WEBPACK_IMPORTED_MODULE_2___default.a.parse(string);
-
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {Ini} MMSファイルをパースしたもの */
+    this.input = ini__WEBPACK_IMPORTED_MODULE_1___default.a.parse(string);
+    /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
-    this.dataInformation = [];
-
+    /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
     this.plainTracks = [];
+    /** @param {number} トラック数 */
+    this.numberOfTracks = 1;
+    /** @type {number} 解像度 */
+    this.timeDivision = optParams.timeDivision || 96;
   }
   /**
    */
   parse() {
     this.parseHeader();
-    // this.parseDataInformation();
     this.parseTracks();
 
     this.toPlainTrack();
@@ -1586,18 +1745,33 @@ class MakiMabiSequence extends _mld__WEBPACK_IMPORTED_MODULE_1__["default"] {
     console.log(this);
   };
   /**
+   * ヘッダーメタ情報をパース
    */
   parseHeader() {
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('shift_jis');
+    /** @type {object} インフォメーション情報 */
     const header = this.input.infomation; // informationじゃない
-    /** @param {string} */
+    /** @param {string} タイトル */
     this.title = header.title;
-    /** @param {string} */
+    /** @param {string} 著者情報 */
     this.author = header.auther; // authorじゃない。
-    /** @param {number} */
-    this.timeDivision = parseInt(header.timeBase);
-    // informationおよびmms-fileを取り除く
+    /** @param {number} 解像度 */
+    this.timeDivision = header.timeBase | 0 || 96;
+    // infomationおよびmms-fileを取り除く
     delete this.input['infomation'];
     delete this.input['mms-file'];
+
+    // 曲名と著者情報を付加
+
+    /** @type {array}  */
+    const headerTrack = [];
+    // GM Reset
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, 0));
+    this.tracks.push(headerTrack);
   };
   /**
    * MML parse
@@ -1609,54 +1783,60 @@ class MakiMabiSequence extends _mld__WEBPACK_IMPORTED_MODULE_1__["default"] {
     /** @type {array} 終了時間比較用 */
     const endTimes = [];
     /** @type {number} チャンネル */
-    let channel = 0;
+    let ch = 0;
 
     for (const part in input) {
       if (input.hasOwnProperty(part)) {
-        /** @param {array} */
+        /** @param {array} MMLの配列 */
         const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
 
-        // 楽器
-        // track.push(new MetaEvent('InstrumentName', 0, 48, [input[part].name]));
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_3__["ChannelEvent"]('ProgramChange', 0, 96, channel, parseInt(input[part].instrument)));
+        const panpot = input[part].panpot | 0 + 64;
+
+        // 楽器名
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('InsturumentName', 0, 48, [input[part].name]));
+        // プログラムチェンジ
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, ch, input[part].instrument | 0));
         // パン
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_3__["ChannelEvent"]('ControlChange', 0, 154, channel, parseInt(input[part].panpot)));
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, ch, 10, panpot));
 
         // MMLの各チャンネルの処理
         for (let chord = 0; chord < mmls.length; chord++) {
           /** @param {PSGConverter} */
-          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: channel, timeOffset: 386, mml: mmls[chord] });
+          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: mmls[chord] });
           // トラックにマージ
           track = track.concat(mml2Midi.events);
           endTimes.push(mml2Midi.endTime);
         }
+        ch++;
         // トラック終了
-        track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_3__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
+        track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
         this.tracks.push(track);
-        channel++;
       }
     }
+    this.numberOfTracks = this.tracks.length;
   }
 
   /**
    * WebMidiLink信号に変換
    */
   toPlainTrack() {
-    /** @type {array} */
-    const rawEvents = [];
-
-    console.log(this.tracks);
     for (let i = 0; i < this.tracks.length; i++) {
+      /** @type {array} トラックのイベント*/
+      let rawTrackEvents = [];
+
+      /** @type {array} 全イベント */
+      let rawEvents = [];
+
       /** @type {array} */
       const events = this.tracks[i];
 
       for (let j = 0; j < events.length; j++) {
-        /** @type {Event} */
+        /** @type {Event} イベント */
         const event = events[j];
-        /** @var {Uint8Array} */
+        /** @var {Uint8Array} WebMidiLink信号 */
         let raw;
 
-        if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_3__["ChannelEvent"]) {
+        if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]) {
           switch (event.subtype) {
             case 'NoteOn':
               // console.log(event);
@@ -1670,24 +1850,42 @@ class MakiMabiSequence extends _mld__WEBPACK_IMPORTED_MODULE_1__["default"] {
               raw = new Uint8Array([0x80 | event.channel, event.parameter1, event.parameter2]);
               break;
             case 'ControlChange':
-              raw = new Uint8Array([0xB | event.channel, event.parameter1, event.parameter2]);
+              raw = new Uint8Array([0xB0 | event.channel, event.parameter1, event.parameter2]);
               break;
             case 'ProgramChange':
-              raw = new Uint8Array([0xC | event.channel, event.parameter1, event.parameter2]);
+              raw = new Uint8Array([0xC0, 0x40 | event.channel, event.parameter1]);
               break;
           }
-        } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_3__["MetaEvent"]) {
+        } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]) {
+          // Metaイベントの内容は実際使われない。単なる配列の数合わせのためのプレースホルダ（音を鳴らすことには関係ない処理だから）
+          /** @type {Uint8Array} */
+          const data = this.encoder.encode(event.data);
           switch (event.subtype) {
+            case 'SequenceTrackName':
+              raw = new Uint8Array([0xFF, 0x03].concat(data));
+              break;
+            case 'CopyrightNotice':
+              raw = new Uint8Array([0xFF, 0x02].concat(data));
+              break;
+            case 'InsturumentName':
+              raw = new Uint8Array([0xFF, 0x04].concat(data));
+              break;
             case 'SetTempo':
-              // TODO: 影響ないが間違っている
-              raw = new Uint8Array([0xFF, 0x51, 0x03, 0x07, 0xA1, 0x20]);
+              raw = new Uint8Array([0xFF, 0x51].concat(data));
+              break;
+            case 'EndOfTrack':
+              raw = new Uint8Array([0xFF, 0x2F]);
               break;
           }
+        } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]) {
+          raw = new Uint8Array([0xF0, 0x05].concat(event.data));
         }
-        rawEvents.push(raw);
+        rawEvents = rawEvents.concat(raw);
       }
+      rawTrackEvents = rawTrackEvents.concat(rawEvents);
+
+      this.plainTracks[i] = rawTrackEvents;
     }
-    this.plainTracks.push(rawEvents);
   }
 }
 
@@ -1732,14 +1930,14 @@ class Ms2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     const doc = parser.parseFromString(String.fromCharCode.apply('', new Uint16Array(input)), 'text/xml');
     /** @param {Element} */
     this.input = doc.querySelectorAll('ms2 > *');
+    /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
+    this.tracks = [];
+    /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
+    this.plainTracks = [];
+    /** @param {number} トラック数 */
+    this.numberOfTracks = 1;
     /** @type {number} 解像度 */
     this.timeDivision = optParams.timeDivision || 96;
-    /** @type {Array.<Array.<Object>>} 変換結果 */
-    this.tracks = [];
-    /** @type {array} WML用変換結果 */
-    this.plainTracks = [];
-    /** @type {array} */
-    this.dataInformation = [];
   }
   /**
    */
@@ -1792,6 +1990,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _mld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mld */ "./src/mld.js");
 /* harmony import */ var _ms2mml__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ms2mml */ "./src/ms2mml.js");
 /* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
+/* harmony import */ var _3mle__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./3mle */ "./src/3mle.js");
+
 
 
 
@@ -2247,6 +2447,8 @@ class Player {
     this.init();
     parser.parse();
 
+    console.log(parser);
+
     this.mergeMidiTracks(parser);
   };
 
@@ -2282,6 +2484,19 @@ class Player {
   loadMakiMabiSequenceFile(buffer) {
     /** @type {MakiMabiSequence} */
     const parser = new _mms__WEBPACK_IMPORTED_MODULE_3__["default"](buffer);
+
+    this.init();
+    parser.parse();
+
+    this.mergeMidiTracks(parser);
+  }
+
+  /**
+   * @param {ArrayBuffer} buffer
+   */
+  load3MleFile(buffer) {
+    /** @type {MakiMabiSequence} */
+    const parser = new _3mle__WEBPACK_IMPORTED_MODULE_4__["default"](buffer);
 
     this.init();
     parser.parse();

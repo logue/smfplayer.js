@@ -21,14 +21,14 @@ export default class Ms2Mml extends MakiMabiSequence {
     const doc = parser.parseFromString(String.fromCharCode.apply('', new Uint16Array(input)), 'text/xml');
     /** @param {Element} */
     this.input = doc.querySelectorAll('ms2 > *');
+    /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
+    this.tracks = [];
+    /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
+    this.plainTracks = [];
+    /** @param {number} トラック数 */
+    this.numberOfTracks = 1;
     /** @type {number} 解像度 */
     this.timeDivision = optParams.timeDivision || 96;
-    /** @type {Array.<Array.<Object>>} 変換結果 */
-    this.tracks = [];
-    /** @type {array} WML用変換結果 */
-    this.plainTracks = [];
-    /** @type {array} */
-    this.dataInformation = [];
   }
   /**
    */

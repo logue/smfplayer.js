@@ -4,7 +4,7 @@ import { ChannelEvent, MetaEvent } from './midi_event';
  * v3.0
  *
  * @author Logue <logue@hotmail.co.jp>
- * @copyright 2007-2013,2018,2019 Logue <http://logue.be/> All rights reserved.
+ * @copyright 2007-2013,2018-2019 Logue <http://logue.be/> All rights reserved.
  * @license MIT
  */
 export default class PSGConverter {
@@ -16,9 +16,9 @@ export default class PSGConverter {
     /** @type {number} 解像度 */
     this.timeDivision = parseInt(optParams.timeDivision) || 96;
     /** @type {number} チャンネル */
-    this.channel = parseInt(optParams.channel) || 0;
+    this.channel = optParams.channel | 0;
     /** @type {number} 演奏開始までのオフセット時間 */
-    this.timeOffset = parseInt(optParams.timeOffset) || 0;
+    this.timeOffset = optParams.timeOffset | 0;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
     this.PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
@@ -70,14 +70,14 @@ export default class PSGConverter {
     for (const mnid in notes) {
       if (notes.hasOwnProperty(mnid)) {
         /** @type {number} 現在の音符の長さ */
-        let tick = cLength;
+        let tick = cLength | 0;
         /** @type {number} 値*/
         let val = 0;
 
         // 音長(L)、オクターブ(O<>)、テンポ（T）、ボリューム（V）をパース
         if (notes[mnid].match(/([LOTV<>])([1-9][0-9]*|0?)(\.?)(&?)/i)) {
           val = parseInt(RegExp.$2);
-          if (tieEnabled == true && RegExp.$4 !== '&') {
+          if (tieEnabled && RegExp.$4 !== '&') {
             // タイ記号
             tieEnabled = false;
             events.push(new ChannelEvent('NoteOff', 0, time, this.channel, cNote));
@@ -89,6 +89,7 @@ export default class PSGConverter {
               if (val >= 1 && val <= this.MINIM) {
                 cLength = Math.floor(this.SEMIBREVE / val);
                 if (RegExp.$3 == '.') {
+                  // 付点の場合音長を1.5倍する
                   cLength = Math.floor(cLength * 1.5);
                 }
               }
@@ -125,7 +126,7 @@ export default class PSGConverter {
           // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
           /** @type {number} 音階 */
           let note = 0;
-          val = parseInt(RegExp.$3, 10);
+          val = RegExp.$3 | 0;
 
           if (RegExp.$1 === 'n' || RegExp.$1 === 'N') {
             // Nn：絶対音階指定 Lで指定した長さに設定
@@ -153,15 +154,13 @@ export default class PSGConverter {
           // 1オクターブ低く演奏される不具合を修正 060426
           note += 12;
 
-          // 前回タイ記号が無いときのみノートオン
-          if (tieEnabled == false) {
+          if (!tieEnabled) {
+            // 前回タイ記号が無いときのみノートオン
             events.push(new ChannelEvent('NoteOn', 0, time, this.channel, note, 8 * cVolume));
-          }
-
-          // c&dなど無効なタイの処理
-          if (tieEnabled == true && note !== cNote) {
-            tieEnabled = false;
+          } else if (note !== cNote) {
+            // c&dなど無効なタイの処理
             events.push(new ChannelEvent('NoteOff', 0, time, this.channel, cNote));
+            tieEnabled = false;
           }
 
           // タイムカウンタを音符の長さだけ進める
@@ -175,18 +174,18 @@ export default class PSGConverter {
           } else {
             tieEnabled = false;
             // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
-            events.push(new ChannelEvent('NoteOff', -1, time, this.channel, note));
+            events.push(new ChannelEvent('NoteOff', 0, time, this.channel, note));
           }
         } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
           // 休符設定 R[n][.] (n=1～64)
-          val = parseInt(RegExp.$1, 10);
+          val = RegExp.$1 | 0;
 
           if (1 <= val && val <= this.MINIM) {
             // L1 -> 128tick .. L64 -> 2tick
             tick = Math.floor(this.SEMIBREVE / val);
           }
 
-          if (RegExp.$2 == '.') {
+          if (RegExp.$2 === '.') {
             // 付点つき -> 1.5倍
             tick = Math.floor(tick * 1.5);
           }
@@ -194,10 +193,6 @@ export default class PSGConverter {
           time += tick; // タイムカウンタを休符の長さだけ進める
         } else {
           console.warn('unknown signeture.', notes[mnid]);
-        }
-        if (tieEnabled == true) { // 無効なタイの処理
-          tieEnabled = false;
-          events.push(new ChannelEvent('NoteOff', 0, time, this.channel, cNote));
         }
       }
     }

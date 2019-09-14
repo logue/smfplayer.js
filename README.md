@@ -38,45 +38,90 @@ window.addEventListener('DOMContentLoaded', function() {
  * @param {string} url
  */
 function loadSMF(url) {
-  var xhr = new XMLHttpRequest();
-
-  xhr.open('GET', url, true);
-  xhr.addEventListener('load', function (event) {
-    /** @type {Uint8Array} */
-    var input = new Uint8Array(event.target.response);
-
-    // load MIDI file
-    player.loadMidiFile(input);
-    player.play();
-  }, false);
-  xhr.responseType = 'arraybuffer';
-  xhr.send();
-}
+  fetch(url)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error("HTTP error, status = " + response.status);
+      }
+      return response.arrayBuffer();
+    })
+    .then(arraybuffer => {
+      const ext = url.split('.').pop();
+      switch (ext) {
+        case 'midi':
+        case 'mid':
+          // Load MIDI file
+          player.loadMidiFile(input);
+          break;
+        case 'mld':
+          // Load Polyphonic Ringtone File
+          player.loadMldFile(input);
+          break;
+        case 'ms2mml':
+          // Load Maple Story 2 MML File
+          player.loadMs2MmlFile(input);
+          break;
+        case 'mms':
+          // Load MakiMabi Sequence MML File
+          player.loadMmsFile(input);
+          break;
+        case 'mml':
+          // Load 3MLE MML File
+          player.loadMmlFile(input);
+          break;
+        case 'mmi':
+          // Load Mabicco File
+          player.loadMmiFile(input);
+          break;
+        default:
+          throw new Error("Unsupported format:" + ext);
+      }
+      player.play();
+    })
+    .catch(e => console.error(e));
 ```
 
 ## 命令
 
-| メソッド/変数名            | 内容
-| ------------------------- | ---------------------------------
-| play()                    | 再生
-| stop()                    | 停止
-| loadMidiFile(ArrayBuffer) | MIDI形式のファイルを読み込む
-| loadMldFile(ArrayBuffer)  | MLD形式のファイルを読み込む
-| setLoop(boolean)          | 再生中のファイルをループ再生する
-| setCC111Loop(boolean)     | コントロールチェンジNo.111の値でループする
-| setFalcomLoop(boolean)    | Falcomで使用されているMIDIのループする
-| setMFiLoop(boolean)       | Mfiメタデータでループする
-| setWebMidiLink(string)    | 再生に使用するWebMidiLinkのURLを指定する
-| getWebMidiLink()          | 使用しているWebMidiLinkのURLを出力する
-| setTempoRate(number)      | テンポの倍率を指定する
-| setMasterVolume(number)   | マスターボリュームの設定（0~1）
-| getCopyright()            | メタデータの著作権情報を取得
-| getSequenceName()         | メタデータのシーケンス名を取得する
-| getLength()               | データーの命令数を取得する
-| setPosition(number)       | 入力された値にジャンプする
-| getPosition()             | 現在の再生位置を取得
-| sendGmReset()             | GMリセット命令をWMLに送る
-| sendAllSoundOff()         | AllSoundOff命令をWMLに送る
+| メソッド/変数名               | 内容
+| ----------------------------- | ---------------------------------
+| play()                        | 再生
+| stop()                        | 停止
+| loadMidiFile(ArrayBuffer)     | MIDI形式のファイルを読み込む
+| loadMldFile(ArrayBuffer)      | MLD形式のファイルを読み込む
+| loadMs2MmlFile(ArrayBuffer)   | MapleStory2 MML（*.ms2mml）ファイルを読み込む
+| loadMmsFile(ArrayBuffer)      | まきまびしーく（*.mms）ファイルを読み込む
+| loadMmlFile(ArrayBuffer)      | 3MLE（*.mml）ファイルを読み込む（未実装）
+| loadMmiFile(ArrayBuffer)      | MabiIcco（*.mmi）ファイルを読み込む（未実装）
+| setLoop(boolean)              | 再生中のファイルをループ再生する
+| setCC111Loop(boolean)         | コントロールチェンジNo.111の値でループする
+| setFalcomLoop(boolean)        | Falcomで使用されているMIDIのループする
+| setMFiLoop(boolean)           | Mfiメタデータでループする
+| setWebMidiLink(string)        | 再生に使用するWebMidiLinkのURLを指定する
+| getWebMidiLink()              | 使用しているWebMidiLinkのURLを出力する
+| setTempoRate(number)          | テンポの倍率を指定する
+| setMasterVolume(number)       | マスターボリュームの設定（0~1）
+| getCopyright()                | メタデータの著作権情報を取得
+| getSequenceName()             | メタデータのシーケンス名を取得する
+| getLength()                   | データーの命令数を取得する
+| setPosition(number)           | 入力された値にジャンプする
+| getPosition()                 | 現在の再生位置を取得
+| sendGmReset()                 | GMリセット命令をWMLに送る
+| sendAllSoundOff()             | AllSoundOff命令をWMLに送る
+
+### MMLを読み込む時の制限事項
+
+以下のファイルを読み込ませる場合、プログラムチェンジの値がMSXSprit.dlsの値と一致しており、GMと互換性がありません。
+これらのファイルを再生する場合は、WMLの値を https://logue.dev/MabiMmlEmu/wml.html にしてください。
+
+|拡張子     |ファイル
+|-----------|-------------------
+|*.mms      |[まきまびしーく](https://web.archive.org/web/20190331144512/http://www.geocities.jp/makimabi/)形式
+|*.mml      |[3MLE](http://3ml.jp/)（未実装）
+|*.mmi      |[MabiIcco](https://github.com/fourthline/mmlTools)（未実装）
+|*.ms2mml   |Maple Story2 MML
+
+MapleStory2のMMLファイルを読み込む場合、プログラムチェンジがファイル形式に含まれていないため、楽器がピアノ固定となります。
 
 ## 対応ブラウザ
 
