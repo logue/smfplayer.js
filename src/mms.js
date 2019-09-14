@@ -39,12 +39,14 @@ export default class MakiMabiSequence {
    * ヘッダーメタ情報をパース
    */
   parseHeader() {
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('shift_jis');
     /** @type {object} インフォメーション情報 */
     const header = this.input.infomation; // informationじゃない
-    /** @param {string} タイトル */
+    /** @type {string} タイトル */
     this.title = header.title;
-    /** @param {string} 著者情報 */
-    this.author = header.auther; // authorじゃない。
+    /** @type {string} 著者情報 */
+    this.type = header.auther; // authorじゃない。
     /** @param {number} 解像度 */
     this.timeDivision = header.timeBase | 0 || 96;
     // infomationおよびmms-fileを取り除く
@@ -142,7 +144,7 @@ export default class MakiMabiSequence {
               raw = new Uint8Array([0xB0 | event.channel, event.parameter1, event.parameter2]);
               break;
             case 'ProgramChange':
-              raw = new Uint8Array([0xC0, 0x40 | event.channel, event.parameter1]);
+              raw = new Uint8Array([0xC0 | event.channel, event.parameter1]);
               break;
           }
         } else if (event instanceof MetaEvent) {

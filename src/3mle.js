@@ -31,6 +31,8 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
    */
   parseHeader() {
     const header = this.input.Settings;
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder(header.Encoding || 'shift_jis');
     /** @param {string} */
     this.title = header.Title;
     /** @param {string} */
@@ -114,6 +116,8 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
 
     for (const part in data) {
       if (data.hasOwnProperty(part)) {
+        /** @type {number} */
+        const ch = part | 0;
         /** @type {array} MIDIイベント */
         let track = [];
         if (data[part].mml === '') {
@@ -124,12 +128,12 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
         // 楽器名
         track.push(new MetaEvent('InsturumentName', 0, 48, [data[part].name]));
         // プログラムチェンジ
-        track.push(new ChannelEvent('ProgramChange', 0, 96, part, data[part].instrument));
+        track.push(new ChannelEvent('ProgramChange', 0, 96, ch, data[part].instrument));
         // パン
-        track.push(new ChannelEvent('ControlChange', 0, 154, part, 10, data[part].panpot));
+        track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, data[part].panpot));
 
         /** @param {PSGConverter} */
-        const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: part, timeOffset: 386, mml: data[part].mml });
+        const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: data[part].mml });
         // トラックにマージ
         track = track.concat(mml2Midi.events);
         // 演奏時間を更新

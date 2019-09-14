@@ -348,6 +348,8 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
    */
   parseHeader() {
     const header = this.input.Settings;
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder(header.Encoding || 'shift_jis');
     /** @param {string} */
     this.title = header.Title;
     /** @param {string} */
@@ -431,6 +433,8 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
 
     for (const part in data) {
       if (data.hasOwnProperty(part)) {
+        /** @type {number} */
+        const ch = part | 0;
         /** @type {array} MIDIイベント */
         let track = [];
         if (data[part].mml === '') {
@@ -441,12 +445,12 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
         // 楽器名
         track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('InsturumentName', 0, 48, [data[part].name]));
         // プログラムチェンジ
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"]('ProgramChange', 0, 96, part, data[part].instrument));
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"]('ProgramChange', 0, 96, ch, data[part].instrument));
         // パン
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"]('ControlChange', 0, 154, part, 10, data[part].panpot));
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"]('ControlChange', 0, 154, ch, 10, data[part].panpot));
 
         /** @param {PSGConverter} */
-        const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: part, timeOffset: 386, mml: data[part].mml });
+        const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: data[part].mml });
         // トラックにマージ
         track = track.concat(mml2Midi.events);
         // 演奏時間を更新
@@ -1742,12 +1746,14 @@ class MakiMabiSequence {
    * ヘッダーメタ情報をパース
    */
   parseHeader() {
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('shift_jis');
     /** @type {object} インフォメーション情報 */
     const header = this.input.infomation; // informationじゃない
-    /** @param {string} タイトル */
+    /** @type {string} タイトル */
     this.title = header.title;
-    /** @param {string} 著者情報 */
-    this.author = header.auther; // authorじゃない。
+    /** @type {string} 著者情報 */
+    this.type = header.auther; // authorじゃない。
     /** @param {number} 解像度 */
     this.timeDivision = header.timeBase | 0 || 96;
     // infomationおよびmms-fileを取り除く
@@ -1845,7 +1851,7 @@ class MakiMabiSequence {
               raw = new Uint8Array([0xB0 | event.channel, event.parameter1, event.parameter2]);
               break;
             case 'ProgramChange':
-              raw = new Uint8Array([0xC0, 0x40 | event.channel, event.parameter1]);
+              raw = new Uint8Array([0xC0 | event.channel, event.parameter1]);
               break;
           }
         } else if (event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]) {
