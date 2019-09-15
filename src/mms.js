@@ -2,11 +2,11 @@ import PSGConverter from './PSGConverter';
 import Ini from 'ini';
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
 /**
- * MakiMabi Sequence file Parser
+ * @classdesc   MakiMabi Sequence File Parser
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <https://logue.dev/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @license     MIT
  */
 export default class MakiMabiSequence {
   /**

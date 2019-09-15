@@ -1,8 +1,9 @@
 import SMF from './smf';
 import Mld from './mld';
-import Ms2Mml from './ms2mml';
+import MapleStory2Mml from './ms2mml';
 import MakiMabiSequence from './mms';
 import ThreeMacroLanguageEditor from './3mle';
+import MabiIcco from './mmi';
 /**
  * Midi Player Class
  */
@@ -454,8 +455,6 @@ export class Player {
     this.init();
     parser.parse();
 
-    console.log(parser);
-
     this.mergeMidiTracks(parser);
   };
 
@@ -476,8 +475,8 @@ export class Player {
    * @param {ArrayBuffer} buffer
    */
   loadMs2MmlFile(buffer) {
-    /** @type {Ms2Mml} */
-    const parser = new Ms2Mml(buffer);
+    /** @type {MapleStory2Mml} */
+    const parser = new MapleStory2Mml(buffer);
 
     this.init();
     parser.parse();
@@ -504,6 +503,19 @@ export class Player {
   load3MleFile(buffer) {
     /** @type {MakiMabiSequence} */
     const parser = new ThreeMacroLanguageEditor(buffer);
+
+    this.init();
+    parser.parse();
+
+    this.mergeMidiTracks(parser);
+  }
+
+  /**
+   * @param {ArrayBuffer} buffer
+   */
+  loadMmiFile(buffer) {
+    /** @type {MabiIcco} */
+    const parser = new MabiIcco(buffer);
 
     this.init();
     parser.parse();

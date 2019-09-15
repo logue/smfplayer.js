@@ -70,7 +70,7 @@ function loadSMF(url) {
           player.loadMmlFile(input);
           break;
         case 'mmi':
-          // Load Mabicco File
+          // Load Mabicco MML File
           player.loadMmiFile(input);
           break;
         default:
@@ -91,8 +91,8 @@ function loadSMF(url) {
 | loadMldFile(ArrayBuffer)      | MLD形式のファイルを読み込む
 | loadMs2MmlFile(ArrayBuffer)   | MapleStory2 MML（*.ms2mml）ファイルを読み込む
 | loadMmsFile(ArrayBuffer)      | まきまびしーく（*.mms）ファイルを読み込む
-| loadMmlFile(ArrayBuffer)      | 3MLE（*.mml）ファイルを読み込む（未実装）
-| loadMmiFile(ArrayBuffer)      | MabiIcco（*.mmi）ファイルを読み込む（未実装）
+| loadMmlFile(ArrayBuffer)      | 3MLE（*.mml）ファイルを読み込む
+| loadMmiFile(ArrayBuffer)      | MabiIcco（*.mmi）ファイルを読み込む
 | setLoop(boolean)              | 再生中のファイルをループ再生する
 | setCC111Loop(boolean)         | コントロールチェンジNo.111の値でループする
 | setFalcomLoop(boolean)        | Falcomで使用されているMIDIのループする
@@ -117,8 +117,8 @@ function loadSMF(url) {
 |拡張子     |ファイル
 |-----------|-------------------
 |*.mms      |[まきまびしーく](https://web.archive.org/web/20190331144512/http://www.geocities.jp/makimabi/)形式
-|*.mml      |[3MLE](http://3ml.jp/)（未実装）
-|*.mmi      |[MabiIcco](https://github.com/fourthline/mmlTools)（未実装）
+|*.mml      |[3MLE](http://3ml.jp/)
+|*.mmi      |[MabiIcco](https://github.com/fourthline/mmlTools)
 |*.ms2mml   |Maple Story2 MML
 
 MapleStory2のMMLファイルを読み込む場合、プログラムチェンジがファイル形式に含まれていないため、楽器がピアノ固定となります。

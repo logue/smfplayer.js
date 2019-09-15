@@ -2,11 +2,11 @@ import PSGConverter from './PSGConverter';
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
 import MakiMabiSequence from './mms';
 /**
- * 3MLE mml file Parser
+ * @classdesc   3 Macro Language Editor (3MLE) mml file Parser
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <https://logue.dev/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @license     MIT
  */
 export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
   /**

@@ -37,7 +37,7 @@ module.exports = (env) => {
           {
             compilation_level: 'SIMPLE_OPTIMIZATIONS',
             language_in: 'ECMASCRIPT6',
-            language_out: 'ECMASCRIPT_2017',
+            language_out: 'ECMASCRIPT_2019',
             renaming: true,
           }),
       ],
@@ -48,7 +48,7 @@ module.exports = (env) => {
     },
     plugins: [
       new webpack.BannerPlugin({
-        banner: `${pjson.name} v${pjson.version} | ${pjson.author} / ${pjson.contributors[0].name} | license: ${pjson.license}`,      }),
+        banner: `${pjson.name} v${pjson.version} | ${pjson.author} / ${pjson.contributors[0].name} | license: ${pjson.license}`,}),
     ],
   };
 };

@@ -2,19 +2,21 @@ import PSGConverter from './PSGConverter';
 import MakiMabiSequence from './mms';
 import { MetaEvent } from './midi_event';
 /**
- * MapleStory2 Mml Parser
+ * @classdesc   MapleStory2 Mml Parser
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <http://logue.be/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @license     MIT
  */
-export default class Ms2Mml extends MakiMabiSequence {
+export default class MapleStory2Mml extends MakiMabiSequence {
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('utf-8');
     /** @type {DOMParser} */
     const parser = new DOMParser();
     /** @type {Document} */

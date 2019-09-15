@@ -1,4 +1,4 @@
-/*! @logue/smfplayer v0.2.3 | imaya / GREE Inc. / Logue | license: MIT */
+/*! @logue/smfplayer v0.3.0 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();

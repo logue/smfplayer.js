@@ -1,11 +1,12 @@
 import { ChannelEvent, MetaEvent } from './midi_event';
 /**
- * PSGConverter.js - Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * v3.0
+ * @class       PSGConverter
+ * @classdesc   Mabinogi MML and Maple Story 2 MML to MIDI Converter.
+ * @version     3.0
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2007-2013,2018-2019 Logue <http://logue.be/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2007-2013,2018-2019 Logue <http://logue.dev/> All rights reserved.
+ * @license     MIT
  */
 export default class PSGConverter {
   /**
@@ -36,7 +37,7 @@ export default class PSGConverter {
     /** @type {number} 1小節 */
     this.SEMIBREVE = this.timeDivision * 4;
     /** @type {array} MML */
-    this.mml = optParams.mml.match(this.PATTERN);
+    this.mml = optParams.mml;
     /** @type {array} イベント */
     this.events = [];
     /** @type {array} WML送信用イベント */
@@ -51,7 +52,13 @@ export default class PSGConverter {
    */
   parse() {
     /** @type {Array} MMLストリーム */
-    const notes = this.mml;
+    let notes;
+    try {
+      notes = this.mml.match(this.PATTERN);
+    } catch (e) {
+      console.warn('Could not parse MML.', this.mml);
+      return;
+    }
     /** @type {number} タイムスタンプ */
     let time = this.timeOffset;
     /** @type {number} 現在の音の長さ */

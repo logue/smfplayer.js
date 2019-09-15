@@ -1,6 +1,6 @@
 {
   "name": "@logue/smfplayer",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "smfplayer.js is JavaScript based Standard Midi Player for WebMidiLink based synthesizer.",
   "scripts": {
     "watch": "webpack --mode development --watch --color --progress",
@@ -31,7 +31,7 @@
     {
       "name": "Logue",
       "email": "logue@hotmail.co.jp",
-      "url": "https://logue.be/"
+      "url": "https://logue.dev/"
     }
   ],
   "license": "MIT",

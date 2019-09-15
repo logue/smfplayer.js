@@ -1,4 +1,4 @@
-/*! @logue/smfplayer v0.2.3 | imaya / GREE Inc. / Logue | license: MIT */
+/*! @logue/smfplayer v0.3.0 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -319,11 +319,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /**
- * 3MLE mml file Parser
+ * @classdesc   3 Macro Language Editor (3MLE) mml file Parser
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <https://logue.dev/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @license     MIT
  */
 class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["default"] {
   /**
@@ -481,12 +481,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
 
 /**
- * PSGConverter.js - Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * v3.0
+ * @class       PSGConverter
+ * @classdesc   Mabinogi MML and Maple Story 2 MML to MIDI Converter.
+ * @version     3.0
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2007-2013,2018-2019 Logue <http://logue.be/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2007-2013,2018-2019 Logue <http://logue.dev/> All rights reserved.
+ * @license     MIT
  */
 class PSGConverter {
   /**
@@ -517,7 +518,7 @@ class PSGConverter {
     /** @type {number} 1小節 */
     this.SEMIBREVE = this.timeDivision * 4;
     /** @type {array} MML */
-    this.mml = optParams.mml.match(this.PATTERN);
+    this.mml = optParams.mml;
     /** @type {array} イベント */
     this.events = [];
     /** @type {array} WML送信用イベント */
@@ -532,7 +533,13 @@ class PSGConverter {
    */
   parse() {
     /** @type {Array} MMLストリーム */
-    const notes = this.mml;
+    let notes;
+    try {
+      notes = this.mml.match(this.PATTERN);
+    } catch (e) {
+      console.warn('Could not parse MML.', this.mml);
+      return;
+    }
     /** @type {number} タイムスタンプ */
     let time = this.timeOffset;
     /** @type {number} 現在の音の長さ */
@@ -1691,6 +1698,127 @@ class Mld {
 
 /***/ }),
 
+/***/ "./src/mmi.js":
+/*!********************!*\
+  !*** ./src/mmi.js ***!
+  \********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MabiIcco; });
+/* harmony import */ var _PSGConverter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PSGConverter */ "./src/PSGConverter.js");
+/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
+/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
+
+
+
+/**
+ * @classdesc   MabiIcco MML File Parser
+ *
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @license     MIT
+ */
+class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
+  /**
+   * パース処理
+   */
+  parse() {
+    this.parseHeader();
+    this.parseTracks();
+    this.toPlainTrack();
+  };
+  /**
+   * ヘッダーメタ情報をパース
+   */
+  parseHeader() {
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('utf-8');
+    /** @param {string} タイトル */
+    this.title = this.input['mml-score'].title;
+    /** @param {string} 著者情報 */
+    this.author = this.input['mml-score'].author;
+    /** @param {number} 解像度 */
+    this.timeDivision = 96;
+    // infomationおよびmms-fileを取り除く
+    delete this.input['mml-score'].author;
+    delete this.input['mml-score'].version;
+    delete this.input['mml-score'].title;
+    delete this.input['mml-score'].time;
+    delete this.input['mml-score'].tempo;
+
+    // 曲名と著者情報を付加
+
+    /** @type {array}  */
+    const headerTrack = [];
+    // GM Reset
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, 0));
+    this.tracks.push(headerTrack);
+  };
+  /**
+   * MML parse
+   */
+  parseTracks() {
+    const input = this.input;
+    /** @type {array} MIDIイベント */
+    let track = [];
+    /** @type {array} 終了時間比較用 */
+    const endTimes = [];
+    /** @type {number} チャンネル */
+    let ch = 0;
+
+    for (const item in input) {
+      if (input.hasOwnProperty(item)) {
+        if (!input[item]['mml-track'].match(/^(?:MML@)(.*)/gm)) {
+          continue;
+        }
+
+        /** @param {array} MMLの配列（簡易マッチ） */
+        const mmls = RegExp.$1.split(',');
+
+        // 楽器名
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('InsturumentName', 0, 48, input[item]['name']));
+        // プログラムチェンジ
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, ch, input[item]['program'] | 0));
+        // パン(CC:0x10)
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, ch, 10, input[item]['panpot'] | 0));
+
+        // TODO:コーラス用（ch15とch16をコーラス用のチャンネルとする。パンは無視）
+
+        // MMLの各チャンネルの処理
+        for (let chord = 0; chord < mmls.length; chord++) {
+          if (chord === 3) {
+            // ch 15、16はコーラス用
+            ch = 15 + input[item]['songProgram'] | 0;
+          }
+          if (mmls[chord] === void 0) {
+            continue;
+          }
+
+          /** @param {PSGConverter} */
+          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: mmls[chord] });
+          // トラックにマージ
+          track = track.concat(mml2Midi.events);
+          endTimes.push(mml2Midi.endTime);
+        }
+        ch++;
+        // トラック終了
+        track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
+        this.tracks.push(track);
+      }
+    }
+    this.numberOfTracks = this.tracks.length;
+  }
+}
+
+
+/***/ }),
+
 /***/ "./src/mms.js":
 /*!********************!*\
   !*** ./src/mms.js ***!
@@ -1709,11 +1837,11 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /**
- * MakiMabi Sequence file Parser
+ * @classdesc   MakiMabi Sequence File Parser
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <https://logue.dev/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @license     MIT
  */
 class MakiMabiSequence {
   /**
@@ -1899,7 +2027,7 @@ class MakiMabiSequence {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Ms2Mml; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MapleStory2Mml; });
 /* harmony import */ var _PSGConverter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./PSGConverter */ "./src/PSGConverter.js");
 /* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
 /* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
@@ -1907,19 +2035,21 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /**
- * MapleStory2 Mml Parser
+ * @classdesc   MapleStory2 Mml Parser
  *
- * @author Logue <logue@hotmail.co.jp>
- * @copyright 2019 Logue <http://logue.be/> All rights reserved.
- * @license MIT
+ * @author      Logue <logue@hotmail.co.jp>
+ * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @license     MIT
  */
-class Ms2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
+class MapleStory2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('utf-8');
     /** @type {DOMParser} */
     const parser = new DOMParser();
     /** @type {Document} */
@@ -1987,6 +2117,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _ms2mml__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ms2mml */ "./src/ms2mml.js");
 /* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
 /* harmony import */ var _3mle__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./3mle */ "./src/3mle.js");
+/* harmony import */ var _mmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./mmi */ "./src/mmi.js");
+
 
 
 
@@ -2443,8 +2575,6 @@ class Player {
     this.init();
     parser.parse();
 
-    console.log(parser);
-
     this.mergeMidiTracks(parser);
   };
 
@@ -2465,7 +2595,7 @@ class Player {
    * @param {ArrayBuffer} buffer
    */
   loadMs2MmlFile(buffer) {
-    /** @type {Ms2Mml} */
+    /** @type {MapleStory2Mml} */
     const parser = new _ms2mml__WEBPACK_IMPORTED_MODULE_2__["default"](buffer);
 
     this.init();
@@ -2493,6 +2623,19 @@ class Player {
   load3MleFile(buffer) {
     /** @type {MakiMabiSequence} */
     const parser = new _3mle__WEBPACK_IMPORTED_MODULE_4__["default"](buffer);
+
+    this.init();
+    parser.parse();
+
+    this.mergeMidiTracks(parser);
+  }
+
+  /**
+   * @param {ArrayBuffer} buffer
+   */
+  loadMmiFile(buffer) {
+    /** @type {MabiIcco} */
+    const parser = new _mmi__WEBPACK_IMPORTED_MODULE_5__["default"](buffer);
 
     this.init();
     parser.parse();
