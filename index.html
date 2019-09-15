@@ -232,7 +232,7 @@
               <div class="row">
                 <div class="col-md-8 col-xs-12">
                   <div class="form-group">
-                    <label for="files">MIDI file: </label>
+                    <label for="files">Sequence file: </label>
                     <div class="input-group">
                       <div class="input-group-prepend">
                         <span class="input-group-text">
@@ -260,7 +260,12 @@
                       <select id="zips" class="form-control ">
                         <option value="midifiles/YAMAHA mididata library.zip">YAMAHA mididata library.zip</option>
                         <option value="midifiles/適当詰め合わせ.zip" selected="selected">適当詰め合わせ.zip</option>
-                        <option value="midifiles/mp2mml_sample.zip">Maple Story MML Sample.zip</option>
+                        <optgroup label="MML">
+                          <option value="midifiles/mp2mml_sample.zip">Maple Story MML Sample.zip</option>
+                          <option value="midifiles/3MLE_Sample.zip">3MLE Sample</option>
+                          <option value="midifiles/MakimabiSequence_Sample.zip">Makimabi Sequence Sample</option>
+                          <option value="midifiles/MabiIcco_Sample.zip">MabiIcco Sample</option>
+                        </optgroup>
                         <option disabled="disabled">------------------------------</option>
                         <option value="midifiles/Midi01.zip">Midi01.zip</option>
                         <option value="midifiles/Midi03.zip">Midi03.zip</option>
@@ -378,7 +383,7 @@
             </div>
           </div>
         </div>
-        <div class="card-footer text-muted">(drag and drop midi file here, to play local midi file.)</div>
+        <div class="card-footer text-muted">(drag and drop *.mid, *.mld, *.ms2mml, *.mms, *.mml, *.mmi file here, to play local midi file.)</div>
       </div>
       <!-- WebMidiLink Placeholder -->
       <div class="card">
@@ -387,20 +392,21 @@
             <h2 class="h5 mb-0"><label for="synth">Synthesyther</label></h2>
             <select id="synth" class="form-control">
               <option value="./wml.html?soundfont=Yamaha XG Sound Set.sf2">Yamaha XG Sound Set.sf2</option>
+              <option value="./wml.html?soundfont=Yamaha XG Sound Set.sf2&amp;ui=false">Yamaha XG Sound Set.sf2 (Disable Keyboard)</option>
               <option value="./wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2" selected="selected">Yamaha XG Sound
                 Set Ver2.0.sf2</option>
               <option value="./wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2&amp;ui=false">Yamaha XG Sound Set.sf2
                 (Disable Keyboard)</option>
-              <option value="//g200kg.com/en/docs/gmplayer">GMPlayer</option>
-              <option value="//webmusicdevelopers.appspot.com/webtg/gmplayer/index.html">GMPlayer(2)</option>
-              <option value="//imaya.github.io/demo/sf2.js/wml.html">A320U.sf2</option>
-              <option value="//logue.github.io/Wml2WebMidiApi/wml.html">Web MIDI API (Experimental)</option>
-              <option value="//aikelab.net/websynth/">aike : WebAudioSynth</option>
-              <option value="//script-synthesizer.herokuapp.com/">mohayonao : timbre.js</option>
+              <option value="https://logue.dev/Wml2WebMidiApi/wml.html">Web MIDI API (Experimental)</option>
+              <option value="https://logue.dev/MabiMmlEmu/wml.html">Mabinogi MML (MSXSpirit.sf2)</option>
+              <option value="https://logue.dev/MabiMmlEmu/wml.html?ui=false">Mabinogi MML (MSXSpirit.sf2) (Disable Keyboard)</option>
+              <option disabled="disabled">------------------------------</option>
+              <option value="https://www.g200kg.com/webmidilink/gmplayer/">GMPlayer</option>
+              <option value="https://aikelab.net/websynth/">aike : WebAudioSynth</option>
+              <option value="https://script-synthesizer.herokuapp.com/">mohayonao : timbre.js</option>
               <!--option value="//beatonica.com/">aike : Beatonica</option-->
-              <option value="//www.g200kg.com/en/docs/webmidilink/webbeeper.html">g200kg : WebBeeper</option>
-              <option value="//www.angryoctopus.co.nz/synth16/">GameSmith : Webitaur</option>
-              <option value="//aikelab.net/bitmaker/">aike : Bitmaker</option>
+              <!--option value="https://www.g200kg.com/en/docs/webmidilink/webbeeper.html">g200kg : WebBeeper</option-->
+              <option value="https://aikelab.net/bitmaker/">aike : Bitmaker</option>
             </select>
             <small class="form-text text-muted">Select <a href="https://www.g200kg.com/en/docs/webmidilink/"
                 target="_blank">WebMidiLink <i class="fas fa-external-link-alt"></i></a> based synthesizer</small>
@@ -442,7 +448,12 @@
     const params = queryString.parse(window.location.hash);
 
     // SMF Player
-    var player = new SMF.Player('#wml');
+    const player = new SMF.Player('#wml');
+    
+    const isIOS = /iP(hone|(o|a)d)/.test(navigator.userAgent);
+    
+    // スマフォの場合、軽量版にする上、UIを隠す
+    const wml = encodeURI('./wml.html?soundfont=' + ((isIOS) ? 'Yamaha XG Sound Set.sf2&ui=false' : 'Yamaha XG Sound Set Ver.2.0.sf2'));
 
     var $progress = $('#progress');
 
@@ -477,7 +488,7 @@
       player.setMasterVolume($('#volume').val() * 16383);
       // player.setMasterChannel(new TimerMasterChannel(TimerMasterChannel.MODE_DEFAULT));
       // WebMidiLink設定
-      player.setWebMidiLink('wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2', 'wml');
+      player.setWebMidiLink(wml, 'wml');
 
       // Zipファイルの取得
       $('#files').on('change', function (e) {
@@ -935,18 +946,37 @@
       player.stop();
 
       player.sendAllSoundOff();
+      
+      const ext = filename.split('.').pop();
 
-      switch (filename.slice(filename.lastIndexOf('.')).toLowerCase()) {
-        case '.mld':
-          player.loadMldFile(buffer);
-          break;
-        case '.mid':
-        case '.midi':
+      switch (ext) {
+        case 'midi':
+        case 'mid':
+          // Load MIDI file
           player.loadMidiFile(buffer);
           break;
-        case '.ms2mml':
+        case 'mld':
+          // Load Polyphonic Ringtone File
+          player.loadMldFile(buffer);
+          break;
+        case 'ms2mml':
+          // Load Maple Story 2 MML File
           player.loadMs2MmlFile(buffer);
           break;
+        case 'mms':
+          // Load MakiMabi Sequence MML File
+          player.loadMmsFile(buffer);
+          break;
+        case 'mml':
+          // Load 3MLE MML File
+          player.loadMmlFile(buffer);
+          break;
+        case 'mmi':
+          // Load Mabicco MML File
+          player.loadMmiFile(buffer);
+          break;
+        default:
+          throw new Error("Unsupported format:" + ext);
       }
       // マスターボリュームが低いままになるので
       player.setMasterVolume($('#volume').val() * 16383);
