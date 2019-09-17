@@ -1932,7 +1932,7 @@ class MakiMabiSequence {
         /** @param {array} MMLの配列 */
         const mmls = [input[part].ch0_mml, input[part].ch1_mml, input[part].ch2_mml];
         /** @param {number} パンポット */
-        const panpot = input[part].panpot | 0 + 64;
+        const panpot = Number(input[part].panpot) + 64;
 
         // 楽器名
         track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('InsturumentName', 0, 48, [input[part].name]));
