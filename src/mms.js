@@ -24,7 +24,7 @@ export default class MakiMabiSequence {
     this.plainTracks = [];
     /** @param {number} トラック数 */
     this.numberOfTracks = 1;
-    /** @type {number} 解像度 */
+    /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision || 96;
   }
   /**
@@ -49,9 +49,13 @@ export default class MakiMabiSequence {
     this.type = header.auther; // authorじゃない。
     /** @param {number} 解像度 */
     this.timeDivision = header.timeBase | 0 || 96;
-    // infomationおよびmms-fileを取り除く
-    delete this.input['infomation'];
-    delete this.input['mms-file'];
+    /** @type {array} 楽器変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
+    this.mmsInstTable = [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      10, 11, 12, 13, 14, 15, 16, 17, 65, 66,
+      67, 68, 69, 70, 71, 72, 73, 74, 75, 76,
+      18,
+    ];
 
     // 曲名と著者情報を付加
 
@@ -61,8 +65,13 @@ export default class MakiMabiSequence {
     headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
     headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new MetaEvent('TimeSignature', 0, 0, [header.rythmNum | 0 || 4, header.rythmBase | 0 || 4, 0, 0]));
     headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
+
+    // infomationおよびmms-fileを取り除く
+    delete this.input['infomation'];
+    delete this.input['mms-file'];
   };
   /**
    * MML parse
@@ -86,7 +95,7 @@ export default class MakiMabiSequence {
         // 楽器名
         track.push(new MetaEvent('InsturumentName', 0, 48, [input[part].name]));
         // プログラムチェンジ
-        track.push(new ChannelEvent('ProgramChange', 0, 96, ch, input[part].instrument | 0));
+        track.push(new ChannelEvent('ProgramChange', 0, 96, ch, this.mmsInstTable[input[part].instrument] | 0));
         // パン
         track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, panpot));
 
@@ -152,6 +161,9 @@ export default class MakiMabiSequence {
           /** @type {Uint8Array} */
           const data = this.encoder.encode(event.data);
           switch (event.subtype) {
+            case 'TextEvent':
+              raw = new Uint8Array([0xFF, 0x01].concat(data));
+              break;
             case 'SequenceTrackName':
               raw = new Uint8Array([0xFF, 0x03].concat(data));
               break;
@@ -163,6 +175,9 @@ export default class MakiMabiSequence {
               break;
             case 'SetTempo':
               raw = new Uint8Array([0xFF, 0x51].concat(data));
+              break;
+            case 'TimeSignature':
+              raw = new Uint8Array([0xFF, 0x58].concat(data));
               break;
             case 'EndOfTrack':
               raw = new Uint8Array([0xFF, 0x2F]);

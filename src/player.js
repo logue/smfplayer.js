@@ -43,9 +43,13 @@ export class Player {
     /** @type {number} */
     this.masterVolume = 16383;
     /** @type {?string} */
+    this.textEvent = '';
+    /** @type {?string} */
     this.sequenceName = '';
-    /** @type {Array.<string>} */
-    this.copyright = [];
+    /** @type {?string} */
+    this.copyright = '';
+    /** @type {?string} */
+    this.lyrics = '';
     /** @type {HTMLIFrameElement|Worker} */
     this.webMidiLink = null;
     /** @type {number} */
@@ -121,9 +125,12 @@ export class Player {
     this.pause = true;
     this.track = null;
     this.resume = -1;
+    this.text = null;
     this.sequence = null;
     this.sequenceName = null;
     this.copyright = null;
+    this.lyrics = null;
+    this.textEvent = null;
     this.length = 0;
     this.position = 0;
     this.time = 0;
@@ -345,62 +352,77 @@ export class Player {
       do {
         event = mergedTrack[pos]['event'];
 
-        // set tempo
-        if (event.subtype === 'SetTempo') {
-          player.tempo = event.data[0];
+        switch (event.subtype) {
+          case 'TextEvent': // 0x01
+            // 主に歌詞などが入っている。MIDI作成者によってはデバッグ情報やお遊びも・・・。
+            player.textEvent = event.data[0];
+            break;
+          case 'Lyrics': // 0x05
+            // カラオケデーターが入っている。Textとの違いは、どの位置で表示するかやページ送りなどの制御コードが含まれている。
+            // とはいっても、単なるテキストデータ。
+            // KAR形式とYAMAHA独自のXF形式というカラオケ専用の書式がある。
+            // カラオケのパーサーは本プログラムでは実装しない。
+            // KAR形式：https://www.mixagesoftware.com/en/midikit/help/HTML/karaoke_formats.html
+            // XF形式：https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
+            player.lyrics = event.data[0];
+            break;
+          case 'Maker': // 0x06
+            if (player.enableFalcomLoop) {
+              // A-B Loop (Ys Eternal 2 Loop)
+              switch (event.data[0]) {
+                case 'A':
+                  mark[0] = {
+                    'pos': pos,
+                  };
+                  break;
+                case 'B':
+                  if (mark[0] && typeof mark[0]['pos'] === 'number') {
+                    pos = mark[0]['pos'];
+                    player.timer = player.window.setTimeout(update, 0);
+                    player.position = pos;
+                    return;
+                  }
+                  break;
+              }
+            }
+
+            if (player.enableMFiLoop) {
+              // MFi Loop
+              match = event.data[0].match(/^LOOP_(START|END)=ID:(\d+),COUNT:(-?\d+)$/);
+              if (match) {
+                if (match[1] === 'START') {
+                  mark[match[2] | 0] = mark[match[2]] || {
+                    'pos': pos,
+                    'count': match[3] | 0,
+                  };
+                } else if (match[1] === 'END' && player.enableMFiLoop) {
+                  tmp = mark[match[2] | 0];
+                  if (tmp['count'] !== 0) { // loop jump
+                    if (tmp['count'] > 0) {
+                      tmp['count']--;
+                    }
+                    pos = tmp['pos'];
+                    player.timer = player.window.setTimeout(update, 0);
+                    player.position = pos;
+                    return;
+                  } else { // loop end
+                    mark[match[2] | 0] = null;
+                  }
+                }
+              }
+            }
+            break;
+          case 'SetTempo': // 0x51
+            player.tempo = event.data[0];
+            break;
         }
+
 
         // CC#111 Loop
         if (event.subtype === 'ControlChange' && event.parameter1 === 111) {
           mark[0] = {
             'pos': pos,
           };
-        }
-
-        // Ys Eternal 2 Loop
-        if (event.subtype === 'Marker') {
-          // mark
-          if (event.data[0] === 'A') {
-            mark[0] = {
-              'pos': pos,
-            };
-          }
-          // jump
-          if (event.data[0] === 'B' && player.enableFalcomLoop &&
-            mark[0] && typeof mark[0]['pos'] === 'number') {
-            pos = mark[0]['pos'];
-            player.timer = player.window.setTimeout(update, 0);
-            player.position = pos;
-            return;
-          }
-        }
-
-        // MFi Loop
-        if (event.subtype === 'Marker') {
-          // mark
-          match =
-            event.data[0].match(/^LOOP_(START|END)=ID:(\d+),COUNT:(-?\d+)$/);
-          if (match) {
-            if (match[1] === 'START') {
-              mark[match[2] | 0] = mark[match[2]] || {
-                'pos': pos,
-                'count': match[3] | 0,
-              };
-            } else if (match[1] === 'END' && player.enableMFiLoop) {
-              tmp = mark[match[2] | 0];
-              if (tmp['count'] !== 0) { // loop jump
-                if (tmp['count'] > 0) {
-                  tmp['count']--;
-                }
-                pos = tmp['pos'];
-                player.timer = player.window.setTimeout(update, 0);
-                player.position = pos;
-                return;
-              } else { // loop end
-                mark[match[2] | 0] = null;
-              }
-            }
-          }
         }
 
         // send message
@@ -501,7 +523,7 @@ export class Player {
    * @param {ArrayBuffer} buffer
    */
   load3MleFile(buffer) {
-    /** @type {MakiMabiSequence} */
+    /** @type {ThreeMacroLanguageEditor} */
     const parser = new ThreeMacroLanguageEditor(buffer);
 
     this.init();
@@ -513,7 +535,7 @@ export class Player {
   /**
    * @param {ArrayBuffer} buffer
    */
-  loadMmiFile(buffer) {
+  loadMabiIccoFile(buffer) {
     /** @type {MabiIcco} */
     const parser = new MabiIcco(buffer);
 
@@ -535,8 +557,6 @@ export class Player {
     const trackPosition = new Array(tracks.length);
     /** @type {Array.<Array.<Array.<number>>>} */
     const plainTracks = midi.plainTracks;
-    /** @type {Array.<string>} */
-    const copys = this.copyright = [];
     /** @type {Array.<Object>} */
     let track;
     /** @type {number} */
@@ -557,12 +577,14 @@ export class Player {
     for (i = 0, il = tracks.length; i < il; ++i) {
       track = tracks[i];
       for (j = 0, jl = track.length; j < jl; ++j) {
-        if (midi.formatType === 0 && track[j].subtype === 'SequenceTrackName') {
-          this.sequenceName = track[j].data[0];
-        }
-
-        if (track[j].subtype === 'CopyrightNotice') {
-          copys.push(track[j].data[0]);
+        if (midi.formatType === 0 || i === 0) {
+          // 著作権情報と曲名を取得
+          // SMF1のときは先頭のトラックから情報を取得する。
+          if (track[j].subtype === 'SequenceTrackName') {
+            this.sequenceName = track[j].data[0];
+          } else if (track[j].subtype === 'CopyrightNotice') {
+            this.copyright = track[j].data[0];
+          }
         }
 
         mergedTrack.push({
@@ -603,11 +625,25 @@ export class Player {
   };
 
   /**
-   * @return {Array.<string>}
+   * @return {?string}
    */
   getCopyright() {
     return this.copyright;
   };
+
+  /**
+   * @return {?string}
+   */
+  getLyrics() {
+    return this.lyrics;
+  }
+
+  /**
+   * @return {?string}
+  */
+  getTextEvent() {
+    return this.textEvent;
+  }
 
   /**
    * @return {number}

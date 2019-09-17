@@ -29,23 +29,28 @@ export default class MabiIcco extends MakiMabiSequence {
     this.author = this.input['mml-score'].author;
     /** @param {number} 解像度 */
     this.timeDivision = 96;
+    // 拍子記号
+    const timeSig = this.input['mml-score'].author.split('/');
+
+    // TODO: 合奏対応のmmiファイルの処理
+
+    /** @type {array}  */
+    const headerTrack = [];
+    // GM Reset
+    headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    // 曲名と著者情報を付加
+    headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
+    headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new MetaEvent('TimeSignature', 0, 0, [timeSig[0] | 0 || 4, timeSig[1] | 0 || 4, 0, 0]));
+    headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
+    this.tracks.push(headerTrack);
+
     // infomationおよびmms-fileを取り除く
     delete this.input['mml-score'].author;
     delete this.input['mml-score'].version;
     delete this.input['mml-score'].title;
     delete this.input['mml-score'].time;
     delete this.input['mml-score'].tempo;
-
-    // 曲名と著者情報を付加
-
-    /** @type {array}  */
-    const headerTrack = [];
-    // GM Reset
-    headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
-    headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
-    headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
-    headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
-    this.tracks.push(headerTrack);
   };
   /**
    * MML parse
@@ -72,16 +77,18 @@ export default class MabiIcco extends MakiMabiSequence {
         track.push(new MetaEvent('InsturumentName', 0, 48, input[item]['name']));
         // プログラムチェンジ
         track.push(new ChannelEvent('ProgramChange', 0, 96, ch, input[item]['program'] | 0));
+        if (input[item]['songProgram'] !== -1) {
+          // コーラス用
+          track.push(new ChannelEvent('ProgramChange', 0, 112, 15, input[item]['songProgram'] | 0));
+        }
         // パン(CC:0x10)
         track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, input[item]['panpot'] | 0));
 
-        // TODO:コーラス用（ch15とch16をコーラス用のチャンネルとする。パンは無視）
-
         // MMLの各チャンネルの処理
         for (let chord = 0; chord < mmls.length; chord++) {
-          if (chord === 3) {
-            // ch 15、16はコーラス用
-            ch = 15 + input[item]['songProgram'] | 0;
+          if (chord === 3 && input[item]['songProgram'] !== -1) {
+            // ch 16はコーラス用
+            ch = 15;
           }
           if (mmls[chord] === void 0) {
             continue;

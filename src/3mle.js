@@ -20,12 +20,8 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
    */
   parse() {
     this.parseHeader();
-    // this.parseDataInformation();
     this.parseTracks();
-
     this.toPlainTrack();
-
-    console.log(this);
   };
   /**
    */
@@ -39,20 +35,22 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     this.author = header.Source;
     /** @param {number} */
     this.timeDivision = header.TimeBase | 0 || 32;
-    // 3MLE EXTENSION、Settingsを取り除く
-    delete this.input['3MLE EXTENSION'];
-    delete this.input['Settings'];
 
     // 曲名と著者情報を付加
-
     /** @type {array}  */
     const headerTrack = [];
     // GM Reset
     headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
     headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new MetaEvent('TextEvent', 0, 0, [header.Memo]));
+    headerTrack.push(new MetaEvent('TimeSignature', 0, 0, [header.TimeSignatureNN | 0 || 4, header.TimeSignatureDD | 0 || 4, 0, 0]));
     headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
+
+    // 3MLE EXTENSION、Settingsを取り除く
+    delete this.input['3MLE EXTENSION'];
+    delete this.input['Settings'];
   };
 
   /**

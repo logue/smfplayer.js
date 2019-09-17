@@ -15,11 +15,13 @@ export default class PSGConverter {
    */
   constructor(optParams = {}) {
     /** @type {number} 解像度 */
-    this.timeDivision = parseInt(optParams.timeDivision) || 96;
+    this.timeDivision = optParams.timeDivision | 0 || 96;
     /** @type {number} チャンネル */
     this.channel = optParams.channel | 0;
     /** @type {number} 演奏開始までのオフセット時間 */
     this.timeOffset = optParams.timeOffset | 0;
+    /** @type {bool} GM互換モードにするか */
+    this.isGMMode = optParams.timeOffset | false;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
     this.PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
     /** @type {Array<string, number>} ノートのマッチングテーブル */

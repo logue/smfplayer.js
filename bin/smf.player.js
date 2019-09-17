@@ -337,12 +337,8 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
    */
   parse() {
     this.parseHeader();
-    // this.parseDataInformation();
     this.parseTracks();
-
     this.toPlainTrack();
-
-    console.log(this);
   };
   /**
    */
@@ -356,20 +352,22 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
     this.author = header.Source;
     /** @param {number} */
     this.timeDivision = header.TimeBase | 0 || 32;
-    // 3MLE EXTENSION、Settingsを取り除く
-    delete this.input['3MLE EXTENSION'];
-    delete this.input['Settings'];
 
     // 曲名と著者情報を付加
-
     /** @type {array}  */
     const headerTrack = [];
     // GM Reset
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('TextEvent', 0, 0, [header.Memo]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('TimeSignature', 0, 0, [header.TimeSignatureNN | 0 || 4, header.TimeSignatureDD | 0 || 4, 0, 0]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
+
+    // 3MLE EXTENSION、Settingsを取り除く
+    delete this.input['3MLE EXTENSION'];
+    delete this.input['Settings'];
   };
 
   /**
@@ -496,11 +494,13 @@ class PSGConverter {
    */
   constructor(optParams = {}) {
     /** @type {number} 解像度 */
-    this.timeDivision = parseInt(optParams.timeDivision) || 96;
+    this.timeDivision = optParams.timeDivision | 0 || 96;
     /** @type {number} チャンネル */
     this.channel = optParams.channel | 0;
     /** @type {number} 演奏開始までのオフセット時間 */
     this.timeOffset = optParams.timeOffset | 0;
+    /** @type {bool} GM互換モードにするか */
+    this.isGMMode = optParams.timeOffset | false;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
     this.PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
@@ -1742,23 +1742,28 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     this.author = this.input['mml-score'].author;
     /** @param {number} 解像度 */
     this.timeDivision = 96;
+    // 拍子記号
+    const timeSig = this.input['mml-score'].author.split('/');
+
+    // TODO: 合奏対応のmmiファイルの処理
+
+    /** @type {array}  */
+    const headerTrack = [];
+    // GM Reset
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    // 曲名と著者情報を付加
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('TimeSignature', 0, 0, [timeSig[0] | 0 || 4, timeSig[1] | 0 || 4, 0, 0]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, 0));
+    this.tracks.push(headerTrack);
+
     // infomationおよびmms-fileを取り除く
     delete this.input['mml-score'].author;
     delete this.input['mml-score'].version;
     delete this.input['mml-score'].title;
     delete this.input['mml-score'].time;
     delete this.input['mml-score'].tempo;
-
-    // 曲名と著者情報を付加
-
-    /** @type {array}  */
-    const headerTrack = [];
-    // GM Reset
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, 0));
-    this.tracks.push(headerTrack);
   };
   /**
    * MML parse
@@ -1785,16 +1790,18 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
         track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('InsturumentName', 0, 48, input[item]['name']));
         // プログラムチェンジ
         track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, ch, input[item]['program'] | 0));
+        if (input[item]['songProgram'] !== -1) {
+          // コーラス用
+          track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 112, 15, input[item]['songProgram'] | 0));
+        }
         // パン(CC:0x10)
         track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, ch, 10, input[item]['panpot'] | 0));
 
-        // TODO:コーラス用（ch15とch16をコーラス用のチャンネルとする。パンは無視）
-
         // MMLの各チャンネルの処理
         for (let chord = 0; chord < mmls.length; chord++) {
-          if (chord === 3) {
-            // ch 15、16はコーラス用
-            ch = 15 + input[item]['songProgram'] | 0;
+          if (chord === 3 && input[item]['songProgram'] !== -1) {
+            // ch 16はコーラス用
+            ch = 15;
           }
           if (mmls[chord] === void 0) {
             continue;
@@ -1859,7 +1866,7 @@ class MakiMabiSequence {
     this.plainTracks = [];
     /** @param {number} トラック数 */
     this.numberOfTracks = 1;
-    /** @type {number} 解像度 */
+    /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision || 96;
   }
   /**
@@ -1884,9 +1891,13 @@ class MakiMabiSequence {
     this.type = header.auther; // authorじゃない。
     /** @param {number} 解像度 */
     this.timeDivision = header.timeBase | 0 || 96;
-    // infomationおよびmms-fileを取り除く
-    delete this.input['infomation'];
-    delete this.input['mms-file'];
+    /** @type {array} 楽器変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
+    this.mmsInstTable = [
+      0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
+      10, 11, 12, 13, 14, 15, 16, 17, 65, 66,
+      67, 68, 69, 70, 71, 72, 73, 74, 75, 76,
+      18,
+    ];
 
     // 曲名と著者情報を付加
 
@@ -1896,8 +1907,13 @@ class MakiMabiSequence {
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('TimeSignature', 0, 0, [header.rythmNum | 0 || 4, header.rythmBase | 0 || 4, 0, 0]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
+
+    // infomationおよびmms-fileを取り除く
+    delete this.input['infomation'];
+    delete this.input['mms-file'];
   };
   /**
    * MML parse
@@ -1921,7 +1937,7 @@ class MakiMabiSequence {
         // 楽器名
         track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('InsturumentName', 0, 48, [input[part].name]));
         // プログラムチェンジ
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, ch, input[part].instrument | 0));
+        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, ch, this.mmsInstTable[input[part].instrument] | 0));
         // パン
         track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, ch, 10, panpot));
 
@@ -1987,6 +2003,9 @@ class MakiMabiSequence {
           /** @type {Uint8Array} */
           const data = this.encoder.encode(event.data);
           switch (event.subtype) {
+            case 'TextEvent':
+              raw = new Uint8Array([0xFF, 0x01].concat(data));
+              break;
             case 'SequenceTrackName':
               raw = new Uint8Array([0xFF, 0x03].concat(data));
               break;
@@ -1998,6 +2017,9 @@ class MakiMabiSequence {
               break;
             case 'SetTempo':
               raw = new Uint8Array([0xFF, 0x51].concat(data));
+              break;
+            case 'TimeSignature':
+              raw = new Uint8Array([0xFF, 0x58].concat(data));
               break;
             case 'EndOfTrack':
               raw = new Uint8Array([0xFF, 0x2F]);
@@ -2163,9 +2185,13 @@ class Player {
     /** @type {number} */
     this.masterVolume = 16383;
     /** @type {?string} */
+    this.textEvent = '';
+    /** @type {?string} */
     this.sequenceName = '';
-    /** @type {Array.<string>} */
-    this.copyright = [];
+    /** @type {?string} */
+    this.copyright = '';
+    /** @type {?string} */
+    this.lyrics = '';
     /** @type {HTMLIFrameElement|Worker} */
     this.webMidiLink = null;
     /** @type {number} */
@@ -2241,9 +2267,12 @@ class Player {
     this.pause = true;
     this.track = null;
     this.resume = -1;
+    this.text = null;
     this.sequence = null;
     this.sequenceName = null;
     this.copyright = null;
+    this.lyrics = null;
+    this.textEvent = null;
     this.length = 0;
     this.position = 0;
     this.time = 0;
@@ -2465,62 +2494,77 @@ class Player {
       do {
         event = mergedTrack[pos]['event'];
 
-        // set tempo
-        if (event.subtype === 'SetTempo') {
-          player.tempo = event.data[0];
+        switch (event.subtype) {
+          case 'TextEvent': // 0x01
+            // 主に歌詞などが入っている。MIDI作成者によってはデバッグ情報やお遊びも・・・。
+            player.textEvent = event.data[0];
+            break;
+          case 'Lyrics': // 0x05
+            // カラオケデーターが入っている。Textとの違いは、どの位置で表示するかやページ送りなどの制御コードが含まれている。
+            // とはいっても、単なるテキストデータ。
+            // KAR形式とYAMAHA独自のXF形式というカラオケ専用の書式がある。
+            // カラオケのパーサーは本プログラムでは実装しない。
+            // KAR形式：https://www.mixagesoftware.com/en/midikit/help/HTML/karaoke_formats.html
+            // XF形式：https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
+            player.lyrics = event.data[0];
+            break;
+          case 'Maker': // 0x06
+            if (player.enableFalcomLoop) {
+              // A-B Loop (Ys Eternal 2 Loop)
+              switch (event.data[0]) {
+                case 'A':
+                  mark[0] = {
+                    'pos': pos,
+                  };
+                  break;
+                case 'B':
+                  if (mark[0] && typeof mark[0]['pos'] === 'number') {
+                    pos = mark[0]['pos'];
+                    player.timer = player.window.setTimeout(update, 0);
+                    player.position = pos;
+                    return;
+                  }
+                  break;
+              }
+            }
+
+            if (player.enableMFiLoop) {
+              // MFi Loop
+              match = event.data[0].match(/^LOOP_(START|END)=ID:(\d+),COUNT:(-?\d+)$/);
+              if (match) {
+                if (match[1] === 'START') {
+                  mark[match[2] | 0] = mark[match[2]] || {
+                    'pos': pos,
+                    'count': match[3] | 0,
+                  };
+                } else if (match[1] === 'END' && player.enableMFiLoop) {
+                  tmp = mark[match[2] | 0];
+                  if (tmp['count'] !== 0) { // loop jump
+                    if (tmp['count'] > 0) {
+                      tmp['count']--;
+                    }
+                    pos = tmp['pos'];
+                    player.timer = player.window.setTimeout(update, 0);
+                    player.position = pos;
+                    return;
+                  } else { // loop end
+                    mark[match[2] | 0] = null;
+                  }
+                }
+              }
+            }
+            break;
+          case 'SetTempo': // 0x51
+            player.tempo = event.data[0];
+            break;
         }
+
 
         // CC#111 Loop
         if (event.subtype === 'ControlChange' && event.parameter1 === 111) {
           mark[0] = {
             'pos': pos,
           };
-        }
-
-        // Ys Eternal 2 Loop
-        if (event.subtype === 'Marker') {
-          // mark
-          if (event.data[0] === 'A') {
-            mark[0] = {
-              'pos': pos,
-            };
-          }
-          // jump
-          if (event.data[0] === 'B' && player.enableFalcomLoop &&
-            mark[0] && typeof mark[0]['pos'] === 'number') {
-            pos = mark[0]['pos'];
-            player.timer = player.window.setTimeout(update, 0);
-            player.position = pos;
-            return;
-          }
-        }
-
-        // MFi Loop
-        if (event.subtype === 'Marker') {
-          // mark
-          match =
-            event.data[0].match(/^LOOP_(START|END)=ID:(\d+),COUNT:(-?\d+)$/);
-          if (match) {
-            if (match[1] === 'START') {
-              mark[match[2] | 0] = mark[match[2]] || {
-                'pos': pos,
-                'count': match[3] | 0,
-              };
-            } else if (match[1] === 'END' && player.enableMFiLoop) {
-              tmp = mark[match[2] | 0];
-              if (tmp['count'] !== 0) { // loop jump
-                if (tmp['count'] > 0) {
-                  tmp['count']--;
-                }
-                pos = tmp['pos'];
-                player.timer = player.window.setTimeout(update, 0);
-                player.position = pos;
-                return;
-              } else { // loop end
-                mark[match[2] | 0] = null;
-              }
-            }
-          }
         }
 
         // send message
@@ -2621,7 +2665,7 @@ class Player {
    * @param {ArrayBuffer} buffer
    */
   load3MleFile(buffer) {
-    /** @type {MakiMabiSequence} */
+    /** @type {ThreeMacroLanguageEditor} */
     const parser = new _3mle__WEBPACK_IMPORTED_MODULE_4__["default"](buffer);
 
     this.init();
@@ -2633,7 +2677,7 @@ class Player {
   /**
    * @param {ArrayBuffer} buffer
    */
-  loadMmiFile(buffer) {
+  loadMabiIccoFile(buffer) {
     /** @type {MabiIcco} */
     const parser = new _mmi__WEBPACK_IMPORTED_MODULE_5__["default"](buffer);
 
@@ -2655,8 +2699,6 @@ class Player {
     const trackPosition = new Array(tracks.length);
     /** @type {Array.<Array.<Array.<number>>>} */
     const plainTracks = midi.plainTracks;
-    /** @type {Array.<string>} */
-    const copys = this.copyright = [];
     /** @type {Array.<Object>} */
     let track;
     /** @type {number} */
@@ -2677,12 +2719,14 @@ class Player {
     for (i = 0, il = tracks.length; i < il; ++i) {
       track = tracks[i];
       for (j = 0, jl = track.length; j < jl; ++j) {
-        if (midi.formatType === 0 && track[j].subtype === 'SequenceTrackName') {
-          this.sequenceName = track[j].data[0];
-        }
-
-        if (track[j].subtype === 'CopyrightNotice') {
-          copys.push(track[j].data[0]);
+        if (midi.formatType === 0 || i === 0) {
+          // 著作権情報と曲名を取得
+          // SMF1のときは先頭のトラックから情報を取得する。
+          if (track[j].subtype === 'SequenceTrackName') {
+            this.sequenceName = track[j].data[0];
+          } else if (track[j].subtype === 'CopyrightNotice') {
+            this.copyright = track[j].data[0];
+          }
         }
 
         mergedTrack.push({
@@ -2723,11 +2767,25 @@ class Player {
   };
 
   /**
-   * @return {Array.<string>}
+   * @return {?string}
    */
   getCopyright() {
     return this.copyright;
   };
+
+  /**
+   * @return {?string}
+   */
+  getLyrics() {
+    return this.lyrics;
+  }
+
+  /**
+   * @return {?string}
+  */
+  getTextEvent() {
+    return this.textEvent;
+  }
 
   /**
    * @return {number}
