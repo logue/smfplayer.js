@@ -24,7 +24,7 @@
   <meta name="twitter:title" content="Standard MIDI Player for Web" />
   <meta name="twitter:url" content="https://logue.github.io/smfplayer.js/" />
   <meta name="twitter:description"
-    content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file. " />
+    content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file. #Midi #smfplater" />
   <meta name="twitter:image" content="https://logue.github.io/smfplayer.js/icon.png" />
   <!-- Global site tag (gtag.js) - Google Analytics -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-33600926-1"></script>
@@ -305,7 +305,6 @@
                       </select>
                     </div>
                   </div>
-
                 </div>
               </div>
               <!-- Meta info -->
@@ -318,10 +317,19 @@
                   <label for="copyright ">Copyright</label>
                   <input type="text" class="form-control" id="copyright" readonly="readonly" />
                 </div>
+                <div class="col-12">
+                  <label for="text_event">Text</label>
+                  <input type="text" class="form-control" id="text_event" readonly="readonly" />
+                </div>
+                <div class="col-12">
+                  <div class="d-flex justify-content-center">
+                    <div class="bg-light rounded" id="lyrics"></div>
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="tab-pane fade" id="option-tab-content" role="tabpanel" aria-labelledby="option-tab">
 
+            <div class="tab-pane fade" id="option-tab-content" role="tabpanel" aria-labelledby="option-tab">
               <div class="row">
                 <!-- Loop setting -->
                 <div class="col-md-5 col-xs-12">
@@ -383,7 +391,8 @@
             </div>
           </div>
         </div>
-        <div class="card-footer text-muted">(drag and drop *.mid, *.mld, *.ms2mml, *.mms, *.mml, *.mmi file here, to play local midi file.)</div>
+        <div class="card-footer text-muted">(drag and drop *.mid, *.mld, *.ms2mml, *.mms, *.mml, *.mmi file here, to
+          play local midi file.)</div>
       </div>
       <!-- WebMidiLink Placeholder -->
       <div class="card">
@@ -392,14 +401,16 @@
             <h2 class="h5 mb-0"><label for="synth">Synthesyther</label></h2>
             <select id="synth" class="form-control">
               <option value="./wml.html?soundfont=Yamaha XG Sound Set.sf2">Yamaha XG Sound Set.sf2</option>
-              <option value="./wml.html?soundfont=Yamaha XG Sound Set.sf2&amp;ui=false">Yamaha XG Sound Set.sf2 (Disable Keyboard)</option>
+              <option value="./wml.html?soundfont=Yamaha XG Sound Set.sf2&amp;ui=false">Yamaha XG Sound Set.sf2 (Disable
+                Keyboard)</option>
               <option value="./wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2" selected="selected">Yamaha XG Sound
                 Set Ver2.0.sf2</option>
               <option value="./wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2&amp;ui=false">Yamaha XG Sound Set.sf2
                 (Disable Keyboard)</option>
               <option value="https://logue.dev/Wml2WebMidiApi/wml.html">Web MIDI API (Experimental)</option>
               <option value="https://logue.dev/MabiMmlEmu/wml.html">Mabinogi MML (MSXSpirit.sf2)</option>
-              <option value="https://logue.dev/MabiMmlEmu/wml.html?ui=false">Mabinogi MML (MSXSpirit.sf2) (Disable Keyboard)</option>
+              <option value="https://logue.dev/MabiMmlEmu/wml.html?ui=false">Mabinogi MML (MSXSpirit.sf2) (Disable
+                Keyboard)</option>
               <option disabled="disabled">------------------------------</option>
               <option value="https://www.g200kg.com/webmidilink/gmplayer/">GMPlayer</option>
               <option value="https://aikelab.net/websynth/">aike : WebAudioSynth</option>
@@ -425,8 +436,8 @@
       <a href="http://opensource.org/licenses/mit-license.php">MIT License</a>.
     </address>
   </footer>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.min.js"
-    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js"
+    integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.bundle.min.js"
     integrity="sha256-fzFFyH01cBVPYzl16KT40wqjhgPtq6FFUB6ckN2+GGw=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/unzip.min.js"
@@ -449,9 +460,9 @@
 
     // SMF Player
     const player = new SMF.Player('#wml');
-    
+
     const isIOS = /iP(hone|(o|a)d)/.test(navigator.userAgent);
-    
+
     // スマフォの場合、軽量版にする上、UIを隠す
     const wml = encodeURI('./wml.html?soundfont=' + ((isIOS) ? 'Yamaha XG Sound Set.sf2&ui=false' : 'Yamaha XG Sound Set Ver.2.0.sf2'));
 
@@ -713,14 +724,13 @@
           $('#info p').text('Parsing zip file...');
           $('#info div div').css('width', percentLoaded).text(percentLoaded + '%');
 
-          // 拡張子がmid、midi、mldでない場合はスキップ
-          if (ext === '/' || !ext === 'mid' || !ext === 'midi' || !ext === 'mld') {
+          if (ext === '/') {
             return;
           }
 
           var option = document.createElement('option');
           // 項目名
-          option.textContent = Encoding.convert(name, 'UNICODE', 'SJIS');
+          option.textContent = Encoding.convert(name, 'UNICODE', 'AUTO');
           // 実際のファイル名
           option.setAttribute('data-midiplayer-filename', name);
           // selectタグに流し込む
@@ -896,8 +906,8 @@
         var url = $('link[rel="canonical"]').attr('href') + hash;
 
         // MIDIファイルに埋め込まれたメタデータを取得
-        $('#music_title').val(Encoding.convert(player.getSequenceName(1), 'UNICODE', 'SJIS'));
-        $('#copyright').val(Encoding.convert(player.getCopyright()[0], 'UNICODE', 'SJIS'));
+        $('#music_title').val(Encoding.convert(player.getSequenceName(1), 'UNICODE', 'AUTO'));
+        $('#copyright').val(Encoding.convert(player.getCopyright(), 'UNICODE', 'AUTO'));
 
         // ソーシャルボタン書き換え
         //$('#socialbuttons .facebook').facebookShareButton({
@@ -913,7 +923,7 @@
           via: 'logue256'
         });
 
-        $('#socialbuttons .facebook').click(()  => {
+        $('#socialbuttons .facebook').click(() => {
           window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url) + '&t=' +
             encodeURIComponent(document.title), "Facebook", "width=400,height=400");
         });
@@ -946,9 +956,9 @@
       player.stop();
 
       player.sendAllSoundOff();
-      
-      const ext = filename.split('.').pop();
 
+      /** @type {string} */
+      const ext = filename.split('.').pop();
       switch (ext) {
         case 'midi':
         case 'mid':
@@ -965,19 +975,18 @@
           break;
         case 'mms':
           // Load MakiMabi Sequence MML File
-          player.loadMmsFile(buffer);
+          player.loadMakiMabiSequenceFile(buffer);
           break;
         case 'mml':
           // Load 3MLE MML File
-          player.loadMmlFile(buffer);
+          player.load3MleFile(buffer);
           break;
         case 'mmi':
           // Load Mabicco MML File
-          player.loadMmiFile(buffer);
+          player.loadMabiIccoFile(buffer);
           break;
-        default:
-          throw new Error("Unsupported format:" + ext);
       }
+
       // マスターボリュームが低いままになるので
       player.setMasterVolume($('#volume').val() * 16383);
       $('#time-total').text(player.getTime(player.timeTotal));
@@ -995,7 +1004,7 @@
       select.selectedIndex = ~~(select.length * Math.random());
       handleSelect(select);
     }
-    
+
     function randomArchive() {
       var select = document.getElementById('zips');
       select.selectedIndex = ~~(select.length * Math.random());
@@ -1054,6 +1063,9 @@
       }
     });
 
+    let parentLyrics = '';
+    let parentTextEvent = '';
+    let lyric = '';
     /**
      * インターバル関数
      */
@@ -1077,6 +1089,38 @@
         var percentage = ((player.getPosition() / player.getLength()) * 100) | 0;
         $('#music-progress .progress-bar').css('width', percentage + "%").text(percentage + "%")
         $('#time-now').text(player.getTime(player.time));
+
+        let lyrics = player.getLyrics();
+
+        if (parentLyrics !== lyrics) {
+          // 歌詞の処理。（誰得？）
+          // やる気ないので、WebMidiカラオケ作りたい人は下の資料を参考にがんばってくれ。
+          // https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
+          const word = Encoding.convert(lyrics, 'UNICODE', 'AUTO');
+          if (word.length !== 0) {
+            if (word.match(/^</)) {
+              lyric = ''  // 改ページ
+              $('#lyrics').html('');
+            }
+
+            word
+              .replace(/\//g, '<br />')  // 改行
+              .replace(/>/g, '    ') // インデント
+              .replace(/&m/g, '👨‍🎤') // 男性歌手
+              .replace(/&f/g, '👩‍🎤') // 女性歌手
+              .replace(/&c/g, '👫');  // コーラス
+
+            lyric += word;
+
+            $('#lyrics').html(lyric);
+          }
+        }
+        if (parentTextEvent !== player.getTextEvent()) {
+          $('#text_event').val(Encoding.convert(player.getTextEvent(), 'UNICODE', 'AUTO'));
+        }
+
+        parentLyrics = player.getLyrics();
+        parentTextEvent = player.getTextEvent();
       }
     }, 100);
     /*]]>*/
