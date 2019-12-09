@@ -16,7 +16,9 @@ export default class MabiIcco extends MakiMabiSequence {
   constructor(input, optParams = {}) {
     super(input, optParams);
     /** @type {array} */
-    this.input = String.fromCharCode.apply('', new Uint16Array(input)).split(/\r\n|\r|\n/);
+    this.input = String.fromCharCode
+      .apply('', new Uint16Array(input))
+      .split(/\r\n|\r|\n/);
     /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
@@ -26,6 +28,7 @@ export default class MabiIcco extends MakiMabiSequence {
     /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision || 96;
   }
+
   /**
    * パース処理
    */
@@ -33,7 +36,8 @@ export default class MabiIcco extends MakiMabiSequence {
     this.parseHeader();
     this.parseTracks();
     this.toPlainTrack();
-  };
+  }
+
   /**
    * ヘッダーメタ情報をパース
    */
@@ -42,7 +46,13 @@ export default class MabiIcco extends MakiMabiSequence {
     this.encoder = new TextEncoder('utf-8');
 
     /** @type {array} 各トラックごと複数存在する変数名 */
-    const multipleKeys = ['mml-track', 'name', 'program', 'songProgram', 'panpot'];
+    const multipleKeys = [
+      'mml-track',
+      'name',
+      'program',
+      'songProgram',
+      'panpot',
+    ];
     const ret = {};
     /** @type {number} */
     let trackNo = -1;
@@ -64,7 +74,7 @@ export default class MabiIcco extends MakiMabiSequence {
           // -が含まれる名前を変数名として使うと面倒なので・・・。
           ret.track[trackNo].mml = value;
         } else {
-          ret.track[trackNo][key] = (key === 'name') ? value : value | 0;
+          ret.track[trackNo][key] = key === 'name' ? value : value | 0;
         }
       } else {
         ret[key] = value;
@@ -85,17 +95,34 @@ export default class MabiIcco extends MakiMabiSequence {
     /** @type {array}  */
     const headerTrack = [];
     // GM Reset
-    headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    headerTrack.push(
+      new SystemExclusiveEvent('SystemExclusive', 0, 0, [
+        0x7e,
+        0x7f,
+        0x09,
+        0x01,
+      ]),
+    );
     // 曲名と著者情報を付加
     headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
-    headerTrack.push(new MetaEvent('TimeSignature', 0, 0, [timeSig[0] | 0 || 4, timeSig[1] | 0 || 4, 0, 0]));
-    headerTrack.push(new MetaEvent('SetTempo', 0, 0, [Math.floor(60000000 / this.tempo)]));
+    headerTrack.push(
+      new MetaEvent('TimeSignature', 0, 0, [
+        timeSig[0] | 0 || 4,
+        timeSig[1] | 0 || 4,
+        0,
+        0,
+      ]),
+    );
+    headerTrack.push(
+      new MetaEvent('SetTempo', 0, 0, [Math.floor(60000000 / this.tempo)]),
+    );
     headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
 
     this.input = ret.track;
-  };
+  }
+
   /**
    * MML parse
    */
@@ -120,10 +147,14 @@ export default class MabiIcco extends MakiMabiSequence {
       track.push(new ChannelEvent('ProgramChange', 0, 96, ch, current.program));
       if (current.songProgram !== -1) {
         // コーラス用
-        track.push(new ChannelEvent('ProgramChange', 0, 112, 15, current.songProgram));
+        track.push(
+          new ChannelEvent('ProgramChange', 0, 112, 15, current.songProgram),
+        );
       }
       // パン(CC:0x10)
-      track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, current.panpot));
+      track.push(
+        new ChannelEvent('ControlChange', 0, 154, ch, 10, current.panpot),
+      );
 
       // MMLの各チャンネルの処理
       for (let chord = 0; chord < current.mml.length; chord++) {
@@ -136,7 +167,12 @@ export default class MabiIcco extends MakiMabiSequence {
         }
 
         /** @param {PSGConverter} */
-        const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: mmls[chord] });
+        const mml2Midi = new PSGConverter({
+          timeDivision: this.timeDivision,
+          channel: ch,
+          timeOffset: 386,
+          mml: mmls[chord],
+        });
         // トラックにマージ
         track = track.concat(mml2Midi.events);
         endTimes.push(mml2Midi.endTime);

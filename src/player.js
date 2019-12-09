@@ -302,7 +302,7 @@ export class Player {
           ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
           '7f',
         ].join(','),
-        '*'
+        '*',
       );
     }
   };
@@ -332,7 +332,7 @@ export class Player {
 
     const update = () => {
       /** @type {number} */
-      const time = mergedTrack[pos]['time'];
+      const time = mergedTrack[pos].time;
       /** @type {number} */
       const length = mergedTrack.length;
       /** @type {Object} TODO */
@@ -350,7 +350,7 @@ export class Player {
       }
 
       do {
-        event = mergedTrack[pos]['event'];
+        event = mergedTrack[pos].event;
 
         switch (event.subtype) {
           case 'TextEvent': // 0x01
@@ -372,12 +372,12 @@ export class Player {
               switch (event.data[0]) {
                 case 'A':
                   mark[0] = {
-                    'pos': pos,
+                    pos: pos,
                   };
                   break;
                 case 'B':
-                  if (mark[0] && typeof mark[0]['pos'] === 'number') {
-                    pos = mark[0]['pos'];
+                  if (mark[0] && typeof mark[0].pos === 'number') {
+                    pos = mark[0].pos;
                     player.timer = player.window.setTimeout(update, 0);
                     player.position = pos;
                     return;
@@ -392,16 +392,16 @@ export class Player {
               if (match) {
                 if (match[1] === 'START') {
                   mark[match[2] | 0] = mark[match[2]] || {
-                    'pos': pos,
-                    'count': match[3] | 0,
+                    pos: pos,
+                    count: match[3] | 0,
                   };
                 } else if (match[1] === 'END' && player.enableMFiLoop) {
                   tmp = mark[match[2] | 0];
-                  if (tmp['count'] !== 0) { // loop jump
-                    if (tmp['count'] > 0) {
-                      tmp['count']--;
+                  if (tmp.count !== 0) { // loop jump
+                    if (tmp.count > 0) {
+                      tmp.count--;
                     }
-                    pos = tmp['pos'];
+                    pos = tmp.pos;
                     player.timer = player.window.setTimeout(update, 0);
                     player.position = pos;
                     return;
@@ -417,30 +417,29 @@ export class Player {
             break;
         }
 
-
         // CC#111 Loop
         if (event.subtype === 'ControlChange' && event.parameter1 === 111) {
           mark[0] = {
-            'pos': pos,
+            pos: pos,
           };
         }
 
         // send message
-        webMidiLink.postMessage(mergedTrack[pos++]['webMidiLink'], '*');
-      } while (pos < length && mergedTrack[pos]['time'] === time);
+        webMidiLink.postMessage(mergedTrack[pos++].webMidiLink, '*');
+      } while (pos < length && mergedTrack[pos].time === time);
 
       if (pos < length) {
         procTime = Date.now() - procTime;
         player.timer = player.window.setTimeout(
           update,
-          player.tempo / (1000 * timeDivision) * (mergedTrack[pos]['time'] - time - procTime) * (1 / player.tempoRate)
+          player.tempo / (1000 * timeDivision) * (mergedTrack[pos].time - time - procTime) * (1 / player.tempoRate),
         );
       } else {
         // loop
         player.ended();
         player.pause = true;
-        if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
-          pos = mark[0]['pos'];
+        if (player.enableCC111Loop && mark[0] && typeof mark[0].pos === 'number') {
+          pos = mark[0].pos;
         } else if (player.enableLoop) {
           player.initSequence();
           player.playSequence();
@@ -454,13 +453,13 @@ export class Player {
     if (!this.pause) {
       this.timer = player.window.setTimeout(
         update,
-        this.tempo / 1000 * timeDivision * this.track[0]['time']
+        this.tempo / 1000 * timeDivision * this.track[0].time,
       );
     } else {
       // resume
       this.timer = player.window.setTimeout(
         update,
-        this.resume
+        this.resume,
       );
       this.pause = false;
       this.resume = -1;
@@ -588,16 +587,16 @@ export class Player {
         }
 
         mergedTrack.push({
-          'track': i,
-          'eventId': j,
-          'time': track[j].time,
-          'event': track[j],
-          'webMidiLink': 'midi,' +
+          track: i,
+          eventId: j,
+          time: track[j].time,
+          event: track[j],
+          webMidiLink: 'midi,' +
             Array.prototype.map.call(
               plainTracks[i][j],
               (a) => {
                 return a.toString(16);
-              }
+              },
             ).join(','),
         });
       }
@@ -605,12 +604,11 @@ export class Player {
 
     // sort
     mergedTrack.sort((a, b) => {
-      return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
-        a['track'] > b['track'] ? 1 : a['track'] < b['track'] ? -1 :
-          a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
-            0;
+      return a.time > b.time ? 1 : a.time < b.time ? -1
+        : a.track > b.track ? 1 : a.track < b.track ? -1
+          : a.eventId > b.eventId ? 1 : a.eventId < b.eventId ? -1
+            : 0;
     });
-
 
     // トータルの演奏時間
     this.timeTotal = mergedTrack.slice(-1)[0].time;

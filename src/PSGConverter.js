@@ -23,16 +23,16 @@ export default class PSGConverter {
     /** @type {bool} GM互換モードにするか */
     this.isGMMode = optParams.timeOffset | false;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
-    this.PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
+    this.PATTERN = /[A-GLNORTV<>][+#-]?[0-9]*\.?&?/gi;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
     this.NOTE_TABLE = {
-      'c': 0,
-      'd': 2,
-      'e': 4,
-      'f': 5,
-      'g': 7,
-      'a': 9,
-      'b': 11,
+      c: 0,
+      d: 2,
+      e: 4,
+      f: 5,
+      g: 7,
+      a: 9,
+      b: 11,
     };
     /** @type {number} １拍（Tick連動） */
     this.MINIM = this.timeDivision * 2;
@@ -49,6 +49,7 @@ export default class PSGConverter {
     // 変換実行
     this.parse();
   }
+
   /**
    * Parse MML
    */
@@ -69,18 +70,18 @@ export default class PSGConverter {
     let cNote = 0;
     /** @type {boolean} タイ記号 */
     let tieEnabled = false;
-    /** @type {number} 現在のボリューム(0～15)*/
+    /** @type {number} 現在のボリューム(0～15) */
     let cVolume = 8;
-    /** @type {number} 現在のオクターブ(1~8)*/
+    /** @type {number} 現在のオクターブ(1~8) */
     let cOctave = 4;
     /** @type {Array} イベント */
     const events = [];
 
     for (const mnid in notes) {
-      if (notes.hasOwnProperty(mnid)) {
+      if (notes && Object.prototype.hasOwnProperty.call(notes, mnid)) {
         /** @type {number} 現在の音符の長さ */
         let tick = cLength | 0;
-        /** @type {number} 値*/
+        /** @type {number} 値 */
         let val = 0;
 
         // 音長(L)、オクターブ(O<>)、テンポ（T）、ボリューム（V）をパース
@@ -89,7 +90,9 @@ export default class PSGConverter {
           if (tieEnabled && RegExp.$4 !== '&') {
             // タイ記号
             tieEnabled = false;
-            events.push(new ChannelEvent('NoteOff', 0, time, this.channel, cNote));
+            events.push(
+              new ChannelEvent('NoteOff', 0, time, this.channel, cNote),
+            );
           }
           switch (RegExp.$1) {
             case 'L':
@@ -97,7 +100,7 @@ export default class PSGConverter {
               // 音長設定 Ln[.] (n=1～192)
               if (val >= 1 && val <= this.MINIM) {
                 cLength = Math.floor(this.SEMIBREVE / val);
-                if (RegExp.$3 == '.') {
+                if (RegExp.$3 === '.') {
                   // 付点の場合音長を1.5倍する
                   cLength = Math.floor(cLength * 1.5);
                 }
@@ -113,7 +116,9 @@ export default class PSGConverter {
             case 'T':
             case 't':
               // テンポ設定 Tn (n=32～255)
-              events.push(new MetaEvent('SetTempo', 0, time, [Math.floor(60000000 / val)]));
+              events.push(
+                new MetaEvent('SetTempo', 0, time, [Math.floor(60000000 / val)]),
+              );
               break;
             case 'V':
             case 'v':
@@ -125,13 +130,13 @@ export default class PSGConverter {
 
             // 簡易オクターブ設定 {<>}
             case '<':
-              cOctave = (cOctave <= 0) ? 0 : (cOctave - 1);
+              cOctave = cOctave <= 0 ? 0 : cOctave - 1;
               break;
             case '>':
-              cOctave = (cOctave >= 8) ? 8 : (cOctave + 1);
+              cOctave = cOctave >= 8 ? 8 : cOctave + 1;
               break;
           }
-        } else if (notes[mnid].match(/([A-GN])([\+\#-]?)([0-9]*)(\.?)(&?)/i)) {
+        } else if (notes[mnid].match(/([A-GN])([+#-]?)([0-9]*)(\.?)(&?)/i)) {
           // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
           /** @type {number} 音階 */
           let note = 0;
@@ -143,7 +148,7 @@ export default class PSGConverter {
           } else {
             // [A-G]：音名表記
             // 音符の長さ指定: n分音符→128分音符×tick数
-            if (1 <= val && val <= this.MINIM) {
+            if (val >= 1 && val <= this.MINIM) {
               tick = Math.floor(this.SEMIBREVE / val); // L1 -> 384tick .. L64 -> 6tick
             }
             if (RegExp.$4 === '.') {
@@ -165,10 +170,21 @@ export default class PSGConverter {
 
           if (!tieEnabled) {
             // 前回タイ記号が無いときのみノートオン
-            events.push(new ChannelEvent('NoteOn', 0, time, this.channel, note, 8 * cVolume));
+            events.push(
+              new ChannelEvent(
+                'NoteOn',
+                0,
+                time,
+                this.channel,
+                note,
+                8 * cVolume,
+              ),
+            );
           } else if (note !== cNote) {
             // c&dなど無効なタイの処理
-            events.push(new ChannelEvent('NoteOff', 0, time, this.channel, cNote));
+            events.push(
+              new ChannelEvent('NoteOff', 0, time, this.channel, cNote),
+            );
             tieEnabled = false;
           }
 
@@ -183,13 +199,15 @@ export default class PSGConverter {
           } else {
             tieEnabled = false;
             // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
-            events.push(new ChannelEvent('NoteOff', 0, time, this.channel, note));
+            events.push(
+              new ChannelEvent('NoteOff', 0, time, this.channel, note),
+            );
           }
         } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
           // 休符設定 R[n][.] (n=1～64)
           val = RegExp.$1 | 0;
 
-          if (1 <= val && val <= this.MINIM) {
+          if (val >= 1 && val <= this.MINIM) {
             // L1 -> 128tick .. L64 -> 2tick
             tick = Math.floor(this.SEMIBREVE / val);
           }

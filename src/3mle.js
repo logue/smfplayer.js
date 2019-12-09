@@ -50,7 +50,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
 
     // 3MLE EXTENSION、Settingsを取り除く
     delete this.input['3MLE EXTENSION'];
-    delete this.input['Settings'];
+    delete this.input.Settings;
   };
 
   /**

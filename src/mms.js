@@ -27,6 +27,7 @@ export default class MakiMabiSequence {
     /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision || 96;
   }
+
   /**
    * パース処理
    */
@@ -34,7 +35,8 @@ export default class MakiMabiSequence {
     this.parseHeader();
     this.parseTracks();
     this.toPlainTrack();
-  };
+  }
+  ;
   /**
    * ヘッダーメタ情報をパース
    */
@@ -70,9 +72,10 @@ export default class MakiMabiSequence {
     this.tracks.push(headerTrack);
 
     // infomationおよびmms-fileを取り除く
-    delete this.input['infomation'];
+    delete this.input.infomation;
     delete this.input['mms-file'];
-  };
+  }
+  ;
   /**
    * MML parse
    */
@@ -121,7 +124,7 @@ export default class MakiMabiSequence {
    */
   toPlainTrack() {
     for (let i = 0; i < this.tracks.length; i++) {
-      /** @type {array} トラックのイベント*/
+      /** @type {array} トラックのイベント */
       let rawTrackEvents = [];
 
       /** @type {array} 全イベント */

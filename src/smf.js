@@ -192,13 +192,13 @@ export default class SMF {
         case 0xE:
           event = new ChannelEvent(
             table[eventType], deltaTime, totalTime,
-            channel, data[ip++], data[ip++]
+            channel, data[ip++], data[ip++],
           );
           break;
         case 0xC:
           event = new ChannelEvent(
             table[eventType], deltaTime, totalTime,
-            channel, data[ip++]
+            channel, data[ip++],
           );
           break;
         // meta events, system exclusive event
@@ -212,14 +212,14 @@ export default class SMF {
               }
               event = new SystemExclusiveEvent(
                 'SystemExclusive', deltaTime, totalTime,
-                data.subarray(ip, (ip += tmp) - 1)
+                data.subarray(ip, (ip += tmp) - 1),
               );
               break;
             case 0x7:
               tmp = readNumber();
               event = new SystemExclusiveEvent(
                 'SystemExclusive(F7)', deltaTime, totalTime,
-                data.subarray(ip, (ip += tmp))
+                data.subarray(ip, (ip += tmp)),
               );
               break;
             // meta event
@@ -229,82 +229,82 @@ export default class SMF {
               switch (eventType) {
                 case 0x00: // sequence number
                   event = new MetaEvent(
-                    'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]]
+                    'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x01: // text event
                   event = new MetaEvent(
-                    'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x02: // copyright notice
                   event = new MetaEvent(
-                    'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x03: // sequence/track name
                   event = new MetaEvent(
-                    'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x04: // instrument name
                   event = new MetaEvent(
-                    'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x05: // lyrics
                   event = new MetaEvent(
-                    'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x06: // marker
                   event = new MetaEvent(
-                    'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x07: // cue point
                   event = new MetaEvent(
-                    'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x20: // midi channel prefix
                   event = new MetaEvent(
-                    'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]]
+                    'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]],
                   );
                   break;
                 case 0x2f: // end of track
                   event = new MetaEvent(
-                    'EndOfTrack', deltaTime, totalTime, []
+                    'EndOfTrack', deltaTime, totalTime, [],
                   );
                   break;
                 case 0x51: // set tempo
                   event = new MetaEvent(
-                    'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]]
+                    'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]],
                   );
                   break;
                 case 0x54: // smpte offset
                   event = new MetaEvent(
-                    'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]]
+                    'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x58: // time signature
                   event = new MetaEvent(
-                    'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]]
+                    'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x59: // key signature
                   event = new MetaEvent(
-                    'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]]
+                    'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x7f: // sequencer specific
                   event = new MetaEvent(
-                    'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)]
+                    'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)],
                   );
                   break;
                 default: // unknown
                   event = new MetaEvent(
-                    'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)]
+                    'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)],
                   );
               }
               break;

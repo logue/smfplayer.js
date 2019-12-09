@@ -215,19 +215,19 @@ class Riff {
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = optParams['index'] || 0;
+    this.ip = optParams.index || 0;
     /** @type {number} */
-    this.length = optParams['length'] || input.length - this.ip;
+    this.length = optParams.length || input.length - this.ip;
     /** @type {Array.<RiffChunk>} */
     this.chunkList;
     /** @type {number} */
     this.offset = this.ip;
     /** @type {boolean} */
     this.padding =
-      optParams['padding'] !== void 0 ? optParams['padding'] : true;
+      optParams.padding !== void 0 ? optParams.padding : true;
     /** @type {boolean} */
     this.bigEndian =
-      optParams['bigEndian'] !== void 0 ? optParams['bigEndian'] : false;
+      optParams.bigEndian !== void 0 ? optParams.bigEndian : false;
   }
 
   /**
@@ -255,13 +255,13 @@ class Riff {
 
     this.chunkList.push(new RiffChunk(
       String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
-      (size = this.bigEndian ?
-        ((input[ip++] << 24) | (input[ip++] << 16) |
-          (input[ip++] << 8) | (input[ip++])) >>> 0 :
-        ((input[ip++]) | (input[ip++] << 8) |
+      (size = this.bigEndian
+        ? ((input[ip++] << 24) | (input[ip++] << 16) |
+          (input[ip++] << 8) | (input[ip++])) >>> 0
+        : ((input[ip++]) | (input[ip++] << 8) |
           (input[ip++] << 16) | (input[ip++] << 24)) >>> 0
       ),
-      ip
+      ip,
     ));
 
     ip += size;
@@ -522,13 +522,13 @@ class SMF {
         case 0xE:
           event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"](
             table[eventType], deltaTime, totalTime,
-            channel, data[ip++], data[ip++]
+            channel, data[ip++], data[ip++],
           );
           break;
         case 0xC:
           event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"](
             table[eventType], deltaTime, totalTime,
-            channel, data[ip++]
+            channel, data[ip++],
           );
           break;
         // meta events, system exclusive event
@@ -542,14 +542,14 @@ class SMF {
               }
               event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"](
                 'SystemExclusive', deltaTime, totalTime,
-                data.subarray(ip, (ip += tmp) - 1)
+                data.subarray(ip, (ip += tmp) - 1),
               );
               break;
             case 0x7:
               tmp = readNumber();
               event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"](
                 'SystemExclusive(F7)', deltaTime, totalTime,
-                data.subarray(ip, (ip += tmp))
+                data.subarray(ip, (ip += tmp)),
               );
               break;
             // meta event
@@ -559,82 +559,82 @@ class SMF {
               switch (eventType) {
                 case 0x00: // sequence number
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]]
+                    'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x01: // text event
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x02: // copyright notice
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x03: // sequence/track name
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x04: // instrument name
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x05: // lyrics
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x06: // marker
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x07: // cue point
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x20: // midi channel prefix
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]]
+                    'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]],
                   );
                   break;
                 case 0x2f: // end of track
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'EndOfTrack', deltaTime, totalTime, []
+                    'EndOfTrack', deltaTime, totalTime, [],
                   );
                   break;
                 case 0x51: // set tempo
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]]
+                    'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]],
                   );
                   break;
                 case 0x54: // smpte offset
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]]
+                    'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x58: // time signature
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]]
+                    'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x59: // key signature
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]]
+                    'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x7f: // sequencer specific
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)]
+                    'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)],
                   );
                   break;
                 default: // unknown
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)]
+                    'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)],
                   );
               }
               break;

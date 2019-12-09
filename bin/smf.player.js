@@ -367,7 +367,7 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
 
     // 3MLE EXTENSION、Settingsを取り除く
     delete this.input['3MLE EXTENSION'];
-    delete this.input['Settings'];
+    delete this.input.Settings;
   };
 
   /**
@@ -502,16 +502,16 @@ class PSGConverter {
     /** @type {bool} GM互換モードにするか */
     this.isGMMode = optParams.timeOffset | false;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
-    this.PATTERN = /[A-GLNORTV<>][\+\#-]?[0-9]*\.?&?/ig;
+    this.PATTERN = /[A-GLNORTV<>][+#-]?[0-9]*\.?&?/gi;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
     this.NOTE_TABLE = {
-      'c': 0,
-      'd': 2,
-      'e': 4,
-      'f': 5,
-      'g': 7,
-      'a': 9,
-      'b': 11,
+      c: 0,
+      d: 2,
+      e: 4,
+      f: 5,
+      g: 7,
+      a: 9,
+      b: 11,
     };
     /** @type {number} １拍（Tick連動） */
     this.MINIM = this.timeDivision * 2;
@@ -528,6 +528,7 @@ class PSGConverter {
     // 変換実行
     this.parse();
   }
+
   /**
    * Parse MML
    */
@@ -548,18 +549,18 @@ class PSGConverter {
     let cNote = 0;
     /** @type {boolean} タイ記号 */
     let tieEnabled = false;
-    /** @type {number} 現在のボリューム(0～15)*/
+    /** @type {number} 現在のボリューム(0～15) */
     let cVolume = 8;
-    /** @type {number} 現在のオクターブ(1~8)*/
+    /** @type {number} 現在のオクターブ(1~8) */
     let cOctave = 4;
     /** @type {Array} イベント */
     const events = [];
 
     for (const mnid in notes) {
-      if (notes.hasOwnProperty(mnid)) {
+      if (notes && Object.prototype.hasOwnProperty.call(notes, mnid)) {
         /** @type {number} 現在の音符の長さ */
         let tick = cLength | 0;
-        /** @type {number} 値*/
+        /** @type {number} 値 */
         let val = 0;
 
         // 音長(L)、オクターブ(O<>)、テンポ（T）、ボリューム（V）をパース
@@ -568,7 +569,9 @@ class PSGConverter {
           if (tieEnabled && RegExp.$4 !== '&') {
             // タイ記号
             tieEnabled = false;
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
+            events.push(
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote),
+            );
           }
           switch (RegExp.$1) {
             case 'L':
@@ -576,7 +579,7 @@ class PSGConverter {
               // 音長設定 Ln[.] (n=1～192)
               if (val >= 1 && val <= this.MINIM) {
                 cLength = Math.floor(this.SEMIBREVE / val);
-                if (RegExp.$3 == '.') {
+                if (RegExp.$3 === '.') {
                   // 付点の場合音長を1.5倍する
                   cLength = Math.floor(cLength * 1.5);
                 }
@@ -592,7 +595,9 @@ class PSGConverter {
             case 'T':
             case 't':
               // テンポ設定 Tn (n=32～255)
-              events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"]('SetTempo', 0, time, [Math.floor(60000000 / val)]));
+              events.push(
+                new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"]('SetTempo', 0, time, [Math.floor(60000000 / val)]),
+              );
               break;
             case 'V':
             case 'v':
@@ -604,13 +609,13 @@ class PSGConverter {
 
             // 簡易オクターブ設定 {<>}
             case '<':
-              cOctave = (cOctave <= 0) ? 0 : (cOctave - 1);
+              cOctave = cOctave <= 0 ? 0 : cOctave - 1;
               break;
             case '>':
-              cOctave = (cOctave >= 8) ? 8 : (cOctave + 1);
+              cOctave = cOctave >= 8 ? 8 : cOctave + 1;
               break;
           }
-        } else if (notes[mnid].match(/([A-GN])([\+\#-]?)([0-9]*)(\.?)(&?)/i)) {
+        } else if (notes[mnid].match(/([A-GN])([+#-]?)([0-9]*)(\.?)(&?)/i)) {
           // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
           /** @type {number} 音階 */
           let note = 0;
@@ -622,7 +627,7 @@ class PSGConverter {
           } else {
             // [A-G]：音名表記
             // 音符の長さ指定: n分音符→128分音符×tick数
-            if (1 <= val && val <= this.MINIM) {
+            if (val >= 1 && val <= this.MINIM) {
               tick = Math.floor(this.SEMIBREVE / val); // L1 -> 384tick .. L64 -> 6tick
             }
             if (RegExp.$4 === '.') {
@@ -644,10 +649,21 @@ class PSGConverter {
 
           if (!tieEnabled) {
             // 前回タイ記号が無いときのみノートオン
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOn', 0, time, this.channel, note, 8 * cVolume));
+            events.push(
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"](
+                'NoteOn',
+                0,
+                time,
+                this.channel,
+                note,
+                8 * cVolume,
+              ),
+            );
           } else if (note !== cNote) {
             // c&dなど無効なタイの処理
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote));
+            events.push(
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote),
+            );
             tieEnabled = false;
           }
 
@@ -662,13 +678,15 @@ class PSGConverter {
           } else {
             tieEnabled = false;
             // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
-            events.push(new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, note));
+            events.push(
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, note),
+            );
           }
         } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
           // 休符設定 R[n][.] (n=1～64)
           val = RegExp.$1 | 0;
 
-          if (1 <= val && val <= this.MINIM) {
+          if (val >= 1 && val <= this.MINIM) {
             // L1 -> 128tick .. L64 -> 2tick
             tick = Math.floor(this.SEMIBREVE / val);
           }
@@ -871,15 +889,15 @@ class Mld {
     let ip = this.ip;
     /** @type {Object} */
     const dataInformation = this.dataInformation = {
-      'copy': null,
-      'date': null,
-      'exst': null,
-      'note': null,
-      'prot': null,
-      'sorc': null,
-      'titl': null,
-      'trac': null,
-      'vers': null,
+      copy: null,
+      date: null,
+      exst: null,
+      note: null,
+      prot: null,
+      sorc: null,
+      titl: null,
+      trac: null,
+      vers: null,
     };
     /** @type {string} */
     let type;
@@ -903,7 +921,7 @@ class Mld {
         case 'prot':
           dataInformation[type] = String.fromCharCode.apply(
             null,
-            input.subarray(ip, ip += size)
+            input.subarray(ip, ip += size),
           );
           break;
         case 'sorc':
@@ -972,34 +990,34 @@ class Mld {
       while (ip < limit) {
         info = {};
 
-        info['part'] = (input[ip++] >> 4) & 0x3;
-        info['modulator'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7,
+        info.part = (input[ip++] >> 4) & 0x3;
+        info.modulator = {
+          ML: input[ip] >> 5,
+          VIV: (input[ip] >> 4) & 0x1,
+          EG: (input[ip] >> 3) & 0x1,
+          SUS: (input[ip] >> 2) & 0x1,
+          RR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          DR: (input[ip] >> 4) & 0xf,
+          AR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          SL: (input[ip] >> 4) & 0xf,
+          TL: ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          WF: (input[ip] >> 3) & 0x1,
+          FB: input[ip++] & 0x7,
         };
-        info['carrier'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7,
+        info.carrier = {
+          ML: input[ip] >> 5,
+          VIV: (input[ip] >> 4) & 0x1,
+          EG: (input[ip] >> 3) & 0x1,
+          SUS: (input[ip] >> 2) & 0x1,
+          RR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          DR: (input[ip] >> 4) & 0xf,
+          AR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          SL: (input[ip] >> 4) & 0xf,
+          TL: ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          WF: (input[ip] >> 3) & 0x1,
+          FB: input[ip++] & 0x7,
         };
-        info['octaveSelect'] = input[ip++] & 0x3;
+        info.octaveSelect = input[ip++] & 0x3;
 
         result.push(info);
       }
@@ -1016,8 +1034,8 @@ class Mld {
       }
 
       return {
-        'part': (input[ip++] >> 5) & 0x3,
-        'switch': (input[ip++] >> 6),
+        part: (input[ip++] >> 5) & 0x3,
+        switch: (input[ip++] >> 6),
       };
     };
     /**
@@ -1035,7 +1053,7 @@ class Mld {
       }
 
       return {
-        'data': input.subarray(ip, ip += limit - ip),
+        data: input.subarray(ip, ip += limit - ip),
       };
     };
 
@@ -1103,8 +1121,8 @@ class Mld {
                 case 0xa:
                   message.subType = 'DrumScale';
                   message.value = {
-                    'channel': (input[ip] >> 3) & 0x7,
-                    'drum': input[ip++] & 0x1,
+                    channel: (input[ip] >> 3) & 0x7,
+                    drum: input[ip++] & 0x1,
                   };
                   break;
                 default:
@@ -1115,9 +1133,9 @@ class Mld {
             case 0xc:
               message.subType = 'SetTempo';
               message.value = {
-                'timeBase': (status & 0x7) === 7 ?
-                  NaN : Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
-                'tempo': input[ip++],
+                timeBase: (status & 0x7) === 7
+                  ? NaN : Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
+                tempo: input[ip++],
               };
               break;
             // control message
@@ -1130,9 +1148,9 @@ class Mld {
                 case 0xd:
                   message.subType = 'Loop';
                   message.value = {
-                    'id': input[ip] >> 6,
-                    'count': input[ip] >> 2 & 0xf,
-                    'point': input[ip++] & 0x3,
+                    id: input[ip] >> 6,
+                    count: input[ip] >> 2 & 0xf,
+                    point: input[ip++] & 0x3,
                   };
                   break;
                 case 0xe:
@@ -1153,60 +1171,59 @@ class Mld {
                 case 0x0:
                   message.subType = 'InstrumentLowPart';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    instrument: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x1:
                   message.subType = 'InstrumentHighPart';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x1,
+                    part: input[ip] >> 6,
+                    instrument: input[ip++] & 0x1,
                   };
                   break;
                 case 0x2:
                   message.subType = 'Volume';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'volume': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    volume: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x3:
                   message.subType = 'Valance';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'valance': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    valance: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x4:
                   message.subType = 'PitchBend';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'value': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    value: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x5:
                   message.subType = 'ChannelAssign';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'channel': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    channel: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x6:
                   message.subType = 'VolumeChange';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'volume': (input[ip++] & 0x3f) << 26 >> 26,
+                    part: input[ip] >> 6,
+                    volume: (input[ip++] & 0x3f) << 26 >> 26,
                   };
                   break;
                 case 0x7:
                   message.subType = 'PitchBendRange';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f),
+                    part: input[ip] >> 6,
+                    value: (input[ip++] & 0x3f),
                   };
                   break;
-
 
                 case 0x8:
                 /*
@@ -1222,15 +1239,15 @@ class Mld {
                 case 0x9:
                   message.subType = 'MasterCoarseTuning';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f),
+                    part: input[ip] >> 6,
+                    value: (input[ip++] & 0x3f),
                   };
                   break;
                 case 0xA:
                   message.subType = 'Modulation';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'depth': (input[ip++] & 0x3f),
+                    part: input[ip] >> 6,
+                    depth: (input[ip++] & 0x3f),
                   };
                   break;
                 default:
@@ -1330,42 +1347,42 @@ class Mld {
       // note の処理
       for (time = pos = j = 0, jl = mfiTrack.length; j < jl; ++j) {
         mfiEvent = mfiTrack[j];
-        time += mfiEvent['deltaTime'];
-        mfiEvent['id'] = pos;
-        mfiEvent['time'] = time;
+        time += mfiEvent.deltaTime;
+        mfiEvent.id = pos;
+        mfiEvent.time = time;
 
-        switch (mfiEvent['subType']) {
+        switch (mfiEvent.subType) {
           case 'Nop':
             break;
           case 'Note':
             tmpTrack[pos++] = mfiEvent;
             // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
-              'id': pos,
-              'type': 'internal',
-              'subType': 'NoteOff',
-              'time': time + mfiEvent['length'],
-              'key': mfiEvent['key'],
-              'voice': mfiEvent['voice'],
-              'velocity': mfiEvent['velocity'],
-              'octaveShift': mfiEvent['octaveShift'],
+              id: pos,
+              type: 'internal',
+              subType: 'NoteOff',
+              time: time + mfiEvent.length,
+              key: mfiEvent.key,
+              voice: mfiEvent.voice,
+              velocity: mfiEvent.velocity,
+              octaveShift: mfiEvent.octaveShift,
             };
             pos++;
             break;
           case 'InstrumentHighPart':
             prevEvent = mfiEvent;
             mfiEvent = mfiTrack[++j];
-            if (mfiEvent['subType'] !== 'InstrumentLowPart') {
+            if (mfiEvent.subType !== 'InstrumentLowPart') {
               throw new Error('broken instrument');
             }
             // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
-              'id': pos,
-              'type': 'internal',
-              'subType': 'ProgramChange',
-              'time': time,
-              'part': mfiEvent['value']['part'],
-              'instrument': (prevEvent['value']['instrument'] << 6) | mfiEvent['value']['instrument'],
+              id: pos,
+              type: 'internal',
+              subType: 'ProgramChange',
+              time: time,
+              part: mfiEvent.value.part,
+              instrument: (prevEvent.value.instrument << 6) | mfiEvent.value.instrument,
             };
             pos++;
             break;
@@ -1375,22 +1392,22 @@ class Mld {
         }
       }
       tmpTrack.sort((a, b) => {
-        return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
-          a['id'] > b['id'] ? 1 : a['id'] < b['id'] ? -1 :
-            0;
+        return a.time > b.time ? 1 : a.time < b.time ? -1
+          : a.id > b.id ? 1 : a.id < b.id ? -1
+            : 0;
       });
 
       // MIDI トラックに作成
       tracks[i] = [];
       for (time = j = 0, jl = tmpTrack.length; j < jl; ++j) {
         mfiEvent = tmpTrack[j];
-        time = mfiEvent['time'];
+        time = mfiEvent.time;
 
-        switch (mfiEvent['subType']) {
+        switch (mfiEvent.subType) {
           case 'Note':
             // NoteOn: 9n kk vv
-            key = this.applyOctaveShift(mfiEvent['key'] + 45, mfiEvent['octaveShift']);
-            channel = i * 4 + mfiEvent['voice'];
+            key = this.applyOctaveShift(mfiEvent.key + 45, mfiEvent.octaveShift);
+            channel = i * 4 + mfiEvent.voice;
 
             // TODO: リズムトラックの時は Key が -10 されているような気がする
             if (channel === 9) {
@@ -1400,14 +1417,14 @@ class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0x90 | channel,
                 key,
-                mfiEvent['velocity'] * 2
-              )
+                mfiEvent.velocity * 2,
+              ),
             );
             break;
           case 'NoteOff':
             // NoteOff: 8n kk vv
-            key = this.applyOctaveShift(mfiEvent['key'] + 45, mfiEvent['octaveShift']);
-            channel = i * 4 + mfiEvent['voice'];
+            key = this.applyOctaveShift(mfiEvent.key + 45, mfiEvent.octaveShift);
+            channel = i * 4 + mfiEvent.voice;
 
             // TODO: リズムトラックの時は Key が -10 されているような気がする
             if (channel === 9) {
@@ -1417,39 +1434,39 @@ class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0x80 | channel,
                 key,
-                mfiEvent['velocity'] * 2
-              )
+                mfiEvent.velocity * 2,
+              ),
             );
             break;
           case 'ProgramChange':
             // Program Change: Cn pp
-            channel = i * 4 + mfiEvent['part'];
+            channel = i * 4 + mfiEvent.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xC0 | channel,
-                mfiEvent['instrument']
-              )
+                mfiEvent.instrument,
+              ),
             );
             break;
           case 'SetTempo':
             // SetTempo: FF 51 03 tt tt tt
-            tmp = 2880000000 / (mfiEvent['value']['tempo'] * mfiEvent['value']['timeBase']);
+            tmp = 2880000000 / (mfiEvent.value.tempo * mfiEvent.value.timeBase);
             channel = 0; // SetTempo は必ず先頭のトラックに配置する
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xFF,
                 0x51,
                 0x03,
-                (tmp >> 16) & 0xff, (tmp >> 8) & 0xff, tmp & 0xff
-              )
+                (tmp >> 16) & 0xff, (tmp >> 8) & 0xff, tmp & 0xff,
+              ),
             );
             break;
           case 'Loop':
             // Marker: FF 06 ll ss ss ss ...
-            tmp = mfiEvent['value']['count'];
+            tmp = mfiEvent.value.count;
             str = 'LOOP_' +
-              (mfiEvent['value']['point'] === 0 ? 'START' : 'END') +
-              '=ID:' + mfiEvent['value']['id'] +
+              (mfiEvent.value.point === 0 ? 'START' : 'END') +
+              '=ID:' + mfiEvent.value.id +
               ',COUNT:' + (tmp === 0 ? -1 : tmp);
             channel = 0;
             plainTracks[channel].push(
@@ -1461,76 +1478,76 @@ class Mld {
                 ],
                 str.split('').map((a) => {
                   return a.charCodeAt(0);
-                })
-              )
+                }),
+              ),
             );
             break;
           case 'MasterVolume':
             // Master Volume: F0 7F ee 04 01 dl dm F7
-            tmp = mfiEvent['value'];
+            tmp = mfiEvent.value;
             channel = 0;
 
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xF0,
                 0x07, // length
-                0x7F, 0x7F, 0x04, 0x01, tmp, tmp, 0xF7
-              )
+                0x7F, 0x7F, 0x04, 0x01, tmp, tmp, 0xF7,
+              ),
             );
             break;
           case 'Modulation':
             // CC#1 Modulation: Bn 01 dd
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x01,
-                mfiEvent['value']['depth'] * 2
-              )
+                mfiEvent.value.depth * 2,
+              ),
             );
             break;
           case 'Volume':
             // CC#7 Volume: Bn 07 dd
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x07,
-                mfiEvent['value']['volume'] * 2
-              )
+                mfiEvent.value.volume * 2,
+              ),
             );
             break;
           case 'Valance':
             // CC#10 Panpot: Bn 0A dd
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x0A,
-                (mfiEvent['value']['valance'] - 32) * 2 + 64
-              )
+                (mfiEvent.value.valance - 32) * 2 + 64,
+              ),
             );
             break;
           case 'PitchBend':
             // Pitch Bend: En dl dm
             // TODO: LSB = MSB で良いか不明
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xE0 | channel,
-                mfiEvent['value']['value'] * 2,
-                mfiEvent['value']['value'] * 2
-              )
+                mfiEvent.value.value * 2,
+                mfiEvent.value.value * 2,
+              ),
             );
             break;
           case 'PitchBendRange':
             // Pitch Bend: CC#100=0 CC#101=0 CC#6
             // Bn 64 00 Bn 65 00 Bn 06 vv
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
-                0x64, 0x00
+                0x64, 0x00,
               ), [
                 0x00,
                 0xB0 | channel,
@@ -1538,18 +1555,18 @@ class Mld {
               ], [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2,
-              ]
+                0x06, mfiEvent.value.value * 2,
+              ],
             );
             break;
           case 'MasterCoarseTuning':
             // MasterCoarseTuning: CC#100=0 CC#101=2 CC#6
             // Bn 64 01 Bn 65 02 Bn 06 vv
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
-                0x64, 0x00
+                0x64, 0x00,
               ), [
                 0x00,
                 0xB0 | channel,
@@ -1557,15 +1574,15 @@ class Mld {
               ], [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2,
-              ]
+                0x06, mfiEvent.value.value * 2,
+              ],
             );
             break;
           default:
             continue;
         }
 
-        channelTime[channel] = mfiEvent['time'];
+        channelTime[channel] = mfiEvent.time;
       }
     }
     return this.toSMF(plainTracks);
@@ -1634,14 +1651,14 @@ class Mld {
       return array;
     }
 
-    if (this.dataInformation['copy'] !== void 0) {
+    if (this.dataInformation.copy !== void 0) {
       /** @type {Array.<number>} */
-      let copy = stringToArray(this.dataInformation['copy']);
+      let copy = stringToArray(this.dataInformation.copy);
 
       il = copy.length;
       copy = [0x00, 0xff, 0x02].concat(
         this.deltaTimeToByteArray(il),
-        copy
+        copy,
       );
       plainTracks[0].unshift(copy);
     }
@@ -1729,7 +1746,9 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
   constructor(input, optParams = {}) {
     super(input, optParams);
     /** @type {array} */
-    this.input = String.fromCharCode.apply('', new Uint16Array(input)).split(/\r\n|\r|\n/);
+    this.input = String.fromCharCode
+      .apply('', new Uint16Array(input))
+      .split(/\r\n|\r|\n/);
     /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
@@ -1739,6 +1758,7 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision || 96;
   }
+
   /**
    * パース処理
    */
@@ -1746,7 +1766,8 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     this.parseHeader();
     this.parseTracks();
     this.toPlainTrack();
-  };
+  }
+
   /**
    * ヘッダーメタ情報をパース
    */
@@ -1755,7 +1776,13 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     this.encoder = new TextEncoder('utf-8');
 
     /** @type {array} 各トラックごと複数存在する変数名 */
-    const multipleKeys = ['mml-track', 'name', 'program', 'songProgram', 'panpot'];
+    const multipleKeys = [
+      'mml-track',
+      'name',
+      'program',
+      'songProgram',
+      'panpot',
+    ];
     const ret = {};
     /** @type {number} */
     let trackNo = -1;
@@ -1777,7 +1804,7 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
           // -が含まれる名前を変数名として使うと面倒なので・・・。
           ret.track[trackNo].mml = value;
         } else {
-          ret.track[trackNo][key] = (key === 'name') ? value : value | 0;
+          ret.track[trackNo][key] = key === 'name' ? value : value | 0;
         }
       } else {
         ret[key] = value;
@@ -1798,17 +1825,34 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     /** @type {array}  */
     const headerTrack = [];
     // GM Reset
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    headerTrack.push(
+      new _midi_event__WEBPACK_IMPORTED_MODULE_2__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [
+        0x7e,
+        0x7f,
+        0x09,
+        0x01,
+      ]),
+    );
     // 曲名と著者情報を付加
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('TimeSignature', 0, 0, [timeSig[0] | 0 || 4, timeSig[1] | 0 || 4, 0, 0]));
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SetTempo', 0, 0, [Math.floor(60000000 / this.tempo)]));
+    headerTrack.push(
+      new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('TimeSignature', 0, 0, [
+        timeSig[0] | 0 || 4,
+        timeSig[1] | 0 || 4,
+        0,
+        0,
+      ]),
+    );
+    headerTrack.push(
+      new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('SetTempo', 0, 0, [Math.floor(60000000 / this.tempo)]),
+    );
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
 
     this.input = ret.track;
-  };
+  }
+
   /**
    * MML parse
    */
@@ -1833,10 +1877,14 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
       track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 96, ch, current.program));
       if (current.songProgram !== -1) {
         // コーラス用
-        track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 112, 15, current.songProgram));
+        track.push(
+          new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ProgramChange', 0, 112, 15, current.songProgram),
+        );
       }
       // パン(CC:0x10)
-      track.push(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, ch, 10, current.panpot));
+      track.push(
+        new _midi_event__WEBPACK_IMPORTED_MODULE_2__["ChannelEvent"]('ControlChange', 0, 154, ch, 10, current.panpot),
+      );
 
       // MMLの各チャンネルの処理
       for (let chord = 0; chord < current.mml.length; chord++) {
@@ -1849,7 +1897,12 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
         }
 
         /** @param {PSGConverter} */
-        const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: mmls[chord] });
+        const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({
+          timeDivision: this.timeDivision,
+          channel: ch,
+          timeOffset: 386,
+          mml: mmls[chord],
+        });
         // トラックにマージ
         track = track.concat(mml2Midi.events);
         endTimes.push(mml2Midi.endTime);
@@ -1908,6 +1961,7 @@ class MakiMabiSequence {
     /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision || 96;
   }
+
   /**
    * パース処理
    */
@@ -1915,7 +1969,8 @@ class MakiMabiSequence {
     this.parseHeader();
     this.parseTracks();
     this.toPlainTrack();
-  };
+  }
+  ;
   /**
    * ヘッダーメタ情報をパース
    */
@@ -1951,9 +2006,10 @@ class MakiMabiSequence {
     this.tracks.push(headerTrack);
 
     // infomationおよびmms-fileを取り除く
-    delete this.input['infomation'];
+    delete this.input.infomation;
     delete this.input['mms-file'];
-  };
+  }
+  ;
   /**
    * MML parse
    */
@@ -2002,7 +2058,7 @@ class MakiMabiSequence {
    */
   toPlainTrack() {
     for (let i = 0; i < this.tracks.length; i++) {
-      /** @type {array} トラックのイベント*/
+      /** @type {array} トラックのイベント */
       let rawTrackEvents = [];
 
       /** @type {array} 全イベント */
@@ -2126,6 +2182,7 @@ class MapleStory2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     /** @type {number} 解像度 */
     this.timeDivision = optParams.timeDivision || 96;
   }
+
   /**
    */
   parse() {
@@ -2483,7 +2540,7 @@ class Player {
           ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
           '7f',
         ].join(','),
-        '*'
+        '*',
       );
     }
   };
@@ -2513,7 +2570,7 @@ class Player {
 
     const update = () => {
       /** @type {number} */
-      const time = mergedTrack[pos]['time'];
+      const time = mergedTrack[pos].time;
       /** @type {number} */
       const length = mergedTrack.length;
       /** @type {Object} TODO */
@@ -2531,7 +2588,7 @@ class Player {
       }
 
       do {
-        event = mergedTrack[pos]['event'];
+        event = mergedTrack[pos].event;
 
         switch (event.subtype) {
           case 'TextEvent': // 0x01
@@ -2553,12 +2610,12 @@ class Player {
               switch (event.data[0]) {
                 case 'A':
                   mark[0] = {
-                    'pos': pos,
+                    pos: pos,
                   };
                   break;
                 case 'B':
-                  if (mark[0] && typeof mark[0]['pos'] === 'number') {
-                    pos = mark[0]['pos'];
+                  if (mark[0] && typeof mark[0].pos === 'number') {
+                    pos = mark[0].pos;
                     player.timer = player.window.setTimeout(update, 0);
                     player.position = pos;
                     return;
@@ -2573,16 +2630,16 @@ class Player {
               if (match) {
                 if (match[1] === 'START') {
                   mark[match[2] | 0] = mark[match[2]] || {
-                    'pos': pos,
-                    'count': match[3] | 0,
+                    pos: pos,
+                    count: match[3] | 0,
                   };
                 } else if (match[1] === 'END' && player.enableMFiLoop) {
                   tmp = mark[match[2] | 0];
-                  if (tmp['count'] !== 0) { // loop jump
-                    if (tmp['count'] > 0) {
-                      tmp['count']--;
+                  if (tmp.count !== 0) { // loop jump
+                    if (tmp.count > 0) {
+                      tmp.count--;
                     }
-                    pos = tmp['pos'];
+                    pos = tmp.pos;
                     player.timer = player.window.setTimeout(update, 0);
                     player.position = pos;
                     return;
@@ -2598,30 +2655,29 @@ class Player {
             break;
         }
 
-
         // CC#111 Loop
         if (event.subtype === 'ControlChange' && event.parameter1 === 111) {
           mark[0] = {
-            'pos': pos,
+            pos: pos,
           };
         }
 
         // send message
-        webMidiLink.postMessage(mergedTrack[pos++]['webMidiLink'], '*');
-      } while (pos < length && mergedTrack[pos]['time'] === time);
+        webMidiLink.postMessage(mergedTrack[pos++].webMidiLink, '*');
+      } while (pos < length && mergedTrack[pos].time === time);
 
       if (pos < length) {
         procTime = Date.now() - procTime;
         player.timer = player.window.setTimeout(
           update,
-          player.tempo / (1000 * timeDivision) * (mergedTrack[pos]['time'] - time - procTime) * (1 / player.tempoRate)
+          player.tempo / (1000 * timeDivision) * (mergedTrack[pos].time - time - procTime) * (1 / player.tempoRate),
         );
       } else {
         // loop
         player.ended();
         player.pause = true;
-        if (player.enableCC111Loop && mark[0] && typeof mark[0]['pos'] === 'number') {
-          pos = mark[0]['pos'];
+        if (player.enableCC111Loop && mark[0] && typeof mark[0].pos === 'number') {
+          pos = mark[0].pos;
         } else if (player.enableLoop) {
           player.initSequence();
           player.playSequence();
@@ -2635,13 +2691,13 @@ class Player {
     if (!this.pause) {
       this.timer = player.window.setTimeout(
         update,
-        this.tempo / 1000 * timeDivision * this.track[0]['time']
+        this.tempo / 1000 * timeDivision * this.track[0].time,
       );
     } else {
       // resume
       this.timer = player.window.setTimeout(
         update,
-        this.resume
+        this.resume,
       );
       this.pause = false;
       this.resume = -1;
@@ -2769,16 +2825,16 @@ class Player {
         }
 
         mergedTrack.push({
-          'track': i,
-          'eventId': j,
-          'time': track[j].time,
-          'event': track[j],
-          'webMidiLink': 'midi,' +
+          track: i,
+          eventId: j,
+          time: track[j].time,
+          event: track[j],
+          webMidiLink: 'midi,' +
             Array.prototype.map.call(
               plainTracks[i][j],
               (a) => {
                 return a.toString(16);
-              }
+              },
             ).join(','),
         });
       }
@@ -2786,12 +2842,11 @@ class Player {
 
     // sort
     mergedTrack.sort((a, b) => {
-      return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
-        a['track'] > b['track'] ? 1 : a['track'] < b['track'] ? -1 :
-          a['eventId'] > b['eventId'] ? 1 : a['eventId'] < b['eventId'] ? -1 :
-            0;
+      return a.time > b.time ? 1 : a.time < b.time ? -1
+        : a.track > b.track ? 1 : a.track < b.track ? -1
+          : a.eventId > b.eventId ? 1 : a.eventId < b.eventId ? -1
+            : 0;
     });
-
 
     // トータルの演奏時間
     this.timeTotal = mergedTrack.slice(-1)[0].time;
@@ -2909,19 +2964,19 @@ class Riff {
     /** @type {ByteArray} */
     this.input = input;
     /** @type {number} */
-    this.ip = optParams['index'] || 0;
+    this.ip = optParams.index || 0;
     /** @type {number} */
-    this.length = optParams['length'] || input.length - this.ip;
+    this.length = optParams.length || input.length - this.ip;
     /** @type {Array.<RiffChunk>} */
     this.chunkList;
     /** @type {number} */
     this.offset = this.ip;
     /** @type {boolean} */
     this.padding =
-      optParams['padding'] !== void 0 ? optParams['padding'] : true;
+      optParams.padding !== void 0 ? optParams.padding : true;
     /** @type {boolean} */
     this.bigEndian =
-      optParams['bigEndian'] !== void 0 ? optParams['bigEndian'] : false;
+      optParams.bigEndian !== void 0 ? optParams.bigEndian : false;
   }
 
   /**
@@ -2949,13 +3004,13 @@ class Riff {
 
     this.chunkList.push(new RiffChunk(
       String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
-      (size = this.bigEndian ?
-        ((input[ip++] << 24) | (input[ip++] << 16) |
-          (input[ip++] << 8) | (input[ip++])) >>> 0 :
-        ((input[ip++]) | (input[ip++] << 8) |
+      (size = this.bigEndian
+        ? ((input[ip++] << 24) | (input[ip++] << 16) |
+          (input[ip++] << 8) | (input[ip++])) >>> 0
+        : ((input[ip++]) | (input[ip++] << 8) |
           (input[ip++] << 16) | (input[ip++] << 24)) >>> 0
       ),
-      ip
+      ip,
     ));
 
     ip += size;
@@ -3216,13 +3271,13 @@ class SMF {
         case 0xE:
           event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"](
             table[eventType], deltaTime, totalTime,
-            channel, data[ip++], data[ip++]
+            channel, data[ip++], data[ip++],
           );
           break;
         case 0xC:
           event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"](
             table[eventType], deltaTime, totalTime,
-            channel, data[ip++]
+            channel, data[ip++],
           );
           break;
         // meta events, system exclusive event
@@ -3236,14 +3291,14 @@ class SMF {
               }
               event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"](
                 'SystemExclusive', deltaTime, totalTime,
-                data.subarray(ip, (ip += tmp) - 1)
+                data.subarray(ip, (ip += tmp) - 1),
               );
               break;
             case 0x7:
               tmp = readNumber();
               event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"](
                 'SystemExclusive(F7)', deltaTime, totalTime,
-                data.subarray(ip, (ip += tmp))
+                data.subarray(ip, (ip += tmp)),
               );
               break;
             // meta event
@@ -3253,82 +3308,82 @@ class SMF {
               switch (eventType) {
                 case 0x00: // sequence number
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]]
+                    'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x01: // text event
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x02: // copyright notice
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x03: // sequence/track name
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x04: // instrument name
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x05: // lyrics
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x06: // marker
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x07: // cue point
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))]
+                    'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x20: // midi channel prefix
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]]
+                    'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]],
                   );
                   break;
                 case 0x2f: // end of track
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'EndOfTrack', deltaTime, totalTime, []
+                    'EndOfTrack', deltaTime, totalTime, [],
                   );
                   break;
                 case 0x51: // set tempo
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]]
+                    'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]],
                   );
                   break;
                 case 0x54: // smpte offset
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]]
+                    'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x58: // time signature
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]]
+                    'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x59: // key signature
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]]
+                    'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x7f: // sequencer specific
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)]
+                    'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)],
                   );
                   break;
                 default: // unknown
                   event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
-                    'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)]
+                    'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)],
                   );
               }
               break;

@@ -71,15 +71,15 @@ export default class Mld {
     let ip = this.ip;
     /** @type {Object} */
     const dataInformation = this.dataInformation = {
-      'copy': null,
-      'date': null,
-      'exst': null,
-      'note': null,
-      'prot': null,
-      'sorc': null,
-      'titl': null,
-      'trac': null,
-      'vers': null,
+      copy: null,
+      date: null,
+      exst: null,
+      note: null,
+      prot: null,
+      sorc: null,
+      titl: null,
+      trac: null,
+      vers: null,
     };
     /** @type {string} */
     let type;
@@ -103,7 +103,7 @@ export default class Mld {
         case 'prot':
           dataInformation[type] = String.fromCharCode.apply(
             null,
-            input.subarray(ip, ip += size)
+            input.subarray(ip, ip += size),
           );
           break;
         case 'sorc':
@@ -172,34 +172,34 @@ export default class Mld {
       while (ip < limit) {
         info = {};
 
-        info['part'] = (input[ip++] >> 4) & 0x3;
-        info['modulator'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7,
+        info.part = (input[ip++] >> 4) & 0x3;
+        info.modulator = {
+          ML: input[ip] >> 5,
+          VIV: (input[ip] >> 4) & 0x1,
+          EG: (input[ip] >> 3) & 0x1,
+          SUS: (input[ip] >> 2) & 0x1,
+          RR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          DR: (input[ip] >> 4) & 0xf,
+          AR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          SL: (input[ip] >> 4) & 0xf,
+          TL: ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          WF: (input[ip] >> 3) & 0x1,
+          FB: input[ip++] & 0x7,
         };
-        info['carrier'] = {
-          'ML': input[ip] >> 5,
-          'VIV': (input[ip] >> 4) & 0x1,
-          'EG': (input[ip] >> 3) & 0x1,
-          'SUS': (input[ip] >> 2) & 0x1,
-          'RR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'DR': (input[ip] >> 4) & 0xf,
-          'AR': ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
-          'SL': (input[ip] >> 4) & 0xf,
-          'TL': ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
-          'WF': (input[ip] >> 3) & 0x1,
-          'FB': input[ip++] & 0x7,
+        info.carrier = {
+          ML: input[ip] >> 5,
+          VIV: (input[ip] >> 4) & 0x1,
+          EG: (input[ip] >> 3) & 0x1,
+          SUS: (input[ip] >> 2) & 0x1,
+          RR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          DR: (input[ip] >> 4) & 0xf,
+          AR: ((input[ip++] & 0x3) << 2) | (input[ip] >> 6),
+          SL: (input[ip] >> 4) & 0xf,
+          TL: ((input[ip++] & 0x3) << 4) | (input[ip] >> 4),
+          WF: (input[ip] >> 3) & 0x1,
+          FB: input[ip++] & 0x7,
         };
-        info['octaveSelect'] = input[ip++] & 0x3;
+        info.octaveSelect = input[ip++] & 0x3;
 
         result.push(info);
       }
@@ -216,8 +216,8 @@ export default class Mld {
       }
 
       return {
-        'part': (input[ip++] >> 5) & 0x3,
-        'switch': (input[ip++] >> 6),
+        part: (input[ip++] >> 5) & 0x3,
+        switch: (input[ip++] >> 6),
       };
     };
     /**
@@ -235,7 +235,7 @@ export default class Mld {
       }
 
       return {
-        'data': input.subarray(ip, ip += limit - ip),
+        data: input.subarray(ip, ip += limit - ip),
       };
     };
 
@@ -303,8 +303,8 @@ export default class Mld {
                 case 0xa:
                   message.subType = 'DrumScale';
                   message.value = {
-                    'channel': (input[ip] >> 3) & 0x7,
-                    'drum': input[ip++] & 0x1,
+                    channel: (input[ip] >> 3) & 0x7,
+                    drum: input[ip++] & 0x1,
                   };
                   break;
                 default:
@@ -315,9 +315,9 @@ export default class Mld {
             case 0xc:
               message.subType = 'SetTempo';
               message.value = {
-                'timeBase': (status & 0x7) === 7 ?
-                  NaN : Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
-                'tempo': input[ip++],
+                timeBase: (status & 0x7) === 7
+                  ? NaN : Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
+                tempo: input[ip++],
               };
               break;
             // control message
@@ -330,9 +330,9 @@ export default class Mld {
                 case 0xd:
                   message.subType = 'Loop';
                   message.value = {
-                    'id': input[ip] >> 6,
-                    'count': input[ip] >> 2 & 0xf,
-                    'point': input[ip++] & 0x3,
+                    id: input[ip] >> 6,
+                    count: input[ip] >> 2 & 0xf,
+                    point: input[ip++] & 0x3,
                   };
                   break;
                 case 0xe:
@@ -353,60 +353,59 @@ export default class Mld {
                 case 0x0:
                   message.subType = 'InstrumentLowPart';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    instrument: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x1:
                   message.subType = 'InstrumentHighPart';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'instrument': input[ip++] & 0x1,
+                    part: input[ip] >> 6,
+                    instrument: input[ip++] & 0x1,
                   };
                   break;
                 case 0x2:
                   message.subType = 'Volume';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'volume': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    volume: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x3:
                   message.subType = 'Valance';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'valance': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    valance: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x4:
                   message.subType = 'PitchBend';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'value': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    value: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x5:
                   message.subType = 'ChannelAssign';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'channel': input[ip++] & 0x3f,
+                    part: input[ip] >> 6,
+                    channel: input[ip++] & 0x3f,
                   };
                   break;
                 case 0x6:
                   message.subType = 'VolumeChange';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'volume': (input[ip++] & 0x3f) << 26 >> 26,
+                    part: input[ip] >> 6,
+                    volume: (input[ip++] & 0x3f) << 26 >> 26,
                   };
                   break;
                 case 0x7:
                   message.subType = 'PitchBendRange';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f),
+                    part: input[ip] >> 6,
+                    value: (input[ip++] & 0x3f),
                   };
                   break;
-
 
                 case 0x8:
                 /*
@@ -422,15 +421,15 @@ export default class Mld {
                 case 0x9:
                   message.subType = 'MasterCoarseTuning';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'value': (input[ip++] & 0x3f),
+                    part: input[ip] >> 6,
+                    value: (input[ip++] & 0x3f),
                   };
                   break;
                 case 0xA:
                   message.subType = 'Modulation';
                   message.value = {
-                    'part': input[ip] >> 6,
-                    'depth': (input[ip++] & 0x3f),
+                    part: input[ip] >> 6,
+                    depth: (input[ip++] & 0x3f),
                   };
                   break;
                 default:
@@ -530,42 +529,42 @@ export default class Mld {
       // note の処理
       for (time = pos = j = 0, jl = mfiTrack.length; j < jl; ++j) {
         mfiEvent = mfiTrack[j];
-        time += mfiEvent['deltaTime'];
-        mfiEvent['id'] = pos;
-        mfiEvent['time'] = time;
+        time += mfiEvent.deltaTime;
+        mfiEvent.id = pos;
+        mfiEvent.time = time;
 
-        switch (mfiEvent['subType']) {
+        switch (mfiEvent.subType) {
           case 'Nop':
             break;
           case 'Note':
             tmpTrack[pos++] = mfiEvent;
             // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
-              'id': pos,
-              'type': 'internal',
-              'subType': 'NoteOff',
-              'time': time + mfiEvent['length'],
-              'key': mfiEvent['key'],
-              'voice': mfiEvent['voice'],
-              'velocity': mfiEvent['velocity'],
-              'octaveShift': mfiEvent['octaveShift'],
+              id: pos,
+              type: 'internal',
+              subType: 'NoteOff',
+              time: time + mfiEvent.length,
+              key: mfiEvent.key,
+              voice: mfiEvent.voice,
+              velocity: mfiEvent.velocity,
+              octaveShift: mfiEvent.octaveShift,
             };
             pos++;
             break;
           case 'InstrumentHighPart':
             prevEvent = mfiEvent;
             mfiEvent = mfiTrack[++j];
-            if (mfiEvent['subType'] !== 'InstrumentLowPart') {
+            if (mfiEvent.subType !== 'InstrumentLowPart') {
               throw new Error('broken instrument');
             }
             // TODO: value: ... 形式になおす
             tmpTrack[pos] = {
-              'id': pos,
-              'type': 'internal',
-              'subType': 'ProgramChange',
-              'time': time,
-              'part': mfiEvent['value']['part'],
-              'instrument': (prevEvent['value']['instrument'] << 6) | mfiEvent['value']['instrument'],
+              id: pos,
+              type: 'internal',
+              subType: 'ProgramChange',
+              time: time,
+              part: mfiEvent.value.part,
+              instrument: (prevEvent.value.instrument << 6) | mfiEvent.value.instrument,
             };
             pos++;
             break;
@@ -575,22 +574,22 @@ export default class Mld {
         }
       }
       tmpTrack.sort((a, b) => {
-        return a['time'] > b['time'] ? 1 : a['time'] < b['time'] ? -1 :
-          a['id'] > b['id'] ? 1 : a['id'] < b['id'] ? -1 :
-            0;
+        return a.time > b.time ? 1 : a.time < b.time ? -1
+          : a.id > b.id ? 1 : a.id < b.id ? -1
+            : 0;
       });
 
       // MIDI トラックに作成
       tracks[i] = [];
       for (time = j = 0, jl = tmpTrack.length; j < jl; ++j) {
         mfiEvent = tmpTrack[j];
-        time = mfiEvent['time'];
+        time = mfiEvent.time;
 
-        switch (mfiEvent['subType']) {
+        switch (mfiEvent.subType) {
           case 'Note':
             // NoteOn: 9n kk vv
-            key = this.applyOctaveShift(mfiEvent['key'] + 45, mfiEvent['octaveShift']);
-            channel = i * 4 + mfiEvent['voice'];
+            key = this.applyOctaveShift(mfiEvent.key + 45, mfiEvent.octaveShift);
+            channel = i * 4 + mfiEvent.voice;
 
             // TODO: リズムトラックの時は Key が -10 されているような気がする
             if (channel === 9) {
@@ -600,14 +599,14 @@ export default class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0x90 | channel,
                 key,
-                mfiEvent['velocity'] * 2
-              )
+                mfiEvent.velocity * 2,
+              ),
             );
             break;
           case 'NoteOff':
             // NoteOff: 8n kk vv
-            key = this.applyOctaveShift(mfiEvent['key'] + 45, mfiEvent['octaveShift']);
-            channel = i * 4 + mfiEvent['voice'];
+            key = this.applyOctaveShift(mfiEvent.key + 45, mfiEvent.octaveShift);
+            channel = i * 4 + mfiEvent.voice;
 
             // TODO: リズムトラックの時は Key が -10 されているような気がする
             if (channel === 9) {
@@ -617,39 +616,39 @@ export default class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0x80 | channel,
                 key,
-                mfiEvent['velocity'] * 2
-              )
+                mfiEvent.velocity * 2,
+              ),
             );
             break;
           case 'ProgramChange':
             // Program Change: Cn pp
-            channel = i * 4 + mfiEvent['part'];
+            channel = i * 4 + mfiEvent.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xC0 | channel,
-                mfiEvent['instrument']
-              )
+                mfiEvent.instrument,
+              ),
             );
             break;
           case 'SetTempo':
             // SetTempo: FF 51 03 tt tt tt
-            tmp = 2880000000 / (mfiEvent['value']['tempo'] * mfiEvent['value']['timeBase']);
+            tmp = 2880000000 / (mfiEvent.value.tempo * mfiEvent.value.timeBase);
             channel = 0; // SetTempo は必ず先頭のトラックに配置する
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xFF,
                 0x51,
                 0x03,
-                (tmp >> 16) & 0xff, (tmp >> 8) & 0xff, tmp & 0xff
-              )
+                (tmp >> 16) & 0xff, (tmp >> 8) & 0xff, tmp & 0xff,
+              ),
             );
             break;
           case 'Loop':
             // Marker: FF 06 ll ss ss ss ...
-            tmp = mfiEvent['value']['count'];
+            tmp = mfiEvent.value.count;
             str = 'LOOP_' +
-              (mfiEvent['value']['point'] === 0 ? 'START' : 'END') +
-              '=ID:' + mfiEvent['value']['id'] +
+              (mfiEvent.value.point === 0 ? 'START' : 'END') +
+              '=ID:' + mfiEvent.value.id +
               ',COUNT:' + (tmp === 0 ? -1 : tmp);
             channel = 0;
             plainTracks[channel].push(
@@ -661,111 +660,115 @@ export default class Mld {
                 ],
                 str.split('').map((a) => {
                   return a.charCodeAt(0);
-                })
-              )
+                }),
+              ),
             );
             break;
           case 'MasterVolume':
             // Master Volume: F0 7F ee 04 01 dl dm F7
-            tmp = mfiEvent['value'];
+            tmp = mfiEvent.value;
             channel = 0;
 
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xF0,
                 0x07, // length
-                0x7F, 0x7F, 0x04, 0x01, tmp, tmp, 0xF7
-              )
+                0x7F, 0x7F, 0x04, 0x01, tmp, tmp, 0xF7,
+              ),
             );
             break;
           case 'Modulation':
             // CC#1 Modulation: Bn 01 dd
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x01,
-                mfiEvent['value']['depth'] * 2
-              )
+                mfiEvent.value.depth * 2,
+              ),
             );
             break;
           case 'Volume':
             // CC#7 Volume: Bn 07 dd
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x07,
-                mfiEvent['value']['volume'] * 2
-              )
+                mfiEvent.value.volume * 2,
+              ),
             );
             break;
           case 'Valance':
             // CC#10 Panpot: Bn 0A dd
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x0A,
-                (mfiEvent['value']['valance'] - 32) * 2 + 64
-              )
+                (mfiEvent.value.valance - 32) * 2 + 64,
+              ),
             );
             break;
           case 'PitchBend':
             // Pitch Bend: En dl dm
             // TODO: LSB = MSB で良いか不明
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xE0 | channel,
-                mfiEvent['value']['value'] * 2,
-                mfiEvent['value']['value'] * 2
-              )
+                mfiEvent.value.value * 2,
+                mfiEvent.value.value * 2,
+              ),
             );
             break;
           case 'PitchBendRange':
             // Pitch Bend: CC#100=0 CC#101=0 CC#6
             // Bn 64 00 Bn 65 00 Bn 06 vv
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
-                0x64, 0x00
-              ), [
+                0x64, 0x00,
+              ),
+              [
                 0x00,
                 0xB0 | channel,
                 0x65, 0x00,
-              ], [
+              ],
+              [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2,
-              ]
+                0x06, mfiEvent.value.value * 2,
+              ],
             );
             break;
           case 'MasterCoarseTuning':
             // MasterCoarseTuning: CC#100=0 CC#101=2 CC#6
             // Bn 64 01 Bn 65 02 Bn 06 vv
-            channel = i * 4 + mfiEvent['value']['part'];
+            channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
-                0x64, 0x00
-              ), [
+                0x64, 0x00,
+              ),
+              [
                 0x00,
                 0xB0 | channel,
                 0x65, 0x02,
-              ], [
+              ],
+              [
                 0x00,
                 0xB0 | channel,
-                0x06, mfiEvent['value']['value'] * 2,
-              ]
+                0x06, mfiEvent.value.value * 2,
+              ],
             );
             break;
           default:
             continue;
         }
 
-        channelTime[channel] = mfiEvent['time'];
+        channelTime[channel] = mfiEvent.time;
       }
     }
     return this.toSMF(plainTracks);
@@ -834,14 +837,14 @@ export default class Mld {
       return array;
     }
 
-    if (this.dataInformation['copy'] !== void 0) {
+    if (this.dataInformation.copy !== void 0) {
       /** @type {Array.<number>} */
-      let copy = stringToArray(this.dataInformation['copy']);
+      let copy = stringToArray(this.dataInformation.copy);
 
       il = copy.length;
       copy = [0x00, 0xff, 0x02].concat(
         this.deltaTimeToByteArray(il),
-        copy
+        copy,
       );
       plainTracks[0].unshift(copy);
     }
