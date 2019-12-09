@@ -5,7 +5,7 @@ import { ChannelEvent, MetaEvent } from './midi_event';
  * @version     3.0
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2007-2013,2018-2019 Logue <http://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class PSGConverter {
@@ -46,6 +46,10 @@ export default class PSGConverter {
     this.plainEvents = [];
     /** @type {number} 終了時間 */
     this.endTime = 0;
+    /** @type {number} ノートオフの逆オフセット(tick指定) */
+    this.noteOffNegativeOffset = 2;
+    /** @type {bool} テンポ命令を無視する */
+    this.ignoreTempo = optParams.igonreTempo | false;
     // 変換実行
     this.parse();
   }
@@ -91,7 +95,7 @@ export default class PSGConverter {
             // タイ記号
             tieEnabled = false;
             events.push(
-              new ChannelEvent('NoteOff', 0, time, this.channel, cNote),
+              new ChannelEvent('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, cNote),
             );
           }
           switch (RegExp.$1) {
@@ -183,7 +187,7 @@ export default class PSGConverter {
           } else if (note !== cNote) {
             // c&dなど無効なタイの処理
             events.push(
-              new ChannelEvent('NoteOff', 0, time, this.channel, cNote),
+              new ChannelEvent('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, cNote),
             );
             tieEnabled = false;
           }
@@ -200,7 +204,7 @@ export default class PSGConverter {
             tieEnabled = false;
             // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
             events.push(
-              new ChannelEvent('NoteOff', 0, time, this.channel, note),
+              new ChannelEvent('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, note),
             );
           }
         } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
