@@ -5,7 +5,7 @@ import { MetaEvent } from './midi_event';
  * @classdesc   MapleStory2 Mml Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class MapleStory2Mml extends MakiMabiSequence {
@@ -41,8 +41,6 @@ export default class MapleStory2Mml extends MakiMabiSequence {
     this.parseTracks();
 
     this.toPlainTrack();
-
-    console.log(this);
   };
 
   /**
@@ -56,7 +54,12 @@ export default class MapleStory2Mml extends MakiMabiSequence {
 
     for (let i = 0; i < this.input.length; i++) {
       /** @param {PSGConverter} */
-      const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: 0, mml: this.input[i].textContent.trim() });
+      const mml2Midi = new PSGConverter({
+        timeDivision: this.timeDivision,
+        channel: 0,
+        mml: this.input[i].textContent.trim(),
+        ignoreTempo: false,
+      });
       track = track.concat(mml2Midi.events);
       endTimes.push(mml2Midi.endTime);
     }

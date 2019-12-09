@@ -5,7 +5,7 @@ import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
  * @classdesc   MabiIcco MML File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class MabiIcco extends MakiMabiSequence {
@@ -15,7 +15,7 @@ export default class MabiIcco extends MakiMabiSequence {
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
-    /** @type {array} */
+    /** @type {array} 入力データ。行ごとに配列化 */
     this.input = String.fromCharCode
       .apply('', new Uint16Array(input))
       .split(/\r\n|\r|\n/);
@@ -54,7 +54,7 @@ export default class MabiIcco extends MakiMabiSequence {
       'panpot',
     ];
     const ret = {};
-    /** @type {number} */
+    /** @type {number} トラック番号（ヘッダー情報があるので初期値は-1） */
     let trackNo = -1;
     ret.track = [];
 
@@ -71,7 +71,7 @@ export default class MabiIcco extends MakiMabiSequence {
         if (key === 'mml-track') {
           trackNo++;
           ret.track[trackNo] = {};
-          // -が含まれる名前を変数名として使うと面倒なので・・・。
+          // 「-」が含まれる名前を変数名として使うと面倒なので・・・。
           ret.track[trackNo].mml = value;
         } else {
           ret.track[trackNo][key] = key === 'name' ? value : value | 0;
@@ -84,10 +84,10 @@ export default class MabiIcco extends MakiMabiSequence {
     this.title = ret.title;
     /** @param {string} 著者情報 */
     this.author = ret.author;
-    /** @param {array}  */
-    const mmiTempo = (ret.tempo !== '') ? ret.tempo.split('T') : [384, 120];
-    /** @param {number} 分解能（MabiIccoの場合、テンポの項目に含まれている？） */
-    this.timeDivision = mmiTempo[0] | 0 / 4;
+    /** @param {array} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
+    const mmiTempo = (ret.tempo !== '') ? ret.tempo.split('T') : [0, 120];
+    /** @param {number} 分解能 */
+    this.timeDivision = 96;
     /** @param {number} テンポ */
     this.tempo = mmiTempo[1] | 0;
     /** @param {array} 拍子記号 */
@@ -121,6 +121,7 @@ export default class MabiIcco extends MakiMabiSequence {
     this.tracks.push(headerTrack);
 
     this.input = ret.track;
+    // console.log(this);
   }
 
   /**
@@ -133,12 +134,13 @@ export default class MabiIcco extends MakiMabiSequence {
     const endTimes = [];
 
     for (let ch = 0; ch < this.input.length; ch++) {
+      /** @type {array} 現在のチャンネルの情報 */
       const current = this.input[ch];
       if (!current.mml.match(/^(?:MML@)(.*)/gm)) {
         continue;
       }
 
-      /** @param {array} MMLの配列（簡易マッチ） */
+      /** @type {array} MMLの配列（簡易マッチ） */
       const mmls = RegExp.$1.split(',');
 
       // 楽器名
@@ -158,9 +160,12 @@ export default class MabiIcco extends MakiMabiSequence {
 
       // MMLの各チャンネルの処理
       for (let chord = 0; chord < current.mml.length; chord++) {
+        let currentCh = ch;
         if (chord === 3 && current.songProgram !== -1) {
           // ch 16はコーラス用
-          ch = 15;
+          // TODO: 現在の実装では一人しかコーラスを反映させることができない。（男女のコーラスを同時に鳴らせない）
+          // 複数の奏者でコーラスが指定されていた場合、男性女性用関係なく一番うしろのコーラスで指定された音色でマージされる。
+          currentCh = 15;
         }
         if (mmls[chord] === void 0) {
           continue;
@@ -169,14 +174,16 @@ export default class MabiIcco extends MakiMabiSequence {
         /** @param {PSGConverter} */
         const mml2Midi = new PSGConverter({
           timeDivision: this.timeDivision,
-          channel: ch,
+          channel: currentCh,
           timeOffset: 386,
           mml: mmls[chord],
+          igonoreTempo: currentCh === 1,
         });
         // トラックにマージ
         track = track.concat(mml2Midi.events);
         endTimes.push(mml2Midi.endTime);
       }
+
       // トラック終了
       track.concat(new MetaEvent('EndOfTrack', 0, Math.max(endTimes)));
       this.tracks.push(track);

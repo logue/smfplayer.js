@@ -5,7 +5,7 @@ import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
  * @classdesc   MakiMabi Sequence File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class MakiMabiSequence {
@@ -51,7 +51,7 @@ export default class MakiMabiSequence {
     this.type = header.auther; // authorじゃない。
     /** @param {number} 解像度 */
     this.timeDivision = header.timeBase | 0 || 96;
-    /** @type {array} 楽器変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
+    /** @type {array} まきまびしーくの楽器番号変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
     this.mmsInstTable = [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
       10, 11, 12, 13, 14, 15, 16, 17, 65, 66,
@@ -105,7 +105,12 @@ export default class MakiMabiSequence {
         // MMLの各チャンネルの処理
         for (let chord = 0; chord < mmls.length; chord++) {
           /** @param {PSGConverter} */
-          const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: mmls[chord] });
+          const mml2Midi = new PSGConverter({
+            timeDivision: this.timeDivision,
+            channel: ch,
+            timeOffset: 386,
+            mml: mmls[chord],
+          });
           // トラックにマージ
           track = track.concat(mml2Midi.events);
           endTimes.push(mml2Midi.endTime);
