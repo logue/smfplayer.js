@@ -1,4 +1,4 @@
-/*! @logue/smfplayer v0.3.0 | imaya / GREE Inc. / Logue | license: MIT */
+/*! @logue/smfplayer v0.3.1 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -319,10 +319,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 /**
- * @classdesc   3 Macro Language Editor (3MLE) mml file Parser
+ * @classdesc   Three Macro Language Editor (3MLE) mml file Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["default"] {
@@ -484,7 +484,7 @@ __webpack_require__.r(__webpack_exports__);
  * @version     3.0
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2007-2013,2018-2019 Logue <http://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 class PSGConverter {
@@ -525,6 +525,10 @@ class PSGConverter {
     this.plainEvents = [];
     /** @type {number} 終了時間 */
     this.endTime = 0;
+    /** @type {number} ノートオフの逆オフセット(tick指定) */
+    this.noteOffNegativeOffset = 2;
+    /** @type {bool} テンポ命令を無視する */
+    this.ignoreTempo = optParams.igonreTempo | false;
     // 変換実行
     this.parse();
   }
@@ -570,7 +574,7 @@ class PSGConverter {
             // タイ記号
             tieEnabled = false;
             events.push(
-              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote),
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, cNote),
             );
           }
           switch (RegExp.$1) {
@@ -662,7 +666,7 @@ class PSGConverter {
           } else if (note !== cNote) {
             // c&dなど無効なタイの処理
             events.push(
-              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, cNote),
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, cNote),
             );
             tieEnabled = false;
           }
@@ -679,7 +683,7 @@ class PSGConverter {
             tieEnabled = false;
             // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
             events.push(
-              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time, this.channel, note),
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, note),
             );
           }
         } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
@@ -1548,11 +1552,13 @@ class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x64, 0x00,
-              ), [
+              ),
+              [
                 0x00,
                 0xB0 | channel,
                 0x65, 0x00,
-              ], [
+              ],
+              [
                 0x00,
                 0xB0 | channel,
                 0x06, mfiEvent.value.value * 2,
@@ -1567,11 +1573,13 @@ class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0xB0 | channel,
                 0x64, 0x00,
-              ), [
+              ),
+              [
                 0x00,
                 0xB0 | channel,
                 0x65, 0x02,
-              ], [
+              ],
+              [
                 0x00,
                 0xB0 | channel,
                 0x06, mfiEvent.value.value * 2,
@@ -1735,7 +1743,7 @@ __webpack_require__.r(__webpack_exports__);
  * @classdesc   MabiIcco MML File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
@@ -1745,7 +1753,7 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
-    /** @type {array} */
+    /** @type {array} 入力データ。行ごとに配列化 */
     this.input = String.fromCharCode
       .apply('', new Uint16Array(input))
       .split(/\r\n|\r|\n/);
@@ -1784,7 +1792,7 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
       'panpot',
     ];
     const ret = {};
-    /** @type {number} */
+    /** @type {number} トラック番号（ヘッダー情報があるので初期値は-1） */
     let trackNo = -1;
     ret.track = [];
 
@@ -1801,7 +1809,7 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
         if (key === 'mml-track') {
           trackNo++;
           ret.track[trackNo] = {};
-          // -が含まれる名前を変数名として使うと面倒なので・・・。
+          // 「-」が含まれる名前を変数名として使うと面倒なので・・・。
           ret.track[trackNo].mml = value;
         } else {
           ret.track[trackNo][key] = key === 'name' ? value : value | 0;
@@ -1814,10 +1822,10 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     this.title = ret.title;
     /** @param {string} 著者情報 */
     this.author = ret.author;
-    /** @param {array}  */
-    const mmiTempo = (ret.tempo !== '') ? ret.tempo.split('T') : [384, 120];
-    /** @param {number} 分解能（MabiIccoの場合、テンポの項目に含まれている？） */
-    this.timeDivision = mmiTempo[0] | 0 / 4;
+    /** @param {array} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
+    const mmiTempo = (ret.tempo !== '') ? ret.tempo.split('T') : [0, 120];
+    /** @param {number} 分解能 */
+    this.timeDivision = 96;
     /** @param {number} テンポ */
     this.tempo = mmiTempo[1] | 0;
     /** @param {array} 拍子記号 */
@@ -1851,6 +1859,7 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     this.tracks.push(headerTrack);
 
     this.input = ret.track;
+    // console.log(this);
   }
 
   /**
@@ -1863,12 +1872,13 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     const endTimes = [];
 
     for (let ch = 0; ch < this.input.length; ch++) {
+      /** @type {array} 現在のチャンネルの情報 */
       const current = this.input[ch];
       if (!current.mml.match(/^(?:MML@)(.*)/gm)) {
         continue;
       }
 
-      /** @param {array} MMLの配列（簡易マッチ） */
+      /** @type {array} MMLの配列（簡易マッチ） */
       const mmls = RegExp.$1.split(',');
 
       // 楽器名
@@ -1888,9 +1898,12 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
 
       // MMLの各チャンネルの処理
       for (let chord = 0; chord < current.mml.length; chord++) {
+        let currentCh = ch;
         if (chord === 3 && current.songProgram !== -1) {
           // ch 16はコーラス用
-          ch = 15;
+          // TODO: 現在の実装では一人しかコーラスを反映させることができない。（男女のコーラスを同時に鳴らせない）
+          // 複数の奏者でコーラスが指定されていた場合、男性女性用関係なく一番うしろのコーラスで指定された音色でマージされる。
+          currentCh = 15;
         }
         if (mmls[chord] === void 0) {
           continue;
@@ -1899,14 +1912,16 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
         /** @param {PSGConverter} */
         const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({
           timeDivision: this.timeDivision,
-          channel: ch,
+          channel: currentCh,
           timeOffset: 386,
           mml: mmls[chord],
+          igonoreTempo: currentCh === 1,
         });
         // トラックにマージ
         track = track.concat(mml2Midi.events);
         endTimes.push(mml2Midi.endTime);
       }
+
       // トラック終了
       track.concat(new _midi_event__WEBPACK_IMPORTED_MODULE_2__["MetaEvent"]('EndOfTrack', 0, Math.max(endTimes)));
       this.tracks.push(track);
@@ -1939,7 +1954,7 @@ __webpack_require__.r(__webpack_exports__);
  * @classdesc   MakiMabi Sequence File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 class MakiMabiSequence {
@@ -1985,7 +2000,7 @@ class MakiMabiSequence {
     this.type = header.auther; // authorじゃない。
     /** @param {number} 解像度 */
     this.timeDivision = header.timeBase | 0 || 96;
-    /** @type {array} 楽器変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
+    /** @type {array} まきまびしーくの楽器番号変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
     this.mmsInstTable = [
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9,
       10, 11, 12, 13, 14, 15, 16, 17, 65, 66,
@@ -2039,7 +2054,12 @@ class MakiMabiSequence {
         // MMLの各チャンネルの処理
         for (let chord = 0; chord < mmls.length; chord++) {
           /** @param {PSGConverter} */
-          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: mmls[chord] });
+          const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({
+            timeDivision: this.timeDivision,
+            channel: ch,
+            timeOffset: 386,
+            mml: mmls[chord],
+          });
           // トラックにマージ
           track = track.concat(mml2Midi.events);
           endTimes.push(mml2Midi.endTime);
@@ -2155,7 +2175,7 @@ __webpack_require__.r(__webpack_exports__);
  * @classdesc   MapleStory2 Mml Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Logue <https://logue.dev/> All rights reserved.
+ * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 class MapleStory2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
@@ -2191,8 +2211,6 @@ class MapleStory2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     this.parseTracks();
 
     this.toPlainTrack();
-
-    console.log(this);
   };
 
   /**
@@ -2206,7 +2224,12 @@ class MapleStory2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
 
     for (let i = 0; i < this.input.length; i++) {
       /** @param {PSGConverter} */
-      const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({ timeDivision: this.timeDivision, channel: 0, mml: this.input[i].textContent.trim() });
+      const mml2Midi = new _PSGConverter__WEBPACK_IMPORTED_MODULE_0__["default"]({
+        timeDivision: this.timeDivision,
+        channel: 0,
+        mml: this.input[i].textContent.trim(),
+        ignoreTempo: false,
+      });
       track = track.concat(mml2Midi.events);
       endTimes.push(mml2Midi.endTime);
     }
