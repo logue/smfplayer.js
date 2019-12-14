@@ -1,4 +1,4 @@
-/*! @logue/smfplayer v0.3.1 | imaya / GREE Inc. / Logue | license: MIT */
+/*! @logue/smfplayer v0.3.2 | imaya / GREE Inc. / Logue | license: MIT */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
@@ -481,7 +481,7 @@ __webpack_require__.r(__webpack_exports__);
 /**
  * @class       PSGConverter
  * @classdesc   Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * @version     3.0
+ * @version     3.0.2
  *
  * @author      Logue <logue@hotmail.co.jp>
  * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
@@ -493,16 +493,14 @@ class PSGConverter {
    * @param {array} optParams
    */
   constructor(optParams = {}) {
-    /** @type {number} 解像度 */
+    /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision | 0 || 96;
-    /** @type {number} チャンネル */
+    /** @type {number} チャンネル（0～15） */
     this.channel = optParams.channel | 0;
     /** @type {number} 演奏開始までのオフセット時間 */
     this.timeOffset = optParams.timeOffset | 0;
-    /** @type {bool} GM互換モードにするか */
-    this.isGMMode = optParams.timeOffset | false;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
-    this.PATTERN = /[A-GLNORTV<>][+#-]?[0-9]*\.?&?/gi;
+    this.PATTERN = /[a-glnortv<>][+#-]?[0-9]*\.?&?/g;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
     this.NOTE_TABLE = {
       c: 0,
@@ -517,7 +515,9 @@ class PSGConverter {
     this.MINIM = this.timeDivision * 2;
     /** @type {number} 1小節 */
     this.SEMIBREVE = this.timeDivision * 4;
-    /** @type {array} MML */
+    /** @type {number} ベロシティの倍率 */
+    this.VELOCITY_MAGNIFICATION = 7; // 127÷15≒8.4
+    /** @type {array} MMLデータ */
     this.mml = optParams.mml;
     /** @type {array} イベント */
     this.events = [];
@@ -529,6 +529,16 @@ class PSGConverter {
     this.noteOffNegativeOffset = 2;
     /** @type {bool} テンポ命令を無視する */
     this.ignoreTempo = optParams.igonreTempo | false;
+    /** @type {number} 最大オクターブ */
+    this.maxOctave = optParams.maxOctave | 8;
+    /** @type {number} 最小オクターブ */
+    this.minOctave = optParams.minOctave | 0;
+    /** @type {number} オクターブモード（0：処理しない。1：外れる音階はその前後のオクターブをループする。2：常に同じ音を鳴らす */
+    this.octaveMode = optParams.octaveMode | 0;
+    /** @type {number} 最低音階（octaveModeが0の場合は無視されます。デフォルトはピアノの音階。GM音源で再生するとき用） */
+    this.minNote = optParams.minNote | 12;
+    /** @type {number} 最高音階（octaveModeが0の場合は無視されます。デフォルトはピアノの音階。GM音源で再生するとき用） */
+    this.maxNote = optParams.minNote | 98;
     // 変換実行
     this.parse();
   }
@@ -538,108 +548,120 @@ class PSGConverter {
    */
   parse() {
     /** @type {Array} MMLストリーム */
-    let notes;
+    let mmls = [];
     try {
-      notes = this.mml.match(this.PATTERN);
+      // 小文字に変換した後正規表現で命令単位で分割する。
+      mmls = this.mml.toLowerCase().match(this.PATTERN);
     } catch (e) {
       console.warn('Could not parse MML.', this.mml);
       return;
     }
+
+    if (!mmls) {
+      // 空欄の場合処理しない
+      return;
+    }
+
     /** @type {number} タイムスタンプ */
     let time = this.timeOffset;
     /** @type {number} 現在の音の長さ */
-    let cLength = this.timeDivision;
+    let currentSoundLength = this.timeDivision;
     /** @type {number} 現在の音階 */
-    let cNote = 0;
-    /** @type {boolean} タイ記号 */
+    let currentNote = 0;
+    /** @type {number} ベロシティ(0～15) */
+    let currentVelocity = 8;
+    /** @type {number} オクターブ(0~8) */
+    let currentOctave = 4;
+    /** @type {bool} タイ記号 */
     let tieEnabled = false;
-    /** @type {number} 現在のボリューム(0～15) */
-    let cVolume = 8;
-    /** @type {number} 現在のオクターブ(1~8) */
-    let cOctave = 4;
-    /** @type {Array} イベント */
+
+    /** @type {array} MIDIイベント */
     const events = [];
 
-    for (const mnid in notes) {
-      if (notes && Object.prototype.hasOwnProperty.call(notes, mnid)) {
-        /** @type {number} 現在の音符の長さ */
-        let tick = cLength | 0;
-        /** @type {number} 値 */
-        let val = 0;
+    // MMLを命令単位でパース
+    for (const message of mmls) {
+      /** @type {number} すすめるtick数 */
+      let tick = currentSoundLength | 0;
+      /** @type {string} コマンド */
+      let command = '';
+      /** @type {number} 値 */
+      let value = 0;
 
-        // 音長(L)、オクターブ(O<>)、テンポ（T）、ボリューム（V）をパース
-        if (notes[mnid].match(/([LOTV<>])([1-9][0-9]*|0?)(\.?)(&?)/i)) {
-          val = parseInt(RegExp.$2);
-          if (tieEnabled && RegExp.$4 !== '&') {
-            // タイ記号
-            tieEnabled = false;
+      // 音長(L)、オクターブ(O<>)、テンポ（T）、ベロシティ（V）をパース
+      if (message.match(/([lotv<>])([1-9][0-9]*|0?)(\.?)(&?)/)) {
+        command = RegExp.$1.toLowerCase();
+        value = RegExp.$2 | 0;
+
+        if (tieEnabled && RegExp.$4 !== '&') {
+          // タイ記号
+          tieEnabled = false;
+          events.push(
+            new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, currentNote),
+          );
+        }
+
+        switch (command) {
+          case 'l':
+            // 音長設定 Ln[.] (n=1～192)
+            if (value >= 1 && value <= this.MINIM) {
+              currentSoundLength = Math.floor(this.SEMIBREVE / value);
+              if (RegExp.$3 === '.') {
+                // 付点の場合音長を1.5倍する
+                currentSoundLength = Math.floor(currentSoundLength * 1.5);
+              }
+            }
+            break;
+          case 'o':
+            // オクターブ設定 On (n=1～8)
+            if (value >= this.minOctave && value <= this.maxOctave) {
+              currentOctave = value;
+            }
+            break;
+          case 't':
+            // テンポ設定 Tn (n=32～255)
             events.push(
-              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, cNote),
+              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"]('SetTempo', 0, time, [Math.floor(60000000 / value)]),
             );
-          }
-          switch (RegExp.$1) {
-            case 'L':
-            case 'l':
-              // 音長設定 Ln[.] (n=1～192)
-              if (val >= 1 && val <= this.MINIM) {
-                cLength = Math.floor(this.SEMIBREVE / val);
-                if (RegExp.$3 === '.') {
-                  // 付点の場合音長を1.5倍する
-                  cLength = Math.floor(cLength * 1.5);
-                }
-              }
-              break;
-            case 'O':
-            case 'o':
-              // オクターブ設定 On (n=1～8)
-              if (val >= 0 && val <= 8) {
-                cOctave = val;
-              }
-              break;
-            case 'T':
-            case 't':
-              // テンポ設定 Tn (n=32～255)
-              events.push(
-                new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"]('SetTempo', 0, time, [Math.floor(60000000 / val)]),
-              );
-              break;
-            case 'V':
-            case 'v':
-              // ボリューム調整
-              if (val >= 0 && val <= 15) {
-                cVolume = val;
-              }
-              break;
-
-            // 簡易オクターブ設定 {<>}
-            case '<':
-              cOctave = cOctave <= 0 ? 0 : cOctave - 1;
-              break;
-            case '>':
-              cOctave = cOctave >= 8 ? 8 : cOctave + 1;
-              break;
-          }
-        } else if (notes[mnid].match(/([A-GN])([+#-]?)([0-9]*)(\.?)(&?)/i)) {
-          // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
-          /** @type {number} 音階 */
-          let note = 0;
-          val = RegExp.$3 | 0;
-
-          if (RegExp.$1 === 'n' || RegExp.$1 === 'N') {
-            // Nn：絶対音階指定 Lで指定した長さに設定
-            note = val;
-          } else {
-            // [A-G]：音名表記
-            // 音符の長さ指定: n分音符→128分音符×tick数
-            if (val >= 1 && val <= this.MINIM) {
-              tick = Math.floor(this.SEMIBREVE / val); // L1 -> 384tick .. L64 -> 6tick
+            break;
+          case 'v':
+            // ベロシティ調整
+            if (value >= 0 && value <= 15) {
+              currentVelocity = value;
             }
-            if (RegExp.$4 === '.') {
-              tick = Math.floor(tick * 1.5); // 付点つき -> 1.5倍
-            }
+            break;
 
+          // 簡易オクターブ設定 {<>}
+          case '<':
+            currentOctave = currentOctave <= this.minOctave ? this.minOctave : currentOctave - 1;
+            break;
+          case '>':
+            currentOctave = currentOctave >= this.maxOctave ? this.maxOctave : currentOctave + 1;
+            break;
+        }
+      } else if (message.match(/([a-gn])([+#-]?)([0-9]*)(\.?)(&?)/)) {
+        // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
+
+        /** @type {number} 音階 */
+        let note = 0;
+        command = RegExp.$1.toLowerCase();
+        value = RegExp.$3 | 0;
+
+        if (command === 'n') {
+          // Nn：絶対音階指定 Lで指定した長さに設定
+          note = value;
+        } else {
+          // [A-G]：音名表記
+          // 音符の長さ指定: n分音符→128分音符×tick数
+          if (value >= 1 && value <= this.MINIM) {
+            tick = Math.floor(this.SEMIBREVE / value); // L1 -> 384tick .. L64 -> 6tick
+          }
+          if (RegExp.$4 === '.') {
+            tick = Math.floor(tick * 1.5); // 付点つき -> 1.5倍
+          }
+
+          if (this.octaveMode !== 2) {
             // 音名→音階番号変換(C1 -> 12, C4 -> 48, ..)
-            note = 12 * cOctave + this.NOTE_TABLE[RegExp.$1.toLowerCase()];
+            note = 12 * currentOctave + this.NOTE_TABLE[command];
 
             // 調音記号の処理
             if (RegExp.$2 === '+' || RegExp.$2 === '#') {
@@ -648,68 +670,105 @@ class PSGConverter {
               note--;
             }
           }
-          // 1オクターブ低く演奏される不具合を修正 060426
-          note += 12;
-
-          if (!tieEnabled) {
-            // 前回タイ記号が無いときのみノートオン
-            events.push(
-              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"](
-                'NoteOn',
-                0,
-                time,
-                this.channel,
-                note,
-                8 * cVolume,
-              ),
-            );
-          } else if (note !== cNote) {
-            // c&dなど無効なタイの処理
-            events.push(
-              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, cNote),
-            );
-            tieEnabled = false;
-          }
-
-          // タイムカウンタを音符の長さだけ進める
-          time += tick;
-
-          // ノートオフ命令の追加
-          if (RegExp.$5 === '&') {
-            // タイ記号の処理
-            tieEnabled = true;
-            cNote = note; // 直前の音階を保存
-          } else {
-            tieEnabled = false;
-            // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
-            events.push(
-              new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, note),
-            );
-          }
-        } else if (notes[mnid].match(/[rR]([0-9]*)(\.?)/)) {
-          // 休符設定 R[n][.] (n=1～64)
-          val = RegExp.$1 | 0;
-
-          if (val >= 1 && val <= this.MINIM) {
-            // L1 -> 128tick .. L64 -> 2tick
-            tick = Math.floor(this.SEMIBREVE / val);
-          }
-
-          if (RegExp.$2 === '.') {
-            // 付点つき -> 1.5倍
-            tick = Math.floor(tick * 1.5);
-          }
-
-          time += tick; // タイムカウンタを休符の長さだけ進める
-        } else {
-          console.warn('unknown signeture.', notes[mnid]);
         }
+
+        // オクターブ調整（楽器の音域エミュレーション。通常は0。GM互換モード時のみ使用）
+        switch (this.octaveMode) {
+          case 1:
+            // オクターブループモード
+            while (note < this.minNote) note = note + 12;
+            while (note > this.maxNote) note = note - 12;
+            note += 12;
+            break;
+          case 2:
+            // ワンショットモード（音階の強制指定）
+            note = this.maxNote;
+            break;
+          default:
+            // 通常モード（非GMモードでは常にこれ）
+            note += 12;
+            break;
+        }
+
+        if (!tieEnabled) {
+          // 前回タイ記号が無いときのみノートオン
+          events.push(
+            new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"](
+              'NoteOn',
+              0,
+              time,
+              this.channel,
+              note,
+              currentVelocity * this.VELOCITY_MAGNIFICATION, // ※127÷15≒8.4なので8とする。
+            ),
+          );
+        } else if (note !== currentNote) {
+          // c&dなど無効なタイの処理
+          events.push(
+            new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, currentNote),
+          );
+          tieEnabled = false;
+        }
+
+        // タイムカウンタを音符の長さだけ進める
+        time += tick;
+
+        // ノートオフ命令の追加
+        if (RegExp.$5 === '&') {
+          // タイ記号の処理
+          tieEnabled = true;
+          currentNote = note; // 直前の音階を保存
+        } else {
+          tieEnabled = false;
+          // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
+          events.push(
+            new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"]('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, note),
+          );
+        }
+      } else if (message.match(/R([0-9]*)(\.?)/i)) {
+        // 休符設定 R[n][.] (n=1～64)
+        value = RegExp.$1 | 0;
+
+        if (value >= 1 && value <= this.MINIM) {
+          // L1 -> 128tick .. L64 -> 2tick
+          tick = Math.floor(this.SEMIBREVE / value);
+        }
+
+        if (RegExp.$2 === '.') {
+          // 付点つき -> 1.5倍
+          tick = Math.floor(tick * 1.5);
+        }
+
+        time += tick; // タイムカウンタを休符の長さだけ進める
+      } else {
+        console.warn('unknown signeture.', message);
       }
     }
+    // イベントを代入
     this.events = events;
+    // 演奏完了時間を代入
     this.endTime = time;
   }
 }
+
+
+/***/ }),
+
+/***/ "./src/meta.js":
+/*!*********************!*\
+  !*** ./src/meta.js ***!
+  \*********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+// This file is auto-generated by the build system.
+const Meta = {
+  version: '0.3.2',
+  date: '2019-12-14T16:35:00.444Z',
+};
+/* harmony default export */ __webpack_exports__["default"] = (Meta);
 
 
 /***/ }),
@@ -2253,12 +2312,14 @@ class MapleStory2Mml extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "Player", function() { return Player; });
-/* harmony import */ var _smf__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./smf */ "./src/smf.js");
-/* harmony import */ var _mld__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mld */ "./src/mld.js");
+/* harmony import */ var _mmi__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./mmi */ "./src/mmi.js");
+/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
 /* harmony import */ var _ms2mml__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./ms2mml */ "./src/ms2mml.js");
-/* harmony import */ var _mms__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./mms */ "./src/mms.js");
-/* harmony import */ var _3mle__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./3mle */ "./src/3mle.js");
-/* harmony import */ var _mmi__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./mmi */ "./src/mmi.js");
+/* harmony import */ var _meta__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./meta */ "./src/meta.js");
+/* harmony import */ var _mld__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./mld */ "./src/mld.js");
+/* harmony import */ var _smf__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./smf */ "./src/smf.js");
+/* harmony import */ var _3mle__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./3mle */ "./src/3mle.js");
+
 
 
 
@@ -2325,6 +2386,11 @@ class Player {
     this.window = window;
     /** @type {Element} */
     this.target = this.window.document.querySelector(target);
+
+    /** @type {number} */
+    this.version = _meta__WEBPACK_IMPORTED_MODULE_3__["default"].version;
+    /** @type {string} */
+    this.build = _meta__WEBPACK_IMPORTED_MODULE_3__["default"].build;
   }
 
   /**
@@ -2732,7 +2798,7 @@ class Player {
    */
   loadMidiFile(buffer) {
     /** @type {SMF} */
-    const parser = new _smf__WEBPACK_IMPORTED_MODULE_0__["default"](buffer);
+    const parser = new _smf__WEBPACK_IMPORTED_MODULE_5__["default"](buffer);
 
     this.init();
     parser.parse();
@@ -2745,7 +2811,7 @@ class Player {
    */
   loadMldFile(buffer) {
     /** @type {Mld} */
-    const parser = new _mld__WEBPACK_IMPORTED_MODULE_1__["default"](buffer);
+    const parser = new _mld__WEBPACK_IMPORTED_MODULE_4__["default"](buffer);
 
     this.init();
     parser.parse();
@@ -2771,7 +2837,7 @@ class Player {
    */
   loadMakiMabiSequenceFile(buffer) {
     /** @type {MakiMabiSequence} */
-    const parser = new _mms__WEBPACK_IMPORTED_MODULE_3__["default"](buffer);
+    const parser = new _mms__WEBPACK_IMPORTED_MODULE_1__["default"](buffer);
 
     this.init();
     parser.parse();
@@ -2784,7 +2850,7 @@ class Player {
    */
   load3MleFile(buffer) {
     /** @type {ThreeMacroLanguageEditor} */
-    const parser = new _3mle__WEBPACK_IMPORTED_MODULE_4__["default"](buffer);
+    const parser = new _3mle__WEBPACK_IMPORTED_MODULE_6__["default"](buffer);
 
     this.init();
     parser.parse();
@@ -2797,7 +2863,7 @@ class Player {
    */
   loadMabiIccoFile(buffer) {
     /** @type {MabiIcco} */
-    const parser = new _mmi__WEBPACK_IMPORTED_MODULE_5__["default"](buffer);
+    const parser = new _mmi__WEBPACK_IMPORTED_MODULE_0__["default"](buffer);
 
     this.init();
     parser.parse();
@@ -3102,8 +3168,10 @@ class RiffChunk {
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return SMF; });
-/* harmony import */ var _riff__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./riff */ "./src/riff.js");
-/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
+/* harmony import */ var _midi_event__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./midi_event */ "./src/midi_event.js");
+/* harmony import */ var _meta__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./meta */ "./src/meta.js");
+/* harmony import */ var _riff__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./riff */ "./src/riff.js");
+
 
 
 
@@ -3129,7 +3197,7 @@ class SMF {
      * @type {Riff}
      * @private
      */
-    this.riffParser_ = new _riff__WEBPACK_IMPORTED_MODULE_0__["default"](input, optParams);
+    this.riffParser_ = new _riff__WEBPACK_IMPORTED_MODULE_2__["default"](input, optParams);
 
     // MIDI File Information
 
@@ -3143,6 +3211,11 @@ class SMF {
     this.tracks = [];
     /** @type {Array.<Array.<ByteArray>>} */
     this.plainTracks = [];
+
+    /** @type {number} */
+    this.version = _meta__WEBPACK_IMPORTED_MODULE_1__["default"].version;
+    /** @type {string} */
+    this.build = _meta__WEBPACK_IMPORTED_MODULE_1__["default"].build;
   };
 
   /**
@@ -3292,13 +3365,13 @@ class SMF {
         case 0xD:
         /* FALLTHROUGH */
         case 0xE:
-          event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"](
+          event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"](
             table[eventType], deltaTime, totalTime,
             channel, data[ip++], data[ip++],
           );
           break;
         case 0xC:
-          event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"](
+          event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"](
             table[eventType], deltaTime, totalTime,
             channel, data[ip++],
           );
@@ -3312,14 +3385,14 @@ class SMF {
               if (data[ip + tmp - 1] !== 0xf7) {
                 throw new Error('invalid SysEx event');
               }
-              event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"](
+              event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["SystemExclusiveEvent"](
                 'SystemExclusive', deltaTime, totalTime,
                 data.subarray(ip, (ip += tmp) - 1),
               );
               break;
             case 0x7:
               tmp = readNumber();
-              event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"](
+              event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["SystemExclusiveEvent"](
                 'SystemExclusive(F7)', deltaTime, totalTime,
                 data.subarray(ip, (ip += tmp)),
               );
@@ -3330,82 +3403,82 @@ class SMF {
               tmp = readNumber();
               switch (eventType) {
                 case 0x00: // sequence number
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'SequenceNumber', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x01: // text event
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'TextEvent', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x02: // copyright notice
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'CopyrightNotice', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x03: // sequence/track name
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'SequenceTrackName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x04: // instrument name
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'InstrumentName', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x05: // lyrics
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'Lyrics', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x06: // marker
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'Marker', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x07: // cue point
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'CuePoint', deltaTime, totalTime, [String.fromCharCode.apply(null, data.subarray(ip, ip += tmp))],
                   );
                   break;
                 case 0x20: // midi channel prefix
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'MidiChannelPrefix', deltaTime, totalTime, [data[ip++]],
                   );
                   break;
                 case 0x2f: // end of track
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'EndOfTrack', deltaTime, totalTime, [],
                   );
                   break;
                 case 0x51: // set tempo
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'SetTempo', deltaTime, totalTime, [(data[ip++] << 16) | (data[ip++] << 8) | data[ip++]],
                   );
                   break;
                 case 0x54: // smpte offset
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'SmpteOffset', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x58: // time signature
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'TimeSignature', deltaTime, totalTime, [data[ip++], data[ip++], data[ip++], data[ip++]],
                   );
                   break;
                 case 0x59: // key signature
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'KeySignature', deltaTime, totalTime, [data[ip++], data[ip++]],
                   );
                   break;
                 case 0x7f: // sequencer specific
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'SequencerSpecific', deltaTime, totalTime, [data.subarray(ip, ip += tmp)],
                   );
                   break;
                 default: // unknown
-                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"](
+                  event = new _midi_event__WEBPACK_IMPORTED_MODULE_0__["MetaEvent"](
                     'Unknown', deltaTime, totalTime, [eventType, data.subarray(ip, ip += tmp)],
                   );
               }
@@ -3424,7 +3497,7 @@ class SMF {
       plainBytes = data.subarray(offset, offset + length);
       plainBytes[0] = status;
       if (
-        event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_1__["ChannelEvent"] &&
+        event instanceof _midi_event__WEBPACK_IMPORTED_MODULE_0__["ChannelEvent"] &&
         event.subtype === 'NoteOn' &&
         /** @type {ChannelEvent} */
         (event).parameter2 === 0

@@ -1,9 +1,10 @@
-import Riff from './riff';
 import {
   ChannelEvent,
   SystemExclusiveEvent,
   MetaEvent,
 } from './midi_event';
+import Meta from './meta';
+import Riff from './riff';
 
 /**
  * Standard Midi File Parser class
@@ -41,6 +42,11 @@ export default class SMF {
     this.tracks = [];
     /** @type {Array.<Array.<ByteArray>>} */
     this.plainTracks = [];
+
+    /** @type {number} */
+    this.version = Meta.version;
+    /** @type {string} */
+    this.build = Meta.build;
   };
 
   /**

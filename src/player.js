@@ -1,9 +1,10 @@
-import SMF from './smf';
-import Mld from './mld';
-import MapleStory2Mml from './ms2mml';
-import MakiMabiSequence from './mms';
-import ThreeMacroLanguageEditor from './3mle';
 import MabiIcco from './mmi';
+import MakiMabiSequence from './mms';
+import MapleStory2Mml from './ms2mml';
+import Meta from './meta';
+import Mld from './mld';
+import SMF from './smf';
+import ThreeMacroLanguageEditor from './3mle';
 /**
  * Midi Player Class
  */
@@ -64,6 +65,11 @@ export class Player {
     this.window = window;
     /** @type {Element} */
     this.target = this.window.document.querySelector(target);
+
+    /** @type {number} */
+    this.version = Meta.version;
+    /** @type {string} */
+    this.build = Meta.build;
   }
 
   /**

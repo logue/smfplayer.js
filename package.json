@@ -1,6 +1,6 @@
 {
   "name": "@logue/smfplayer",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "smfplayer.js is JavaScript based Standard Midi Player for WebMidiLink based synthesizer.",
   "scripts": {
     "watch": "webpack --mode development --watch --color --progress",
@@ -18,13 +18,17 @@
     "url": "git+https://github.com/logue/smfplayer.js.git"
   },
   "keywords": [
-    "midi",
+    "Maple Story 2",
     "WebMidiLink",
-    "wml",
-    "smf",
+    "mabinogi",
     "midi player",
+    "midi",
+    "mml",
+    "ms2mml",
+    "Music Macro Language",
     "sequencer",
-    "ms2mml"
+    "smf",
+    "wml"
   ],
   "author": "imaya / GREE Inc.",
   "contributors": [
