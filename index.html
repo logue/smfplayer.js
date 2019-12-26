@@ -40,13 +40,13 @@
   <link rel="canonical" href="https://logue.github.io/smfplayer.js/">
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
-    integrity="sha256-YLGeXaapI0/5IgZopewRJcFXomhRMlYYjugPLSyNjTY=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+    integrity="sha256-L/W5Wfqfa0sdBNIKN9cG6QA5F2qx4qICmU2VgLruv9Y=" crossorigin="anonymous">
   <!-- Web Fonts -->
   <link href="https://fonts.googleapis.com/css?family=M+PLUS+Rounded+1c|Varela+Round&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.45.1/css/dseg.css"
     integrity="sha256-0kP9GjBI5CdeL8PdmthxSmNbvRHsfz5Me/r6FK7UVJ4=" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.9.0/css/all.css" />
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.0/css/all.css" />
   <style>
     /*<!CDATA[*/
 
@@ -438,14 +438,14 @@
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.4.1/dist/jquery.slim.min.js"
     integrity="sha256-pasqAKBDmFT4eHoN2ndd6lN370kFiGUFyTiUHWhU7k8=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha256-fzFFyH01cBVPYzl16KT40wqjhgPtq6FFUB6ckN2+GGw=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.bundle.min.js"
+    integrity="sha256-OUFW7hFO0/r5aEGTQOz9F/aXQOt+TwqI1Z4fbVvww04=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/unzip.min.js"
     integrity="sha256-pKobUkzPTKMnWX5yXGUt55Lp7W9pboaAhaXiI/hgIr4=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/gh/Takazudo/jQuery.socialthings@0.1.10/jquery.socialthings.min.js"
     integrity="sha256-x1bbXqksATv7EnepzQLhlHlbt2DOHbU+8+/nodOpdpk=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@1.0.29/encoding.min.js"
-    integrity="sha256-43tAJsbifpKXUsuWt6SOpBWF8BQHF2zSwFVfPCeua+w=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@1.0.30/encoding.min.js"
+    integrity="sha256-3N1q3S/Cg/TL0ER062kNT2VYIsHLzEqymlj2dEXYhXI=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/query-string@1.0.1/query-string.js"
     integrity="sha256-grrS5HRy2p4Z2sCglfc9r6rqRBewKCdWzuWhbUpIEJ4=" crossorigin="anonymous"></script>
 
@@ -509,8 +509,6 @@
       $('#zips').on('change', function (e) {
         loadSample($(this).val());
       });
-
-      console.log(params);
 
       if (params.zip && !initialized) {
         // クエリからZipファイルを選択

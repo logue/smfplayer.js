@@ -1,53 +1,62 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
+
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-<title> sf2.js test </title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>sf2.js test</title>
 </head>
 
 <body bgcolor="#C0FFE0">
-<h1></h1>
+  <h1></h1>
 
-<div> <button id="sfback"> </button> <span id="sftitle"> </span> </div>
-<table>
-<tr>
-<td rowspan=2> <table id="sftable" border=1> </table> </td>
-<td>
-    <canvas id="wave" width=600 height=200 background="black"> </canvas>
-  </td>
-  </tr>
-<tr> <td>
-    <canvas id="waveloop" width=600 height=200 background="black"> </canvas>
-</td>
-</tr>
-</table>
+  <div>
+    <button id="sfback"></button>
+    <span id="sftitle"></span>
+  </div>
+  <table>
+    <tr>
+      <td rowspan=2>
+        <table id="sftable" border="1"></table>
+      </td>
+      <td>
+        <canvas id="wave" width="600" height="200" background="black"> </canvas>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <canvas id="waveloop" width="600" height="200" background="black"> </canvas>
+      </td>
+    </tr>
+  </table>
 
-<script type="text/javascript" src="sf2.js"> </script>
-<script type="text/javascript" src="debug.js"> </script>
-<script type="text/javascript">
-if (document.addEventListener) {
-    document.addEventListener("DOMContentLoaded", function() {
-    var url = location.search.substr(1).split("&")[0];
-    url = '../Yamaha XG Sound Set.sf2';
-// 
-    var xhr = new XMLHttpRequest();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState > 3) {
+  <script type="text/javascript" src="sf2.js"></script>
+  <script type="text/javascript" src="debug.js"></script>
+  <script type="text/javascript">
+    if (document.addEventListener) {
+      document.addEventListener("DOMContentLoaded", function () {
+        var url = location.search.substr(1).split("&")[0];
+        url = '../Yamaha XG Sound Set.sf2';
+        // 
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+          if (xhr.readyState > 3) {
             if (xhr.status == 200) {
-               var sf = new SoundFont2();
-               sf.input(xhr.response);
-               viewBanksPresets(sf);
+              var sf = new SoundFont2();
+              sf.input(xhr.response);
+              viewBanksPresets(sf);
             }
-        }
-    };
-    xhr.open('GET', url);
-    xhr.overrideMimeType('text/plain; charset=x-user-defined');
-    xhr.responseType = 'arraybuffer';
-    xhr.send(null);
-})
-}
+          }
+        };
+        xhr.open('GET', url);
+        xhr.overrideMimeType('text/plain; charset=x-user-defined');
+        xhr.responseType = 'arraybuffer';
+        xhr.send(null);
+      })
+    }
 
-</script>
-<hr>
-<address></address>
-</body> </html>
+  </script>
+  <hr>
+  <address></address>
+</body>
+
+</html>
