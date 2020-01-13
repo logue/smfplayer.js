@@ -1,13 +1,13 @@
-/*! @logue/smfplayer v0.3.3 | imaya / GREE Inc. / Logue | license: MIT | build: 2019-12-26T16:41:39.958Z */
+/*! @logue/smfplayer v0.3.4 | imaya / GREE Inc. / Logue | license: MIT | build: 2020-01-13T02:21:55.338Z */
 (function webpackUniversalModuleDefinition(root, factory) {
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("SoundFont", [], factory);
+		define("SMF", [], factory);
 	else if(typeof exports === 'object')
-		exports["SoundFont"] = factory();
+		exports["SMF"] = factory();
 	else
-		root["SoundFont"] = factory();
+		root["SMF"] = factory();
 })((typeof self !== 'undefined' ? self : this), function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -322,7 +322,7 @@ __webpack_require__.r(__webpack_exports__);
  * @classdesc   Three Macro Language Editor (3MLE) mml file Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 
@@ -353,10 +353,10 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
     this.encoder = new TextEncoder(header.Encoding || 'shift_jis');
     /** @param {string} */
 
-    this.title = header.Title;
+    this.title = header.Title || '';
     /** @param {string} */
 
-    this.author = header.Source;
+    this.author = header.Source || '';
     /** @param {number} */
 
     this.timeDivision = header.TimeBase | 0 || 32; // 曲名と著者情報を付加
@@ -368,7 +368,7 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["SystemExclusiveEvent"]('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('CopyrightNotice', 0, 0, [this.author]));
-    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('TextEvent', 0, 0, [header.Memo]));
+    headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('TextEvent', 0, 0, [header.Memo || '']));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('TimeSignature', 0, 0, [header.TimeSignatureNN | 0 || 4, header.TimeSignatureDD | 0 || 4, 0, 0]));
     headerTrack.push(new _midi_event__WEBPACK_IMPORTED_MODULE_1__["MetaEvent"]('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack); // 3MLE EXTENSION、Settingsを取り除く
@@ -394,6 +394,8 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
 
     for (const block in input) {
       if (input.hasOwnProperty(block)) {
+        // なお、3MLEは各チャンネルごとに和音を表現できない上に、ドラムチャンネルである10チャンネルを使えないため、
+        // 事実上15和音までしか使えない。
         if (block.match(/^Channel(\d+)$/i)) {
           // MMLは[Channel[n]]ブロックのキー
           // ひどいファイル形式だ・・・。
@@ -403,7 +405,7 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
         if (block.match(/^ChannelProperty(\d+)$/i)) {
           // 各パートの楽器情報などは[ChannelProperty[n]]に格納されている
           settings[(RegExp.$1 | 0) - 1] = {
-            name: input[block].Name,
+            name: input[block].Name || `Channel${(RegExp.$1 | 0) - 1}`,
             instrument: input[block].Patch | 0,
             panpot: input[block].Pan | 0
           };
@@ -420,14 +422,14 @@ class ThreeMacroLanguageEditor extends _mms__WEBPACK_IMPORTED_MODULE_2__["defaul
         if (settings[no] !== void 0) {
           data[no] = {
             mml: mmls[no],
-            name: settings[no].name || '',
+            name: settings[no].name,
             instrument: settings[no].instrument || 0,
             panpot: settings[no].panpot || 64
           };
         } else {
           data[no] = {
             mml: mmls[no],
-            name: '',
+            name: `Channel${ch}`,
             instrument: 0,
             panpot: 64
           };
@@ -498,7 +500,7 @@ __webpack_require__.r(__webpack_exports__);
  * @version     3.0.2
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 
@@ -518,7 +520,7 @@ class PSGConverter {
     this.timeOffset = optParams.timeOffset | 0;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
 
-    this.PATTERN = /[a-glnortv<>][+#-]?[0-9]*\.?&?/g;
+    this.PATTERN = /[a-glnortv<>][+#-]?\d*\.?&?/g;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
 
     this.NOTE_TABLE = {
@@ -554,7 +556,7 @@ class PSGConverter {
     this.endTime = 0;
     /** @type {number} ノートオフの逆オフセット(tick指定) */
 
-    this.noteOffNegativeOffset = 2;
+    this.noteOffNegativeOffset = 1;
     /** @type {bool} テンポ命令を無視する */
 
     this.ignoreTempo = optParams.igonreTempo | false;
@@ -786,6 +788,17 @@ class PSGConverter {
 
     this.endTime = time;
   }
+  /**
+   * ドラムのマッピング
+   * @param {number} note ノート
+   * @return {number}
+   */
+
+
+  getGmDrum(note) {
+    // TODO
+    return note;
+  }
 
 }
 
@@ -802,8 +815,8 @@ class PSGConverter {
 __webpack_require__.r(__webpack_exports__);
 // This file is auto-generated by the build system.
 const Meta = {
-  version: '0.3.3',
-  date: '2019-12-26T16:41:39.958Z'
+  version: '0.3.4',
+  date: '2020-01-13T02:21:55.338Z'
 };
 /* harmony default export */ __webpack_exports__["default"] = (Meta);
 
@@ -1840,7 +1853,7 @@ __webpack_require__.r(__webpack_exports__);
  * @classdesc   MabiIcco MML File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 
@@ -1923,10 +1936,10 @@ class MabiIcco extends _mms__WEBPACK_IMPORTED_MODULE_1__["default"] {
     /** @param {string} タイトル */
 
 
-    this.title = ret.title;
+    this.title = ret.title || '';
     /** @param {string} 著者情報 */
 
-    this.author = ret.author;
+    this.author = ret.author || '';
     /** @param {array} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
 
     const mmiTempo = ret.tempo !== '' ? ret.tempo.split('T') : [0, 120];
@@ -2050,7 +2063,7 @@ __webpack_require__.r(__webpack_exports__);
  * @classdesc   MakiMabi Sequence File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 
@@ -2101,10 +2114,10 @@ class MakiMabiSequence {
 
     /** @type {string} タイトル */
 
-    this.title = header.title;
+    this.title = header.title || '';
     /** @type {string} 著者情報 */
 
-    this.type = header.auther; // authorじゃない。
+    this.type = header.auther || ''; // authorじゃない。
 
     /** @param {number} 解像度 */
 
@@ -2769,7 +2782,7 @@ class Player {
 
     const update = () => {
       /** @type {number} */
-      const time = mergedTrack[pos].time;
+      const time = mergedTrack[pos].time || 0;
       /** @type {number} */
 
       const length = mergedTrack.length;
@@ -2906,7 +2919,7 @@ class Player {
     };
 
     if (!this.pause) {
-      this.timer = player.window.setTimeout(update, this.tempo / 1000 * timeDivision * this.track[0].time);
+      this.timer = player.window.setTimeout(update, this.tempo / 1000 * timeDivision * this.track[0].time || 0);
     } else {
       // resume
       this.timer = player.window.setTimeout(update, this.resume);

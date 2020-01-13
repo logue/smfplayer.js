@@ -5,7 +5,7 @@ import MakiMabiSequence from './mms';
  * @classdesc   Three Macro Language Editor (3MLE) mml file Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
@@ -30,9 +30,9 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     /** @type {TextEncoder} */
     this.encoder = new TextEncoder(header.Encoding || 'shift_jis');
     /** @param {string} */
-    this.title = header.Title;
+    this.title = header.Title || '';
     /** @param {string} */
-    this.author = header.Source;
+    this.author = header.Source || '';
     /** @param {number} */
     this.timeDivision = header.TimeBase | 0 || 32;
 
@@ -43,7 +43,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
     headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
-    headerTrack.push(new MetaEvent('TextEvent', 0, 0, [header.Memo]));
+    headerTrack.push(new MetaEvent('TextEvent', 0, 0, [header.Memo || '']));
     headerTrack.push(new MetaEvent('TimeSignature', 0, 0, [header.TimeSignatureNN | 0 || 4, header.TimeSignatureDD | 0 || 4, 0, 0]));
     headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
@@ -60,7 +60,6 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     const input = this.input;
     /** @type {array} 終了時間比較用 */
     const endTimes = [];
-
     /** @type {array} 各ブロックのMML */
     const mmls = [];
     /** @type {array} 各ブロックの演奏情報 */
@@ -68,6 +67,8 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
 
     for (const block in input) {
       if (input.hasOwnProperty(block)) {
+        // なお、3MLEは各チャンネルごとに和音を表現できない上に、ドラムチャンネルである10チャンネルを使えないため、
+        // 事実上15和音までしか使えない。
         if (block.match(/^Channel(\d+)$/i)) {
           // MMLは[Channel[n]]ブロックのキー
 
@@ -77,8 +78,9 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
 
         if (block.match(/^ChannelProperty(\d+)$/i)) {
           // 各パートの楽器情報などは[ChannelProperty[n]]に格納されている
+
           settings[(RegExp.$1 | 0) - 1] = {
-            name: input[block].Name,
+            name: input[block].Name || `Channel${(RegExp.$1 | 0) - 1}`,
             instrument: input[block].Patch | 0,
             panpot: input[block].Pan | 0,
           };
@@ -95,14 +97,14 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
         if (settings[no] !== void 0) {
           data[no] = {
             mml: mmls[no],
-            name: settings[no].name || '',
+            name: settings[no].name,
             instrument: settings[no].instrument || 0,
             panpot: settings[no].panpot || 64,
           };
         } else {
           data[no] = {
             mml: mmls[no],
-            name: '',
+            name: `Channel${ch}`,
             instrument: 0,
             panpot: 64,
           };

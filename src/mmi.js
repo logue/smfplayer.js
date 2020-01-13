@@ -5,7 +5,7 @@ import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
  * @classdesc   MabiIcco MML File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class MabiIcco extends MakiMabiSequence {
@@ -81,9 +81,9 @@ export default class MabiIcco extends MakiMabiSequence {
       }
     }
     /** @param {string} タイトル */
-    this.title = ret.title;
+    this.title = ret.title || '';
     /** @param {string} 著者情報 */
-    this.author = ret.author;
+    this.author = ret.author || '';
     /** @param {array} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
     const mmiTempo = (ret.tempo !== '') ? ret.tempo.split('T') : [0, 120];
     /** @param {number} 分解能 */

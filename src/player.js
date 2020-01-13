@@ -338,7 +338,7 @@ export class Player {
 
     const update = () => {
       /** @type {number} */
-      const time = mergedTrack[pos].time;
+      const time = mergedTrack[pos].time || 0;
       /** @type {number} */
       const length = mergedTrack.length;
       /** @type {Object} TODO */
@@ -459,7 +459,7 @@ export class Player {
     if (!this.pause) {
       this.timer = player.window.setTimeout(
         update,
-        this.tempo / 1000 * timeDivision * this.track[0].time,
+        this.tempo / 1000 * timeDivision * this.track[0].time || 0,
       );
     } else {
       // resume

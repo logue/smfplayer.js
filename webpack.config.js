@@ -34,7 +34,7 @@ module.exports = (env) => {
     output: {
       path: path.resolve(__dirname, 'bin'),
       filename: !isProduction ? '[name].js' : '[name].min.js',
-      library: 'SoundFont',
+      library: 'SMF',
       libraryTarget: 'umd',
       umdNamedDefine: true,
       globalObject: `(typeof self !== 'undefined' ? self : this)`,

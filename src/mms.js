@@ -5,7 +5,7 @@ import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
  * @classdesc   MakiMabi Sequence File Parser
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class MakiMabiSequence {
@@ -46,9 +46,9 @@ export default class MakiMabiSequence {
     /** @type {object} インフォメーション情報 */
     const header = this.input.infomation; // informationじゃない
     /** @type {string} タイトル */
-    this.title = header.title;
+    this.title = header.title || '';
     /** @type {string} 著者情報 */
-    this.type = header.auther; // authorじゃない。
+    this.type = header.auther || ''; // authorじゃない。
     /** @param {number} 解像度 */
     this.timeDivision = header.timeBase | 0 || 96;
     /** @type {array} まきまびしーくの楽器番号変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */

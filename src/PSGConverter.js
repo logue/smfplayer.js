@@ -5,7 +5,7 @@ import { ChannelEvent, MetaEvent } from './midi_event';
  * @version     3.0.2
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2020 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class PSGConverter {
@@ -21,7 +21,7 @@ export default class PSGConverter {
     /** @type {number} 演奏開始までのオフセット時間 */
     this.timeOffset = optParams.timeOffset | 0;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
-    this.PATTERN = /[a-glnortv<>][+#-]?[0-9]*\.?&?/g;
+    this.PATTERN = /[a-glnortv<>][+#-]?\d*\.?&?/g;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
     this.NOTE_TABLE = {
       c: 0,
@@ -47,7 +47,7 @@ export default class PSGConverter {
     /** @type {number} 終了時間 */
     this.endTime = 0;
     /** @type {number} ノートオフの逆オフセット(tick指定) */
-    this.noteOffNegativeOffset = 2;
+    this.noteOffNegativeOffset = 1;
     /** @type {bool} テンポ命令を無視する */
     this.ignoreTempo = optParams.igonreTempo | false;
     /** @type {number} 最大オクターブ */
@@ -269,5 +269,15 @@ export default class PSGConverter {
     this.events = events;
     // 演奏完了時間を代入
     this.endTime = time;
+  }
+
+  /**
+   * ドラムのマッピング
+   * @param {number} note ノート
+   * @return {number}
+   */
+  getGmDrum(note) {
+    // TODO
+    return note;
   }
 }
