@@ -16,18 +16,19 @@
 
     gtag('config', 'UA-33600926-1');
   </script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@logue/sf2synth@0.3.5/bin/wml.min.css" integrity="sha256-Vat9Twk1WNC20CLYJzmhGWlNwxqQQztjqONaFJijycA=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@logue/sf2synth@0.3.6/bin/wml.min.css"
+    integrity="sha256-/NyVJk9WPl+A0im6TIFKhrwrokGMOIPefMkLjnTFhAo=" crossorigin="anonymous">
 </head>
 
 <body>
   <div class="container-fluid">
-    <!--header>
+    <header>
       <h1 class="h2">SoundFont:<span id="soundfont"></span></h1>
       <p class="text-end">
         <a href="https://logue.dev/" target="_blank">Logue</a> /
         <small class="text-muted">Last Modified: <span id="build"></span></small>
       </p>
-    </header-->
+    </header>
     <main>
       <!--div>
           <label class="form-label" for="file">Load SoundFont2 file
@@ -41,9 +42,9 @@
   </div>
   <script src="https://cdn.jsdelivr.net/npm/query-string@1.0.1/query-string.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/g200kg/WAAPISim@master/waapisim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@logue/sf2synth@0.3.5/bin/sf2.synth.min.js" integrity="sha256-H/FR00XJHN4Fq7sdbH8fkAYhx1pe1RG9fjhfMOOZlD4=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@logue/sf2synth@0.3.6/bin/sf2.synth.min.js"
+    integrity="sha256-EvypySWM+XJYHBTyIMeSY3isvuw+9o4gMV5lw/VIbjU=" crossorigin="anonymous"></script>
   <script>
-    /*<![CDATA[*/
     const message = document.getElementById('message');
     const qs = queryString.parse(window.location.search);
     var option = {};
@@ -51,16 +52,15 @@
       option.drawSynth = false;
     }
     const sf = qs.soundfont ? decodeURIComponent(qs.soundfont) : 'Yamaha XG Sound Set.sf2';
-    // document.getElementById('soundfont').innerText = sf;
+    document.getElementById('soundfont').innerText = sf;
     option.placeholder = 'placeholder';
     const wml = new SoundFont.WebMidiLink(option);
-    // document.getElementById('build').innerText = wml.build;
+    document.getElementById('build').innerText = wml.build;
     console.info(wml.build);
     wml.setLoadCallback(function () {
       message.style.display = 'none';
     });
     wml.setup(sf);
-    /*
 
     // Load sound font
     const handleSoundFont = (file) => {
@@ -75,6 +75,7 @@
         wml.loadSoundFont(data);
       };
     }
+    /*
 
     // local file
     window.addEventListener('DOMContentLoaded', (event) => {
@@ -107,7 +108,6 @@
 
     }, false);
     */
-    /*]]>*/
   </script>
   </div>
 </body>
