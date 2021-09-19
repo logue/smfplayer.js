@@ -22,7 +22,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     this.parseHeader();
     this.parseTracks();
     this.toPlainTrack();
-  };
+  }
   /**
    */
   parseHeader() {
@@ -40,18 +40,32 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     /** @type {array}  */
     const headerTrack = [];
     // GM Reset
-    headerTrack.push(new SystemExclusiveEvent('SystemExclusive', 0, 0, [0x7e, 0x7f, 0x09, 0x01]));
+    headerTrack.push(
+      new SystemExclusiveEvent(
+        'SystemExclusive',
+        0,
+        0,
+        [0x7e, 0x7f, 0x09, 0x01]
+      )
+    );
     headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
     headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
     headerTrack.push(new MetaEvent('TextEvent', 0, 0, [header.Memo]));
-    headerTrack.push(new MetaEvent('TimeSignature', 0, 0, [header.TimeSignatureNN | 0 || 4, header.TimeSignatureDD | 0 || 4, 0, 0]));
+    headerTrack.push(
+      new MetaEvent('TimeSignature', 0, 0, [
+        header.TimeSignatureNN | 0 || 4,
+        header.TimeSignatureDD | 0 || 4,
+        0,
+        0,
+      ])
+    );
     headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
 
     // 3MLE EXTENSION、Settingsを取り除く
     delete this.input['3MLE EXTENSION'];
     delete this.input.Settings;
-  };
+  }
 
   /**
    * MML parse
@@ -66,23 +80,26 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     /** @type {array} 各ブロックの演奏情報 */
     const settings = [];
 
-    for (const block in input) {
-      if (input.hasOwnProperty(block)) {
-        if (block.match(/^Channel(\d+)$/i)) {
-          // MMLは[Channel[n]]ブロックのキー
+    for (const block in this.input) {
+      if (!Object.prototype.hasOwnProperty.call(this.input, block)) {
+        continue;
+      }
+      if (block.match(/^Channel(\d+)$/i)) {
+        // MMLは[Channel[n]]ブロックのキー
 
-          // ひどいファイル形式だ・・・。
-          mmls[(RegExp.$1 | 0) - 1] = Object.keys(input[block]).join('').replace(/\/\*([^*]|\*[^\/])*\*\//g, '');
-        }
+        // ひどいファイル形式だ・・・。
+        mmls[(RegExp.$1 | 0) - 1] = Object.keys(input[block])
+          .join('')
+          .replace(/\/\*([^*]|\*[^/])*\*\//g, '');
+      }
 
-        if (block.match(/^ChannelProperty(\d+)$/i)) {
-          // 各パートの楽器情報などは[ChannelProperty[n]]に格納されている
-          settings[(RegExp.$1 | 0) - 1] = {
-            name: input[block].Name,
-            instrument: input[block].Patch | 0,
-            panpot: input[block].Pan | 0,
-          };
-        }
+      if (block.match(/^ChannelProperty(\d+)$/i)) {
+        // 各パートの楽器情報などは[ChannelProperty[n]]に格納されている
+        settings[(RegExp.$1 | 0) - 1] = {
+          name: input[block].Name,
+          instrument: input[block].Patch | 0,
+          panpot: input[block].Pan | 0,
+        };
       }
     }
 
@@ -91,57 +108,69 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
 
     // データを整形
     for (const no in mmls) {
-      if (mmls.hasOwnProperty(no)) {
-        if (settings[no] !== void 0) {
-          data[no] = {
-            mml: mmls[no],
-            name: settings[no].name || '',
-            instrument: settings[no].instrument || 0,
-            panpot: settings[no].panpot || 64,
-          };
-        } else {
-          data[no] = {
-            mml: mmls[no],
-            name: '',
-            instrument: 0,
-            panpot: 64,
-          };
-        }
+      if (!Object.prototype.hasOwnProperty.call(mmls, no)) {
+        continue;
+      }
+      if (settings[no] !== void 0) {
+        data[no] = {
+          mml: mmls[no],
+          name: settings[no].name || '',
+          instrument: settings[no].instrument || 0,
+          panpot: settings[no].panpot || 64,
+        };
+      } else {
+        data[no] = {
+          mml: mmls[no],
+          name: '',
+          instrument: 0,
+          panpot: 64,
+        };
       }
     }
 
     // console.log(data);
 
     for (const part in data) {
-      if (data.hasOwnProperty(part)) {
-        /** @type {number} */
-        const ch = part | 0;
-        /** @type {array} MIDIイベント */
-        let track = [];
-        if (data[part].mml === '') {
-          // 空っぽのMMLトラックの場合処理しない
-          continue;
-        }
-
-        // 楽器名
-        track.push(new MetaEvent('InsturumentName', 0, 48, [data[part].name]));
-        // プログラムチェンジ
-        track.push(new ChannelEvent('ProgramChange', 0, 96, ch, data[part].instrument));
-        // パン
-        track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, data[part].panpot));
-
-        /** @param {PSGConverter} */
-        const mml2Midi = new PSGConverter({ timeDivision: this.timeDivision, channel: ch, timeOffset: 386, mml: data[part].mml });
-        // トラックにマージ
-        track = track.concat(mml2Midi.events);
-        // 演奏時間を更新
-        endTimes.push(mml2Midi.endTime);
-
-        // トラック終了
-        track.concat(new MetaEvent('EndOfTrack', 0, Math.max(endTimes)));
-        this.tracks.push(track);
+      if (!Object.prototype.hasOwnProperty.call(data, part)) {
+        continue;
       }
+      /** @type {number} */
+      const ch = part | 0;
+      /** @type {array} MIDIイベント */
+      let track = [];
+      if (data[part].mml === '') {
+        // 空っぽのMMLトラックの場合処理しない
+        return;
+      }
+
+      // 楽器名
+      track.push(new MetaEvent('InsturumentName', 0, 48, [data[part].name]));
+      // プログラムチェンジ
+      track.push(
+        new ChannelEvent('ProgramChange', 0, 96, ch, data[part].instrument)
+      );
+      // パン
+      track.push(
+        new ChannelEvent('ControlChange', 0, 154, ch, 10, data[part].panpot)
+      );
+
+      /** @param {PSGConverter} */
+      const mml2Midi = new PSGConverter({
+        timeDivision: this.timeDivision,
+        channel: ch,
+        timeOffset: 386,
+        mml: data[part].mml,
+      });
+      // トラックにマージ
+      track = track.concat(mml2Midi.events);
+      // 演奏時間を更新
+      endTimes.push(mml2Midi.endTime);
+
+      // トラック終了
+      track.concat(new MetaEvent('EndOfTrack', 0, Math.max(endTimes)));
+      this.tracks.push(track);
     }
+
     this.numberOfTracks = this.tracks.length;
   }
 }

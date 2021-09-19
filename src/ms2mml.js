@@ -20,7 +20,10 @@ export default class MapleStory2Mml extends MakiMabiSequence {
     /** @type {DOMParser} */
     const parser = new DOMParser();
     /** @type {Document} */
-    const doc = parser.parseFromString(String.fromCharCode.apply('', new Uint16Array(input)), 'text/xml');
+    const doc = parser.parseFromString(
+      String.fromCharCode.apply('', new Uint16Array(input)),
+      'text/xml'
+    );
     /** @param {Element} */
     this.input = doc.querySelectorAll('ms2 > *');
     /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
@@ -41,7 +44,7 @@ export default class MapleStory2Mml extends MakiMabiSequence {
     this.parseTracks();
 
     this.toPlainTrack();
-  };
+  }
 
   /**
    * MML parse
@@ -52,7 +55,7 @@ export default class MapleStory2Mml extends MakiMabiSequence {
     /** @type {array} 終了時間比較用 */
     const endTimes = [];
 
-    for (let i = 0; i < this.input.length; i++) {
+    for (const i of this.input) {
       /** @param {PSGConverter} */
       const mml2Midi = new PSGConverter({
         timeDivision: this.timeDivision,

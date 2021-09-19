@@ -16,9 +16,9 @@ export class Player {
     /** @type {number} */
     this.tempo = 500000; // default
     /** @type {HTMLIFrameElement} */
-    this.webMidiLink;
+    this.webMidiLin = null;
     /** @type {number} */
-    this.resume;
+    this.resume = 0;
     /** @type {boolean} */
     this.pause = true;
     /** @type {boolean} */
@@ -58,7 +58,7 @@ export class Player {
     /** @type {number} */
     this.time = 0;
     /** @type {number} */
-    this.timeTotal;
+    this.timeTotal = 0;
     /** @type {number} */
     this.loaded = 0;
     /** @type {Window} */
@@ -111,7 +111,10 @@ export class Player {
 
     if (this.webMidiLink) {
       for (i = 0; i < 16; ++i) {
-        this.webMidiLink.contentWindow.postMessage('midi,b' + i.toString(16) + ',78,0', '*');
+        this.webMidiLink.contentWindow.postMessage(
+          'midi,b' + i.toString(16) + ',78,0',
+          '*'
+        );
       }
     }
   }
@@ -149,13 +152,17 @@ export class Player {
     if (this.ready) {
       this.sendInitMessage();
     } else {
-      this.window.addEventListener('message', (ev) => {
-        if (ev.data === 'link,ready') {
-          player.sendInitMessage();
-        }
-      }, false);
+      this.window.addEventListener(
+        'message',
+        (ev) => {
+          if (ev.data === 'link,ready') {
+            player.sendInitMessage();
+          }
+        },
+        false
+      );
     }
-  };
+  }
 
   /**
    */
@@ -188,20 +195,25 @@ export class Player {
         console.warn('Midi file is not loaded.');
       }
     } else {
-      this.window.addEventListener('message', (ev) => {
-        if (ev.data === 'link,ready') {
-          player.ready = true;
-          player.webMidiLink.style.height = this.webMidiLink.contentWindow.document.body.scrollHeight + 'px';
-          player.playSequence();
-        }
-      }, false);
+      this.window.addEventListener(
+        'message',
+        (ev) => {
+          if (ev.data === 'link,ready') {
+            player.ready = true;
+            player.webMidiLink.style.height =
+              this.webMidiLink.contentWindow.document.body.scrollHeight + 'px';
+            player.playSequence();
+          }
+        },
+        false
+      );
     }
-  };
+  }
 
   /**
    */
   ended() {
-    player.window.postMessage('endoftrack', '*');
+    this.player.window.postMessage('endoftrack', '*');
   }
 
   /**
@@ -228,7 +240,7 @@ export class Player {
       win.postMessage('midi,b' + i.toString(16) + ',26,00', '*');
     }
     this.sendGmReset();
-  };
+  }
 
   /**
    * @param {string|Worker} port WebMidiLink url.
@@ -267,9 +279,9 @@ export class Player {
       }
 
       /** @type {HTMLIFrameElement} */
-      const iframe = this.webMidiLink =
+      const iframe = (this.webMidiLink =
         /** @type {HTMLIFrameElement} */
-        (this.window.document.createElement('iframe'));
+        (this.window.document.createElement('iframe')));
       iframe.src = port;
       iframe.className = 'wml';
 
@@ -277,23 +289,28 @@ export class Player {
       this.window.addEventListener('message', process, false);
 
       const resizeHeight = () => {
-        iframe.style.height = this.webMidiLink.contentWindow.document.body.scrollHeight + 'px';
+        iframe.style.height =
+          this.webMidiLink.contentWindow.document.body.scrollHeight + 'px';
       };
 
       this.window.addEventListener('load', resizeHeight, false);
 
       let timer = 0;
-      this.window.addEventListener('resize', () => {
-        if (timer > 0) {
-          clearTimeout(timer);
-        }
-        timer = setTimeout(resizeHeight, 100);
-      }, false);
+      this.window.addEventListener(
+        'resize',
+        () => {
+          if (timer > 0) {
+            clearTimeout(timer);
+          }
+          timer = setTimeout(resizeHeight, 100);
+        },
+        false
+      );
     } else {
       // Worker Mode
       this.webMidiLink.addEventListener('message', process, false);
     }
-  };
+  }
 
   /**
    * @param {number} volume
@@ -303,22 +320,23 @@ export class Player {
 
     if (this.webMidiLink) {
       this.webMidiLink.contentWindow.postMessage(
-        'midi,f0,7f,7f,04,01,' + [
-          ('0' + ((volume) & 0x7f).toString(16)).substr(-2),
-          ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
-          '7f',
-        ].join(','),
-        '*',
+        'midi,f0,7f,7f,04,01,' +
+          [
+            ('0' + (volume & 0x7f).toString(16)).substr(-2),
+            ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
+            '7f',
+          ].join(','),
+        '*'
       );
     }
-  };
+  }
 
   /**
    * @param {number} tempo
    */
   setTempoRate(tempo) {
     this.tempoRate = tempo;
-  };
+  }
 
   /**
    */
@@ -394,7 +412,9 @@ export class Player {
 
             if (player.enableMFiLoop) {
               // MFi Loop
-              match = event.data[0].match(/^LOOP_(START|END)=ID:(\d+),COUNT:(-?\d+)$/);
+              match = event.data[0].match(
+                /^LOOP_(START|END)=ID:(\d+),COUNT:(-?\d+)$/
+              );
               if (match) {
                 if (match[1] === 'START') {
                   mark[match[2] | 0] = mark[match[2]] || {
@@ -403,7 +423,8 @@ export class Player {
                   };
                 } else if (match[1] === 'END' && player.enableMFiLoop) {
                   tmp = mark[match[2] | 0];
-                  if (tmp.count !== 0) { // loop jump
+                  if (tmp.count !== 0) {
+                    // loop jump
                     if (tmp.count > 0) {
                       tmp.count--;
                     }
@@ -411,7 +432,8 @@ export class Player {
                     player.timer = player.window.setTimeout(update, 0);
                     player.position = pos;
                     return;
-                  } else { // loop end
+                  } else {
+                    // loop end
                     mark[match[2] | 0] = null;
                   }
                 }
@@ -438,13 +460,19 @@ export class Player {
         procTime = Date.now() - procTime;
         player.timer = player.window.setTimeout(
           update,
-          player.tempo / (1000 * timeDivision) * (mergedTrack[pos].time - time - procTime) * (1 / player.tempoRate),
+          (player.tempo / (1000 * timeDivision)) *
+            (mergedTrack[pos].time - time - procTime) *
+            (1 / player.tempoRate)
         );
       } else {
         // loop
         player.ended();
         player.pause = true;
-        if (player.enableCC111Loop && mark[0] && typeof mark[0].pos === 'number') {
+        if (
+          player.enableCC111Loop &&
+          mark[0] &&
+          typeof mark[0].pos === 'number'
+        ) {
           pos = mark[0].pos;
         } else if (player.enableLoop) {
           player.initSequence();
@@ -459,18 +487,15 @@ export class Player {
     if (!this.pause) {
       this.timer = player.window.setTimeout(
         update,
-        this.tempo / 1000 * timeDivision * this.track[0].time,
+        (this.tempo / 1000) * timeDivision * this.track[0].time
       );
     } else {
       // resume
-      this.timer = player.window.setTimeout(
-        update,
-        this.resume,
-      );
+      this.timer = player.window.setTimeout(update, this.resume);
       this.pause = false;
       this.resume = -1;
     }
-  };
+  }
 
   /**
    * @param {ArrayBuffer} buffer
@@ -483,7 +508,7 @@ export class Player {
     parser.parse();
 
     this.mergeMidiTracks(parser);
-  };
+  }
 
   /**
    * @param {ArrayBuffer} buffer
@@ -555,7 +580,7 @@ export class Player {
    */
   mergeMidiTracks(midi) {
     /** @type {Array.<Object>} */
-    const mergedTrack = this.track = [];
+    const mergedTrack = (this.track = []);
     /** @type {Array.<Array.<Object>>} */
     const tracks = midi.tracks;
     /** @type {Array.<number>} */
@@ -597,43 +622,52 @@ export class Player {
           eventId: j,
           time: track[j].time,
           event: track[j],
-          webMidiLink: 'midi,' +
-            Array.prototype.map.call(
-              plainTracks[i][j],
-              (a) => {
+          webMidiLink:
+            'midi,' +
+            Array.prototype.map
+              .call(plainTracks[i][j], (a) => {
                 return a.toString(16);
-              },
-            ).join(','),
+              })
+              .join(','),
         });
       }
     }
 
     // sort
     mergedTrack.sort((a, b) => {
-      return a.time > b.time ? 1 : a.time < b.time ? -1
-        : a.track > b.track ? 1 : a.track < b.track ? -1
-          : a.eventId > b.eventId ? 1 : a.eventId < b.eventId ? -1
-            : 0;
+      return a.time > b.time
+        ? 1
+        : a.time < b.time
+        ? -1
+        : a.track > b.track
+        ? 1
+        : a.track < b.track
+        ? -1
+        : a.eventId > b.eventId
+        ? 1
+        : a.eventId < b.eventId
+        ? -1
+        : 0;
     });
 
     // トータルの演奏時間
     this.timeTotal = mergedTrack.slice(-1)[0].time;
     this.sequence = midi;
-  };
+  }
 
   /**
    * @return {?string}
    */
   getSequenceName() {
     return this.sequenceName;
-  };
+  }
 
   /**
    * @return {?string}
    */
   getCopyright() {
     return this.copyright;
-  };
+  }
 
   /**
    * @return {?string}
@@ -644,7 +678,7 @@ export class Player {
 
   /**
    * @return {?string}
-  */
+   */
   getTextEvent() {
     return this.textEvent;
   }
@@ -703,6 +737,12 @@ export class Player {
     const divisorForSeconds = divisorForMinutes % 60;
     const seconds = Math.ceil(divisorForSeconds);
 
-    return hours + ':' + ('00' + minutes).slice(-2) + ':' + ('00' + seconds).slice(-2);
+    return (
+      hours +
+      ':' +
+      ('00' + minutes).slice(-2) +
+      ':' +
+      ('00' + seconds).slice(-2)
+    );
   }
 }

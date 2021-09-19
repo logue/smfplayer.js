@@ -19,7 +19,7 @@ export default class Mld {
     this.dataInformation;
     /** @type {Array.<Array.<Object>>} */
     this.tracks;
-  };
+  }
 
   /**
    */
@@ -27,7 +27,7 @@ export default class Mld {
     this.parseHeader();
     this.parseDataInformation();
     this.parseTracks();
-  };
+  }
 
   /**
    */
@@ -37,30 +37,34 @@ export default class Mld {
     /** @type {number} */
     let ip = this.ip;
     /** @type {Object} */
-    const header = this.header = {};
+    const header = (this.header = {});
     /** @type {string} */
-    const signature =
-      String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]);
+    const signature = String.fromCharCode(
+      input[ip++],
+      input[ip++],
+      input[ip++],
+      input[ip++]
+    );
 
     if (signature !== 'melo') {
       throw new Error('invalid MFi signature:' + signature);
     }
 
-    header.fileLength = (
-      (input[ip++] << 24) | (input[ip++] << 16) |
-      (input[ip++] << 8) | input[ip++]
-    ) >>> 0;
+    header.fileLength =
+      ((input[ip++] << 24) |
+        (input[ip++] << 16) |
+        (input[ip++] << 8) |
+        input[ip++]) >>>
+      0;
 
-    header.trackOffset = (
-      (input[ip++] << 16) | input[ip++]
-    ) + ip;
+    header.trackOffset = ((input[ip++] << 16) | input[ip++]) + ip;
 
     header.dataMajorType = input[ip++];
     header.dataMinorType = input[ip++];
     header.numberOfTracks = input[ip++];
 
     this.ip = ip;
-  };
+  }
 
   /**
    */
@@ -70,7 +74,7 @@ export default class Mld {
     /** @type {number} */
     let ip = this.ip;
     /** @type {Object} */
-    const dataInformation = this.dataInformation = {
+    const dataInformation = (this.dataInformation = {
       copy: null,
       date: null,
       exst: null,
@@ -80,15 +84,19 @@ export default class Mld {
       titl: null,
       trac: null,
       vers: null,
-    };
+    });
     /** @type {string} */
     let type;
     /** @type {number} */
     let size;
 
     while (ip < this.header.trackOffset) {
-      type =
-        String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]);
+      type = String.fromCharCode(
+        input[ip++],
+        input[ip++],
+        input[ip++],
+        input[ip++]
+      );
       size = (input[ip++] << 8) | input[ip++];
 
       switch (type) {
@@ -103,7 +111,7 @@ export default class Mld {
         case 'prot':
           dataInformation[type] = String.fromCharCode.apply(
             null,
-            input.subarray(ip, ip += size),
+            input.subarray(ip, (ip += size))
           );
           break;
         case 'sorc':
@@ -116,7 +124,7 @@ export default class Mld {
           /* FALLTHROUGH */
           break;
         default:
-          dataInformation[type] = input.subarray(ip, ip += size);
+          dataInformation[type] = input.subarray(ip, (ip += size));
           break;
       }
     }
@@ -144,7 +152,7 @@ export default class Mld {
     /** @type {Object} */
     let message;
     /** @type {Array.<Array.<Object>>} */
-    const tracks = this.tracks = [];
+    const tracks = (this.tracks = []);
     /** @type {Array.<Object>} */
     let track;
     /** @type {number} */
@@ -217,7 +225,7 @@ export default class Mld {
 
       return {
         part: (input[ip++] >> 5) & 0x3,
-        switch: (input[ip++] >> 6),
+        switch: input[ip++] >> 6,
       };
     };
     /**
@@ -235,21 +243,27 @@ export default class Mld {
       }
 
       return {
-        data: input.subarray(ip, ip += limit - ip),
+        data: input.subarray(ip, (ip += limit - ip)),
       };
     };
 
     for (i = 0, il = this.header.numberOfTracks; i < il; ++i) {
-      signature =
-        String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]);
+      signature = String.fromCharCode(
+        input[ip++],
+        input[ip++],
+        input[ip++],
+        input[ip++]
+      );
 
       if (signature !== 'trac') {
         throw new Error('invalid track signature:' + signature);
       }
 
       size =
-        (input[ip++] << 24) | (input[ip++] << 16) |
-        (input[ip++] << 8) | input[ip++];
+        (input[ip++] << 24) |
+        (input[ip++] << 16) |
+        (input[ip++] << 8) |
+        input[ip++];
 
       limit = ip + size;
 
@@ -268,7 +282,7 @@ export default class Mld {
         };
 
         // delta time
-        message.deltaTime = deltaTime = input[ip++];
+        message.deltaTime = input[ip++];
 
         // status
         status = input[ip++];
@@ -279,7 +293,7 @@ export default class Mld {
           message.key = status & 0x3f;
 
           // note length
-          noteLength = message.length = input[ip++];
+          // noteLength = message.length = input[ip++];
 
           // extend status
           if (this.dataInformation.note === 1) {
@@ -308,15 +322,20 @@ export default class Mld {
                   };
                   break;
                 default:
-                  throw new Error('unknown message type:' + status.toString(16));
+                  throw new Error(
+                    'unknown message type:' + status.toString(16)
+                  );
               }
               break;
             // tempo message
             case 0xc:
               message.subType = 'SetTempo';
               message.value = {
-                timeBase: (status & 0x7) === 7
-                  ? NaN : Math.pow(2, status & 0x7) * ((status & 0x8) === 0 ? 6 : 15),
+                timeBase:
+                  (status & 0x7) === 7
+                    ? NaN
+                    : Math.pow(2, status & 0x7) *
+                      ((status & 0x8) === 0 ? 6 : 15),
                 tempo: input[ip++],
               };
               break;
@@ -331,7 +350,7 @@ export default class Mld {
                   message.subType = 'Loop';
                   message.value = {
                     id: input[ip] >> 6,
-                    count: input[ip] >> 2 & 0xf,
+                    count: (input[ip] >> 2) & 0xf,
                     point: input[ip++] & 0x3,
                   };
                   break;
@@ -344,7 +363,9 @@ export default class Mld {
                   message.value = input[ip++];
                   break;
                 default:
-                  throw new Error('unkwnon message type:' + status.toString(16));
+                  throw new Error(
+                    'unkwnon message type:' + status.toString(16)
+                  );
               }
               break;
             // instrument
@@ -396,19 +417,18 @@ export default class Mld {
                   message.subType = 'VolumeChange';
                   message.value = {
                     part: input[ip] >> 6,
-                    volume: (input[ip++] & 0x3f) << 26 >> 26,
+                    volume: ((input[ip++] & 0x3f) << 26) >> 26,
                   };
                   break;
                 case 0x7:
                   message.subType = 'PitchBendRange';
                   message.value = {
                     part: input[ip] >> 6,
-                    value: (input[ip++] & 0x3f),
+                    value: input[ip++] & 0x3f,
                   };
                   break;
-
-                case 0x8:
                 /*
+                case 0x8:
                 // TODO: 未遭遇
                 message.subType = 'MasterFineTuning';
                 message.value = {
@@ -422,18 +442,20 @@ export default class Mld {
                   message.subType = 'MasterCoarseTuning';
                   message.value = {
                     part: input[ip] >> 6,
-                    value: (input[ip++] & 0x3f),
+                    value: input[ip++] & 0x3f,
                   };
                   break;
-                case 0xA:
+                case 0xa:
                   message.subType = 'Modulation';
                   message.value = {
                     part: input[ip] >> 6,
-                    depth: (input[ip++] & 0x3f),
+                    depth: input[ip++] & 0x3f,
                   };
                   break;
                 default:
-                  throw new Error('unkwnon message type:' + status.toString(16));
+                  throw new Error(
+                    'unkwnon message type:' + status.toString(16)
+                  );
               }
               break;
             // extended information
@@ -452,7 +474,9 @@ export default class Mld {
                   message.value = parseDeviceSpecific();
                   break;
                 default:
-                  throw new Error('unkwnon message type:' + status.toString(16));
+                  throw new Error(
+                    'unkwnon message type:' + status.toString(16)
+                  );
               }
               break;
             default:
@@ -564,7 +588,8 @@ export default class Mld {
               subType: 'ProgramChange',
               time: time,
               part: mfiEvent.value.part,
-              instrument: (prevEvent.value.instrument << 6) | mfiEvent.value.instrument,
+              instrument:
+                (prevEvent.value.instrument << 6) | mfiEvent.value.instrument,
             };
             pos++;
             break;
@@ -574,9 +599,15 @@ export default class Mld {
         }
       }
       tmpTrack.sort((a, b) => {
-        return a.time > b.time ? 1 : a.time < b.time ? -1
-          : a.id > b.id ? 1 : a.id < b.id ? -1
-            : 0;
+        return a.time > b.time
+          ? 1
+          : a.time < b.time
+          ? -1
+          : a.id > b.id
+          ? 1
+          : a.id < b.id
+          ? -1
+          : 0;
       });
 
       // MIDI トラックに作成
@@ -588,7 +619,10 @@ export default class Mld {
         switch (mfiEvent.subType) {
           case 'Note':
             // NoteOn: 9n kk vv
-            key = this.applyOctaveShift(mfiEvent.key + 45, mfiEvent.octaveShift);
+            key = this.applyOctaveShift(
+              mfiEvent.key + 45,
+              mfiEvent.octaveShift
+            );
             channel = i * 4 + mfiEvent.voice;
 
             // TODO: リズムトラックの時は Key が -10 されているような気がする
@@ -599,13 +633,16 @@ export default class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0x90 | channel,
                 key,
-                mfiEvent.velocity * 2,
-              ),
+                mfiEvent.velocity * 2
+              )
             );
             break;
           case 'NoteOff':
             // NoteOff: 8n kk vv
-            key = this.applyOctaveShift(mfiEvent.key + 45, mfiEvent.octaveShift);
+            key = this.applyOctaveShift(
+              mfiEvent.key + 45,
+              mfiEvent.octaveShift
+            );
             channel = i * 4 + mfiEvent.voice;
 
             // TODO: リズムトラックの時は Key が -10 されているような気がする
@@ -616,8 +653,8 @@ export default class Mld {
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 0x80 | channel,
                 key,
-                mfiEvent.velocity * 2,
-              ),
+                mfiEvent.velocity * 2
+              )
             );
             break;
           case 'ProgramChange':
@@ -625,9 +662,9 @@ export default class Mld {
             channel = i * 4 + mfiEvent.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xC0 | channel,
-                mfiEvent.instrument,
-              ),
+                0xc0 | channel,
+                mfiEvent.instrument
+              )
             );
             break;
           case 'SetTempo':
@@ -636,32 +673,33 @@ export default class Mld {
             channel = 0; // SetTempo は必ず先頭のトラックに配置する
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xFF,
+                0xff,
                 0x51,
                 0x03,
-                (tmp >> 16) & 0xff, (tmp >> 8) & 0xff, tmp & 0xff,
-              ),
+                (tmp >> 16) & 0xff,
+                (tmp >> 8) & 0xff,
+                tmp & 0xff
+              )
             );
             break;
           case 'Loop':
             // Marker: FF 06 ll ss ss ss ...
             tmp = mfiEvent.value.count;
-            str = 'LOOP_' +
+            str =
+              'LOOP_' +
               (mfiEvent.value.point === 0 ? 'START' : 'END') +
-              '=ID:' + mfiEvent.value.id +
-              ',COUNT:' + (tmp === 0 ? -1 : tmp);
+              '=ID:' +
+              mfiEvent.value.id +
+              ',COUNT:' +
+              (tmp === 0 ? -1 : tmp);
             channel = 0;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                [
-                  0xFF,
-                  0x06,
-                  str.length,
-                ],
+                [0xff, 0x06, str.length],
                 str.split('').map((a) => {
                   return a.charCodeAt(0);
-                }),
-              ),
+                })
+              )
             );
             break;
           case 'MasterVolume':
@@ -671,10 +709,16 @@ export default class Mld {
 
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xF0,
+                0xf0,
                 0x07, // length
-                0x7F, 0x7F, 0x04, 0x01, tmp, tmp, 0xF7,
-              ),
+                0x7f,
+                0x7f,
+                0x04,
+                0x01,
+                tmp,
+                tmp,
+                0xf7
+              )
             );
             break;
           case 'Modulation':
@@ -682,10 +726,10 @@ export default class Mld {
             channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xB0 | channel,
+                0xb0 | channel,
                 0x01,
-                mfiEvent.value.depth * 2,
-              ),
+                mfiEvent.value.depth * 2
+              )
             );
             break;
           case 'Volume':
@@ -693,10 +737,10 @@ export default class Mld {
             channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xB0 | channel,
+                0xb0 | channel,
                 0x07,
-                mfiEvent.value.volume * 2,
-              ),
+                mfiEvent.value.volume * 2
+              )
             );
             break;
           case 'Valance':
@@ -704,10 +748,10 @@ export default class Mld {
             channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xB0 | channel,
-                0x0A,
-                (mfiEvent.value.valance - 32) * 2 + 64,
-              ),
+                0xb0 | channel,
+                0x0a,
+                (mfiEvent.value.valance - 32) * 2 + 64
+              )
             );
             break;
           case 'PitchBend':
@@ -716,10 +760,10 @@ export default class Mld {
             channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xE0 | channel,
+                0xe0 | channel,
                 mfiEvent.value.value * 2,
-                mfiEvent.value.value * 2,
-              ),
+                mfiEvent.value.value * 2
+              )
             );
             break;
           case 'PitchBendRange':
@@ -728,19 +772,12 @@ export default class Mld {
             channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xB0 | channel,
-                0x64, 0x00,
+                0xb0 | channel,
+                0x64,
+                0x00
               ),
-              [
-                0x00,
-                0xB0 | channel,
-                0x65, 0x00,
-              ],
-              [
-                0x00,
-                0xB0 | channel,
-                0x06, mfiEvent.value.value * 2,
-              ],
+              [0x00, 0xb0 | channel, 0x65, 0x00],
+              [0x00, 0xb0 | channel, 0x06, mfiEvent.value.value * 2]
             );
             break;
           case 'MasterCoarseTuning':
@@ -749,19 +786,12 @@ export default class Mld {
             channel = i * 4 + mfiEvent.value.part;
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
-                0xB0 | channel,
-                0x64, 0x00,
+                0xb0 | channel,
+                0x64,
+                0x00
               ),
-              [
-                0x00,
-                0xB0 | channel,
-                0x65, 0x02,
-              ],
-              [
-                0x00,
-                0xB0 | channel,
-                0x06, mfiEvent.value.value * 2,
-              ],
+              [0x00, 0xb0 | channel, 0x65, 0x02],
+              [0x00, 0xb0 | channel, 0x06, mfiEvent.value.value * 2]
             );
             break;
           default:
@@ -803,11 +833,20 @@ export default class Mld {
     let trackData;
     /** @type {ByteArray} */
     let result = [
-      0x4D, 0x54, 0x68, 0x64, // "MThd"
-      0x00, 0x00, 0x00, 0x06, // Size
-      0x00, 0x01, // Format
-      0x00, 0x10, // number of track
-      (TimeDivision >> 8) & 0xff, TimeDivision & 0xff, // Data
+      0x4d,
+      0x54,
+      0x68,
+      0x64, // "MThd"
+      0x00,
+      0x00,
+      0x00,
+      0x06, // Size
+      0x00,
+      0x01, // Format
+      0x00,
+      0x10, // number of track
+      (TimeDivision >> 8) & 0xff,
+      TimeDivision & 0xff, // Data
     ];
     /** @type {number} */
     let i;
@@ -842,10 +881,7 @@ export default class Mld {
       let copy = stringToArray(this.dataInformation.copy);
 
       il = copy.length;
-      copy = [0x00, 0xff, 0x02].concat(
-        this.deltaTimeToByteArray(il),
-        copy,
-      );
+      copy = [0x00, 0xff, 0x02].concat(this.deltaTimeToByteArray(il), copy);
       plainTracks[0].unshift(copy);
     }
 
@@ -870,9 +906,14 @@ export default class Mld {
 
       jl = trackData.length;
       trackHeader = [
-        0x4D, 0x54, 0x72, 0x6B, // "MTrk"
-        (jl >> 24) & 0xff, (jl >> 16) & 0xff,
-        (jl >> 8) & 0xff, (jl) & 0xff,
+        0x4d,
+        0x54,
+        0x72,
+        0x6b, // "MTrk"
+        (jl >> 24) & 0xff,
+        (jl >> 16) & 0xff,
+        (jl >> 8) & 0xff,
+        jl & 0xff,
       ];
       result = result.concat(trackHeader, trackData);
     }
@@ -889,7 +930,7 @@ export default class Mld {
     const array = [];
 
     while (deltaTime >= 0x80) {
-      array.unshift(deltaTime & 0x7f | (array.length === 0 ? 0 : 0x80));
+      array.unshift((deltaTime & 0x7f) | (array.length === 0 ? 0 : 0x80));
       deltaTime >>>= 7;
     }
     array.unshift(deltaTime | (array.length === 0 ? 0 : 0x80));

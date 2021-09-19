@@ -16,9 +16,10 @@ export default class MabiIcco extends MakiMabiSequence {
   constructor(input, optParams = {}) {
     super(input, optParams);
     /** @type {array} 入力データ。行ごとに配列化 */
-    this.input = String.fromCharCode
-      .apply('', new Uint16Array(input))
-      .split(/\r\n|\r|\n/);
+    this.input =
+      String.fromCharCode
+        .apply('', new Uint16Array(input))
+        .split(/\r\n|\r|\n/) || [];
     /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
@@ -85,7 +86,7 @@ export default class MabiIcco extends MakiMabiSequence {
     /** @param {string} 著者情報 */
     this.author = ret.author;
     /** @param {array} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
-    const mmiTempo = (ret.tempo !== '') ? ret.tempo.split('T') : [0, 120];
+    const mmiTempo = ret.tempo !== '' ? ret.tempo.split('T') : [0, 120];
     /** @param {number} 分解能 */
     this.timeDivision = 96;
     /** @param {number} テンポ */
@@ -96,12 +97,12 @@ export default class MabiIcco extends MakiMabiSequence {
     const headerTrack = [];
     // GM Reset
     headerTrack.push(
-      new SystemExclusiveEvent('SystemExclusive', 0, 0, [
-        0x7e,
-        0x7f,
-        0x09,
-        0x01,
-      ]),
+      new SystemExclusiveEvent(
+        'SystemExclusive',
+        0,
+        0,
+        [0x7e, 0x7f, 0x09, 0x01]
+      )
     );
     // 曲名と著者情報を付加
     headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
@@ -112,10 +113,10 @@ export default class MabiIcco extends MakiMabiSequence {
         timeSig[1] | 0 || 4,
         0,
         0,
-      ]),
+      ])
     );
     headerTrack.push(
-      new MetaEvent('SetTempo', 0, 0, [Math.floor(60000000 / this.tempo)]),
+      new MetaEvent('SetTempo', 0, 0, [Math.floor(60000000 / this.tempo)])
     );
     headerTrack.push(new MetaEvent('EndOfTrack', 0, 0));
     this.tracks.push(headerTrack);
@@ -150,12 +151,12 @@ export default class MabiIcco extends MakiMabiSequence {
       if (current.songProgram !== -1) {
         // コーラス用
         track.push(
-          new ChannelEvent('ProgramChange', 0, 112, 15, current.songProgram),
+          new ChannelEvent('ProgramChange', 0, 112, 15, current.songProgram)
         );
       }
       // パン(CC:0x10)
       track.push(
-        new ChannelEvent('ControlChange', 0, 154, ch, 10, current.panpot),
+        new ChannelEvent('ControlChange', 0, 154, ch, 10, current.panpot)
       );
 
       // MMLの各チャンネルの処理
