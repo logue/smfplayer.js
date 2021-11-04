@@ -30,11 +30,8 @@ const Meta = {
   version: '${pjson.version}',
   date: '${build}',
 };
-export default Meta;
-`
+export default Meta;`
     );
-  } else {
-    plugins.push(new webpack.HotModuleReplacementPlugin());
   }
 
   return {

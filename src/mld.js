@@ -14,11 +14,11 @@ export default class Mld {
     /** @type {number} */
     this.timeDivision = optParams.timeDivision || 48;
     /** @type {Object} */
-    this.header;
+    this.header = {};
     /** @type {Object} */
-    this.dataInformation;
+    this.dataInformation = {};
     /** @type {Array.<Array.<Object>>} */
-    this.tracks;
+    this.tracks = [];
   }
 
   /**

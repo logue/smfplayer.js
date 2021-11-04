@@ -13,10 +13,10 @@ export class Player {
    * @param {string} target WML attach dom
    */
   constructor(target = '#wml') {
-    /** @type {number} */
-    this.tempo = 500000; // default
+    /** @type {number} テンポ（マイクロ秒）*/
+    this.tempo = 500000; // default = 0.5[ms] = 120[bpm]
     /** @type {HTMLIFrameElement} */
-    this.webMidiLin = null;
+    this.webMidiLink = null;
     /** @type {number} */
     this.resume = 0;
     /** @type {boolean} */
@@ -107,7 +107,7 @@ export class Player {
     let i;
 
     this.pause = true;
-    this.resume = Date.now();
+    this.resume = window.performance.now();
 
     if (this.webMidiLink) {
       for (i = 0; i < 16; ++i) {
@@ -211,9 +211,10 @@ export class Player {
   }
 
   /**
+   * シーケンス終了時
    */
-  ended() {
-    this.player.window.postMessage('endoftrack', '*');
+  onSequenceEnd() {
+    this.webMidiLink.contentWindow.postMessage('endoftrack', '*');
   }
 
   /**
@@ -313,6 +314,7 @@ export class Player {
   }
 
   /**
+   * マスターボリュームを変更
    * @param {number} volume
    */
   setMasterVolume(volume) {
@@ -332,6 +334,7 @@ export class Player {
   }
 
   /**
+   * テンポ変更
    * @param {number} tempo
    */
   setTempoRate(tempo) {
@@ -343,7 +346,7 @@ export class Player {
   playSequence() {
     /** @type {Player} */
     const player = this;
-    /** @type {number} */
+    /** @type {number} 分解能 */
     const timeDivision = this.sequence.timeDivision;
     /** @type {Array.<Object>} */
     const mergedTrack = this.track;
@@ -366,10 +369,10 @@ export class Player {
       /** @type {*} */
       let tmp;
       /** @type {number} */
-      let procTime = Date.now();
+      let procTime = window.performance.now();
 
       if (player.pause) {
-        player.resume = Date.now() - player.resume;
+        player.resume = procTime - player.resume;
         return;
       }
 
@@ -457,7 +460,7 @@ export class Player {
       } while (pos < length && mergedTrack[pos].time === time);
 
       if (pos < length) {
-        procTime = Date.now() - procTime;
+        procTime = window.performance.now() - procTime;
         player.timer = player.window.setTimeout(
           update,
           (player.tempo / (1000 * timeDivision)) *
@@ -466,13 +469,13 @@ export class Player {
         );
       } else {
         // loop
-        player.ended();
         player.pause = true;
         if (
           player.enableCC111Loop &&
           mark[0] &&
           typeof mark[0].pos === 'number'
         ) {
+          // ループ
           pos = mark[0].pos;
         } else if (player.enableLoop) {
           player.initSequence();
@@ -482,6 +485,12 @@ export class Player {
 
       player.position = pos;
       player.time = time;
+
+      if (this.timeTotal === time) {
+        // 最後まで演奏した
+        this.onSequenceEnd();
+        return 2;
+      }
     };
 
     if (!this.pause) {
@@ -498,6 +507,7 @@ export class Player {
   }
 
   /**
+   * MIDIファイルをロード
    * @param {ArrayBuffer} buffer
    */
   loadMidiFile(buffer) {
@@ -511,6 +521,7 @@ export class Player {
   }
 
   /**
+   * MLD形式（着メロ）のファイルをロード
    * @param {ArrayBuffer} buffer
    */
   loadMldFile(buffer) {
@@ -524,6 +535,7 @@ export class Player {
   }
 
   /**
+   * MapleStory2のMMLをロード
    * @param {ArrayBuffer} buffer
    */
   loadMs2MmlFile(buffer) {
@@ -537,6 +549,7 @@ export class Player {
   }
 
   /**
+   * まきまびしーく形式のMMLをロード
    * @param {ArrayBuffer} buffer
    */
   loadMakiMabiSequenceFile(buffer) {
@@ -550,6 +563,7 @@ export class Player {
   }
 
   /**
+   * Three Macro Language Editor形式のMMLファイルをロード
    * @param {ArrayBuffer} buffer
    */
   load3MleFile(buffer) {
@@ -563,6 +577,7 @@ export class Player {
   }
 
   /**
+   * まびっこ形式のファイルをロード
    * @param {ArrayBuffer} buffer
    */
   loadMabiIccoFile(buffer) {
@@ -705,6 +720,7 @@ export class Player {
   }
 
   /**
+   * GMリセットを送信
    */
   sendGmReset() {
     if (this.webMidiLink) {
@@ -722,27 +738,50 @@ export class Player {
   }
 
   /**
-   * TODO: ちゃんと動いていない
-   * @param {number} time
-   * @return {string}
+   * 現在のテンポ
+   * @return {number}
    */
-  getTime(time) {
-    const secs = (this.tempo / 6000000) * time;
+  getTempo() {
+    return Math.floor(60 / (this.tempo / 1000000));
+  }
 
-    const hours = Math.floor(secs / (60 * 60));
-
-    const divisorForMinutes = secs % (60 * 60);
-    const minutes = Math.floor(divisorForMinutes / 60);
-
+  tick2time(tick) {
+    // １拍あたりの秒（T120 = 0.5s）
+    const s = this.tempo / 1000000;
+    // 1Tickあたりの秒
+    const div = s / this.sequence.timeDivision;
+    // トータル秒
+    const seconds = (tick * div) | 0;
+    // 分
+    const divisorForMinutes = seconds % 3600;
+    // 秒
     const divisorForSeconds = divisorForMinutes % 60;
-    const seconds = Math.ceil(divisorForSeconds);
 
     return (
-      hours +
+      // 時間
+      Math.floor(seconds / 3600) +
       ':' +
-      ('00' + minutes).slice(-2) +
+      // 分
+      Math.floor(divisorForMinutes / 60)
+        .toString()
+        .padStart(2, '0') +
       ':' +
-      ('00' + seconds).slice(-2)
+      // 秒
+      Math.ceil(divisorForSeconds).toString().padStart(2, '0')
     );
+  }
+  /**
+   * 現在の時間
+   * @return {string}
+   */
+  getTime() {
+    return this.tick2time(this.time);
+  }
+  /**
+   * 演奏時間
+   * @return {string}
+   */
+  getTotalTime() {
+    return this.tick2time(this.timeTotal);
   }
 }

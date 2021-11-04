@@ -13,13 +13,13 @@
   <link rel="shortcuticon" href="./favicon.ico" />
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet"
-    integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.5.0/font/bootstrap-icons.css"
-    integrity="sha256-PDJQdTN7dolQWDASIoBVrjkuOEaI137FI15sqI3Oxu8=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
+    integrity="sha256-YvdLHPgkqJ8DVUxjjnGVlMMJtNimJ6dYkowFFvp4kKs=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.0/font/bootstrap-icons.css"
+    integrity="sha256-CD4n/+K6wu9ZeygtLDpv3QoJ7ONjHjuyyYBEn2QYu84=" crossorigin="anonymous">
   <!-- Web Fonts -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.45.1/css/dseg.css"
-    integrity="sha256-0kP9GjBI5CdeL8PdmthxSmNbvRHsfz5Me/r6FK7UVJ4=" crossorigin="anonymous" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.css"
+    integrity="sha256-0kP9GjBI5CdeL8PdmthxSmNbvRHsfz5Me/r6FK7UVJ4=" crossorigin="anonymous">
   <style>
     /*<!CDATA[*/
     .percentage {
@@ -30,7 +30,7 @@
       font-family: "DSEG14-Modern";
       font-style: italic;
       position: relative;
-      height: 36px;
+      height: 2rem;
     }
 
     .Clock-Time-Front {
@@ -45,7 +45,7 @@
       position: absolute;
       top: 0;
       left: 0;
-      color: rgba(0, 0, 0, 0.1);
+      color: #e9ecef;
     }
 
     iframe {
@@ -107,19 +107,19 @@
           <h3 class="card-subtitle mb-2 text-muted h6">Drag and drop *.mid, *.mld, *.ms2mml, *.mms,
             *.mml, *.mmi
             file here, to play local midi file.</h6>
-          <!-- Tabs -->
-          <ul class="nav nav-tabs card-header-tabs" id="control-tab" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="tab-player" aria-current="true" data-bs-toggle="tab"
-                data-bs-target="#player-tab-content" type="button" role="tab" aria-controls="player-tab-content"
-                aria-selected="true">Player</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-option" aria-current="true" data-bs-toggle="tab"
-                data-bs-target="#option-tab-content" type="button" role="tab"
-                aria-controls="option-tab-content">Option</button>
-            </li>
-          </ul>
+            <!-- Tabs -->
+            <ul class="nav nav-tabs card-header-tabs" id="control-tab" role="tablist">
+              <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tab-player" aria-current="true" data-bs-toggle="tab"
+                  data-bs-target="#player-tab-content" type="button" role="tab" aria-controls="player-tab-content"
+                  aria-selected="true">Player</button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tab-option" aria-current="true" data-bs-toggle="tab"
+                  data-bs-target="#option-tab-content" type="button" role="tab"
+                  aria-controls="option-tab-content">Option</button>
+              </li>
+            </ul>
         </div>
 
         <div class="card-body">
@@ -127,7 +127,7 @@
             <div class="tab-pane fade show active" id="player-tab-content" role="tabpanel" aria-labelledby="player-tab">
               <!-- Player control -->
               <div class="d-sm-flex align-items-center mb-2">
-                <div class="pr-3">
+                <div>
                   <button type="button" class="btn btn-info btn-lg control-btn" id="prev" disabled="disabled"
                     title="Previous Music">
                     <em class="bi bi-skip-start"></em>
@@ -154,17 +154,24 @@
                   </button-->
                 </div>
                 <!-- time -->
-                <div class="flex-grow-1 my-3">
-                  <!--div class="Clock-Wrapper">
+                <div class="flex-grow-1 mx-3">
+                  <div class="Clock-Wrapper">
                     <span class="Clock-Time-Background h4">
+                      <em class="bi bi-clock"></em>
                       ~:~~:~~ / ~:~~:~~
+                      &nbsp;
+                      <em class="bi bi-music-note"></em>
+                      ~~~
                     </span>
                     <span id="clock" class="Clock-Time-Front h4">
-                    <span id="time-now">0:00:00</span>
-                    /
-                    <span id="time-total">0:00:00</span>
+                      <em class="bi bi-clock"></em>
+                      <span id="time-now">0:00:00</span> / <span id="time-total">0:00:00</span>
+                      &nbsp;
+                      <em class="bi bi-music-note"></em>
+                      <span id="current-tempo">120</span>
                     </span>
-                  </div-->
+                  </div>
+
                   <div class="progress" id="music-progress">
                     <div class="progress-bar percentage" role="progressbar" style="width: 0%" aria-valuemin="0"
                       aria-valuemin="0" aria-valuemax="100">
@@ -297,16 +304,16 @@
   <footer class="footer mt-auto py-3 mb-0 bg-light">
     <address class="container mb-0">
       <a href="//github.com/gree/smfplayer.js">SMF.Player</a>
-      <em class="far fa-copyright"></em> 2013 imaya / GREE Inc. /
-      <em class="far fa-copyright"></em> 2013-2021 by
+      &copy; 2013 imaya / GREE Inc. /
+      &copy; 2013-2021 by
       <a href="//logue.dev/">Logue</a>. Licensed under the
       <a href="http://opensource.org/licenses/mit-license.php">MIT License</a>.
     </address>
   </footer>
   <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"
     integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha256-5aErhPlUPVujIxg3wvJGdWNAWqZqWCtvxACYX4XfSa0=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.js"
+    integrity="sha256-htsAUOIgN8xkootpQUzmvaCbQo6x2PNMTD7kLWI6yYQ=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/unzip.min.js"
     integrity="sha256-pKobUkzPTKMnWX5yXGUt55Lp7W9pboaAhaXiI/hgIr4=" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@1.0.30/encoding.min.js"
@@ -340,13 +347,14 @@
     ];
 
     // スマフォの場合、軽量版にする上、UIを隠す
-    // const wml =
-      "./wml.html?soundfont=" +
+    /* const wml =
+    "./wml.html?soundfont=" +
       encodeURIComponent(
         isIOS
           ? "Yamaha XG Sound Set.sf2&ui=false"
           : "Yamaha XG Sound Set Ver.2.0.sf2"
       );
+    */
     const wml = 'http://logue.dev/sf2synth.js/wml.html';
 
     var $progress = $("#progress");
@@ -558,6 +566,7 @@ ssplayer.setPosition( player.getLength() * progress_bar_percentage);
      */
     function handleFile(file) {
       var reader = new FileReader();
+      player.sendGmReset();
 
       reader.onload = function (e) {
         var input = new Uint8Array(e.target.result);
@@ -761,7 +770,7 @@ ssplayer.setPosition( player.getLength() * progress_bar_percentage);
 
       // マスターボリュームが低いままになるので
       player.setMasterVolume($("#volume").val() * 16383);
-      $("#time-total").text(player.getTime(player.timeTotal));
+      $("#time-total").text(player.getTotalTime());
       //よく分からんが非同期で読み込むらしい
       setTimeout(function () {
         player.play();
@@ -864,7 +873,8 @@ ssplayer.setPosition( player.getLength() * progress_bar_percentage);
         $("#music-progress .progress-bar")
           .css("width", percentage + "%")
           .text(percentage + "%");
-        $("#time-now").text(player.getTime(player.time));
+        $("#time-now").text(player.getTime());
+        $("#current-tempo").text(player.getTempo());
 
         // 歌詞の処理。（誰得？）
         // やる気ないので、WebMidiカラオケ作りたい人は下の資料を参考にがんばってくれ。
@@ -898,8 +908,21 @@ ssplayer.setPosition( player.getLength() * progress_bar_percentage);
 
         parentLyrics = player.getLyrics();
         parentTextEvent = player.getTextEvent();
+
+        if (percentage === 100) {
+          // 次の曲
+          var selected_music = $("#files").prop("selectedIndex");
+          if (selected_music == $("#files option").length) {
+            // 末尾の場合最初に戻る
+            $("#files").prop("selectedIndex", 0);
+          } else {
+            // 今選択されてる項目の次の項目を選択
+            $("#files").prop("selectedIndex", selected_music + 1);
+          }
+          handleSelect(document.getElementById("files"));
+        }
       }
-    }, 100);
+    }, 600);
       /*]]>*/
   </script>
 </body>

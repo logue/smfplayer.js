@@ -112,6 +112,9 @@ function loadSMF(url) {
 | getSequenceName()                     | メタデータのシーケンス名を取得する（通常は曲名）
 | getTextEvent()                        | 呼び出し時点のTextEventを取得する
 | getWebMidiLink()                      | 使用しているWebMidiLinkのURLを出力する
+| getTempo()                            | 現在のテンポを取得
+| getTime(number)                       | 現在の演奏時間を出力する(hh:mm:ss形式）
+| getTotalTime()                        | 全演奏時間を出力する（テンポ変更はサポートせず）
 
 ### MMLを読み込む時の制限事項
 
@@ -124,8 +127,7 @@ function loadSMF(url) {
 |*.mml      |[3MLE](http://3ml.jp/)
 |*.mmi      |[MabiIcco](https://github.com/fourthline/mmlTools)
 
-[MapleStory2](https://maplestory2.nexon.co.jp/)のMMLファイルを読み込む場合、プログラムチェンジがファイル形式に含まれていないため、楽器が0（ピアノ固定）となります。
-（勝手に拡張してもいいのだろうか？）
+[MapleStory2](https://maplestory2.nexon.co.jp/)のMMLファイル（*.ms2mml）を読み込む場合、プログラムチェンジがファイル形式に含まれていないため、楽器が0（ピアノ固定）となります。
 
 ## 対応ブラウザ
 
@@ -141,5 +143,5 @@ sf2synth.js は WebMidiLink の Link Level 1 にのみ対応しています。
 ## ライセンス
 
 Copyright &copy; 2013 imaya / GREE Inc.
-Modified by Logue
+&copy; 2013-2021 Modified by Logue
 Licensed under the MIT License.

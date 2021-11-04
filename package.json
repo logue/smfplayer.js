@@ -1,12 +1,13 @@
 {
+  "$schema": "https://json.schemastore.org/package.json",
   "name": "@logue/smfplayer",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "smfplayer.js is JavaScript based Standard Midi Player for WebMidiLink based synthesizer.",
   "scripts": {
-    "watch": "webpack --mode development --watch --color --progress",
     "dev": "webpack --mode development",
     "prod": "webpack --mode production",
-    "start": "webpack-dev-server --color",
+    "serve": "webpack-dev-server --color --mode development",
+    "lint": "eslint ./src",
     "fix": "eslint --fix ./src"
   },
   "bin": {
@@ -46,21 +47,25 @@
   "bugs": {
     "url": "https://github.com/logue/smfplayer.js/issues"
   },
-  "homepage": "https://github.com/logue/smfplayer.js#readme",
+  "homepage": "https://logue.dev/smfplayer.js",
   "devDependencies": {
-    "@babel/cli": "^7.15.7",
-    "@babel/core": "^7.15.5",
-    "@babel/preset-env": "^7.15.6",
-    "babel-loader": "^8.2.2",
-    "eslint": "^7.32.0",
+    "@babel/cli": "^7.16.0",
+    "@babel/core": "^7.16.0",
+    "@babel/preset-env": "^7.16.0",
+    "babel-loader": "^8.2.3",
+    "eslint": "^8.1.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.3.0",
+    "lint-staged": "^11.2.6",
     "terser-webpack-plugin": "^5.2.4",
-    "webpack": "^5.53.0",
-    "webpack-cli": "^4.8.0",
-    "webpack-dev-server": "^4.2.1"
+    "webpack": "^5.61.0",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.4.0"
   },
   "dependencies": {
     "ini": "^2.0.0"
+  },
+  "lint-staged": {
+    "*.{js,json}": "fix"
   }
 }

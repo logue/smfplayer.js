@@ -2,10 +2,10 @@ import { ChannelEvent, MetaEvent } from './midi_event';
 /**
  * @class       PSGConverter
  * @classdesc   Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * @version     3.0.2
+ * @version     3.0.3
  *
  * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright   2019-2021 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license     MIT
  */
 export default class PSGConverter {
@@ -21,7 +21,7 @@ export default class PSGConverter {
     /** @type {number} 演奏開始までのオフセット時間 */
     this.timeOffset = optParams.timeOffset | 0;
     /** @type {string} MMLのチャンネルごとのマッチパターン */
-    this.PATTERN = /[a-glnortv<>][+#-]?[0-9]*\.?&?/g;
+    this.PATTERN = /[a-glnortv<>][+#-]?\d*\.?&?/g;
     /** @type {Array<string, number>} ノートのマッチングテーブル */
     this.NOTE_TABLE = {
       c: 0,
@@ -109,7 +109,7 @@ export default class PSGConverter {
       let value = 0;
 
       // 音長(L)、オクターブ(O<>)、テンポ（T）、ベロシティ（V）をパース
-      if (message.match(/([lotv<>])([1-9][0-9]*|0?)(\.?)(&?)/)) {
+      if (message.match(/([lotv<>])([1-9]\d*|0?)(\.?)(&?)/)) {
         command = RegExp.$1.toLowerCase();
         value = RegExp.$2 | 0;
 
@@ -117,7 +117,13 @@ export default class PSGConverter {
           // タイ記号
           tieEnabled = false;
           events.push(
-            new ChannelEvent('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, currentNote),
+            new ChannelEvent(
+              'NoteOff',
+              0,
+              time - this.noteOffNegativeOffset,
+              this.channel,
+              currentNote
+            )
           );
         }
 
@@ -141,7 +147,7 @@ export default class PSGConverter {
           case 't':
             // テンポ設定 Tn (n=32～255)
             events.push(
-              new MetaEvent('SetTempo', 0, time, [Math.floor(60000000 / value)]),
+              new MetaEvent('SetTempo', 0, time, [Math.floor(60000000 / value)])
             );
             break;
           case 'v':
@@ -153,13 +159,19 @@ export default class PSGConverter {
 
           // 簡易オクターブ設定 {<>}
           case '<':
-            currentOctave = currentOctave <= this.minOctave ? this.minOctave : currentOctave - 1;
+            currentOctave =
+              currentOctave <= this.minOctave
+                ? this.minOctave
+                : currentOctave - 1;
             break;
           case '>':
-            currentOctave = currentOctave >= this.maxOctave ? this.maxOctave : currentOctave + 1;
+            currentOctave =
+              currentOctave >= this.maxOctave
+                ? this.maxOctave
+                : currentOctave + 1;
             break;
         }
-      } else if (message.match(/([a-gn])([+#-]?)([0-9]*)(\.?)(&?)/)) {
+      } else if (message.match(/([a-gn])([+#-]?)(\d*)(\.?)(&?)/)) {
         // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
 
         /** @type {number} 音階 */
@@ -220,15 +232,20 @@ export default class PSGConverter {
               time,
               this.channel,
               note,
-              currentVelocity * this.VELOCITY_MAGNIFICATION, // ※127÷15≒8.4なので8とする。
-            ),
+              currentVelocity * this.VELOCITY_MAGNIFICATION // ※127÷15≒8.4なので8とする。
+            )
           );
         } else if (note !== currentNote) {
           // c&dなど無効なタイの処理
           events.push(
-            new ChannelEvent('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, currentNote),
+            new ChannelEvent(
+              'NoteOff',
+              0,
+              time - this.noteOffNegativeOffset,
+              this.channel,
+              currentNote
+            )
           );
-          tieEnabled = false;
         }
 
         // タイムカウンタを音符の長さだけ進める
@@ -243,10 +260,16 @@ export default class PSGConverter {
           tieEnabled = false;
           // 発音と消音が同じ時間の場合、そこのノートが再生されないため、消音時にtimeを-1する。
           events.push(
-            new ChannelEvent('NoteOff', 0, time - this.noteOffNegativeOffset, this.channel, note),
+            new ChannelEvent(
+              'NoteOff',
+              0,
+              time - this.noteOffNegativeOffset,
+              this.channel,
+              note
+            )
           );
         }
-      } else if (message.match(/R([0-9]*)(\.?)/i)) {
+      } else if (message.match(/R(\d*)(\.?)/i)) {
         // 休符設定 R[n][.] (n=1～64)
         value = RegExp.$1 | 0;
 

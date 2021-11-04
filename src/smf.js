@@ -33,7 +33,7 @@ export default class SMF {
     /** @type {number} */
     this.numberOfTracks = 0;
     /** @type {number} */
-    this.timeDivision = 0;
+    this.timeDivision = 480;
     /** @type {Array.<Array.<Midi.Event>>} */
     this.tracks = [];
     /** @type {Array.<Array.<ByteArray>>} */
