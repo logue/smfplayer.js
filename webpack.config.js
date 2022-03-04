@@ -1,7 +1,8 @@
-const webpack = require('webpack');
-const fs = require('fs');
-const path = require('path');
+/* eslint-disable */
 const TerserPlugin = require('terser-webpack-plugin');
+const webpack = require('webpack');
+const path = require('path');
+const fs = require('fs');
 
 const pjson = require('./package.json');
 const build = new Date().toISOString();

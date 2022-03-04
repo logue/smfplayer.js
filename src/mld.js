@@ -696,7 +696,7 @@ export default class Mld {
             plainTracks[channel].push(
               this.deltaTimeToByteArray(time - channelTime[channel]).concat(
                 [0xff, 0x06, str.length],
-                str.split('').map((a) => {
+                str.split('').map(a => {
                   return a.charCodeAt(0);
                 })
               )

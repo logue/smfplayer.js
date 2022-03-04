@@ -1,10 +1,10 @@
-import MabiIcco from './mmi';
-import MakiMabiSequence from './mms';
+import ThreeMacroLanguageEditor from './3mle';
 import MapleStory2Mml from './ms2mml';
+import MakiMabiSequence from './mms';
+import MabiIcco from './mmi';
 import Meta from './meta';
 import Mld from './mld';
 import SMF from './smf';
-import ThreeMacroLanguageEditor from './3mle';
 /**
  * Midi Player Class
  */
@@ -154,7 +154,7 @@ export class Player {
     } else {
       this.window.addEventListener(
         'message',
-        (ev) => {
+        ev => {
           if (ev.data === 'link,ready') {
             player.sendInitMessage();
           }
@@ -197,7 +197,7 @@ export class Player {
     } else {
       this.window.addEventListener(
         'message',
-        (ev) => {
+        ev => {
           if (ev.data === 'link,ready') {
             player.ready = true;
             player.webMidiLink.style.height =
@@ -250,7 +250,7 @@ export class Player {
     /** @type {Player} */
     const player = this;
 
-    const process = (ev) => {
+    const process = ev => {
       if (typeof ev.data === 'string') {
         const msg = ev.data.split(',');
 
@@ -640,7 +640,7 @@ export class Player {
           webMidiLink:
             'midi,' +
             Array.prototype.map
-              .call(plainTracks[i][j], (a) => {
+              .call(plainTracks[i][j], a => {
                 return a.toString(16);
               })
               .join(','),
@@ -736,7 +736,6 @@ export class Player {
       this.webMidiLink.contentWindow.postMessage('midi,b0,78,0', '*');
     }
   }
-
   /**
    * 現在のテンポ
    * @return {number}
@@ -744,7 +743,11 @@ export class Player {
   getTempo() {
     return Math.floor(60 / (this.tempo / 1000000));
   }
-
+  /**
+   * Tick数を時間に変換
+   * @param {number} tick
+   * @returns {string}
+   */
   tick2time(tick) {
     // １拍あたりの秒（T120 = 0.5s）
     const s = this.tempo / 1000000;

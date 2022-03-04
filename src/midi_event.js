@@ -74,11 +74,7 @@ class MetaEvent extends Event {
     super(subtype, deltaTime, time);
     /** @type {Array.<*>} */
     this.data = data;
-  };
+  }
 }
 
-export {
-  ChannelEvent,
-  SystemExclusiveEvent,
-  MetaEvent,
-};
+export { ChannelEvent, SystemExclusiveEvent, MetaEvent };
