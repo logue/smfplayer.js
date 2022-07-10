@@ -1,3 +1,6 @@
+index.html
 .husky/
 .vscode/
-bin/
+dist/
+docs/*.js
+docs/*.css

@@ -1,5 +1,7 @@
 /**
- * Riff Parser class
+ * @classdesc Riff Parser class
+ * @author    imaya
+ * @license   MIT
  */
 export default class Riff {
   /**

@@ -5,10 +5,13 @@ import MabiIcco from './mmi';
 import Meta from './meta';
 import Mld from './mld';
 import SMF from './smf';
+
 /**
- * Midi Player Class
+ * @classdesc Midi Player Class
+ * @author    imaya
+ * @license   MIT
  */
-export class Player {
+export default class Player {
   /**
    * @param {string} target WML attach dom
    */

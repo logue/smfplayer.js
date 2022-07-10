@@ -2,24 +2,33 @@ root: true
 env:
   browser: true
   es2021: true
+  node: true
 extends:
   - eslint:recommended
   - google
   - plugin:import/recommended
-  - prettier
   - eslint-config-prettier
-plugins:
-  - prettier
 parserOptions:
   ecmaVersion: latest
   parser: babel-eslint
   sourceType: module
+  createDefaultProgram: true
 rules:
+  new-cap: off
+  no-invalid-this: off
+  no-unused-vars: warn
   require-jsdoc: warn
   valid-jsdoc: off
-  new-cap: off
+  import/no-named-as-default: off
+  jsdoc/require-param-type: off
+  jsdoc/require-param: ['off', { enableRootFixer: false }]
+  jsdoc/require-returns-description: off
+  jsdoc/require-returns-type: off
+  jsdoc/require-returns: off
 settings:
   import/resolver:
     alias:
+      map:
+        - ['@', './src']
       extensions:
         - .js

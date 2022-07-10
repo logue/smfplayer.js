@@ -1,12 +1,13 @@
 import PSGConverter from './PSGConverter';
 import { MetaEvent } from './midi_event';
 import MakiMabiSequence from './mms';
+
 /**
- * @classdesc   MapleStory2 Mml Parser
+ * @classdesc MapleStory2 Mml Parser
  *
- * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
- * @license     MIT
+ * @author    Logue <logue@hotmail.co.jp>
+ * @copyright 2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @license   MIT
  */
 export default class MapleStory2Mml extends MakiMabiSequence {
   /**

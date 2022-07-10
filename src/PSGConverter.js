@@ -1,12 +1,13 @@
 import { ChannelEvent, MetaEvent } from './midi_event';
+
 /**
- * @class       PSGConverter
- * @classdesc   Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * @version     3.0.3
+ * @class     PSGConverter
+ * @classdesc Mabinogi MML and Maple Story 2 MML to MIDI Converter.
+ * @version   3.0.3
  *
- * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019-2021 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
- * @license     MIT
+ * @author    Logue <logue@hotmail.co.jp>
+ * @copyright 2019-2021 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @license   MIT
  */
 export default class PSGConverter {
   /**

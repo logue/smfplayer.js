@@ -3,9 +3,11 @@ import Meta from './meta';
 import Riff from './riff';
 
 /**
- * Standard Midi File Parser class
+ * @classdesc Standard Midi File Parser class
+ * @author    imaya
+ * @license   MIT
  */
-export default class SMF {
+export default class Parser {
   /**
    * @param {ByteArray} input input buffer.
    * @param {Object=} optParams option parameters.

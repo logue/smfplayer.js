@@ -1,12 +1,13 @@
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
 import PSGConverter from './PSGConverter';
 import MakiMabiSequence from './mms';
+
 /**
- * @classdesc   MabiIcco MML File Parser
+ * @classdesc MabiIcco MML File Parser
  *
- * @author      Logue <logue@hotmail.co.jp>
- * @copyright   2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
- * @license     MIT
+ * @author    Logue <logue@hotmail.co.jp>
+ * @copyright 2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @license   MIT
  */
 export default class MabiIcco extends MakiMabiSequence {
   /**

@@ -1,19 +1,8 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@logue/smfplayer",
-  "version": "0.3.7",
+  "version": "0.4.0",
   "description": "smfplayer.js is JavaScript based Standard Midi Player for WebMidiLink based synthesizer.",
-  "scripts": {
-    "dev": "webpack --mode development",
-    "prod": "webpack --mode production",
-    "serve": "webpack-dev-server --color --mode development",
-    "lint": "eslint --cache . --fix && prettier . --write",
-    "prepare": "husky install"
-  },
-  "bin": {
-    "smf.parser.min.js": "bin/smf.parser.min.js",
-    "smf.player.min.js": "bin/smf.player.min.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/logue/smfplayer.js.git"
@@ -47,30 +36,50 @@
   "bugs": {
     "url": "https://github.com/logue/smfplayer.js/issues"
   },
-  "homepage": "https://logue.dev/smfplayer.js",
+  "homepage": "https://logue.dev/smfplayer.js/",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/smf.umd.js",
+  "module": "./dist/smf.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/smf.es.js",
+      "require": "./dist/smf.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "clean": "rimraf node_modules/.vite",
+    "build": "vite build",
+    "build:docs": "vite build --config vite.config.docs.js",
+    "build:clean": "rimraf dist",
+    "lint": "eslint . --fix --cache --cache-location ./node_modules/.vite/vite-plugin-eslint && prettier . --write",
+    "preview": "vite preview --config vite.config.docs.js",
+    "prepare": "husky install"
+  },
+  "engines": {
+    "node": ">=16.16.0",
+    "yarn": ">=1.22.4"
+  },
+  "packageManager": "yarn@3.2.1",
   "dependencies": {
     "ini": "^3.0.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.17.6",
-    "@babel/core": "^7.17.9",
-    "@babel/preset-env": "^7.16.11",
-    "babel-loader": "^8.2.5",
-    "eslint": "^8.14.0",
+    "eslint": "^8.19.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-prettier": "^4.0.0",
-    "husky": "^7.0.4",
-    "lint-staged": "^12.4.1",
-    "prettier-plugin-jsdoc": "^0.3.38",
-    "prettier-plugin-md-nocjsp": "^1.2.0",
-    "prettier-plugin-sort-imports": "^1.6.0",
-    "terser-webpack-plugin": "^5.3.1",
-    "webpack": "^5.72.0",
-    "webpack-cli": "^4.9.2",
-    "webpack-dev-server": "^4.8.1"
+    "eslint-plugin-prettier": "^4.2.1",
+    "husky": "^8.0.1",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "rimraf": "^3.0.2",
+    "vite": "^2.9.14",
+    "vite-plugin-banner": "^0.3.0",
+    "vite-plugin-checker": "^0.4.8"
   },
   "husky": {
     "hooks": {
@@ -78,9 +87,10 @@
     }
   },
   "lint-staged": {
-    "*.{js,ts,json}": [
-      "prettier --write",
-      "eslint --fix"
-    ]
+    "*.{js,ts,json,htm,html,md}": "eslint . --fix --cache --cache-location ./node_modules/.vite/vite-plugin-eslint",
+    "*": "prettier -w -u"
+  },
+  "resolutions": {
+    "prettier": "^2.7.1"
   }
 }

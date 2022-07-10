@@ -1,5 +1,7 @@
 /**
- * Mld Parser Class
+ * @classdesc Mld Parser Class
+ * @author    imaya
+ * @license   MIT
  */
 export default class Mld {
   /**

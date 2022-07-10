@@ -1,5 +1,7 @@
 /**
- * Midi Event abstract Structure
+ * @classdesc Midi Event abstract Structure
+ * @author    imaya
+ * @license   MIT
  */
 class Event {
   /**
