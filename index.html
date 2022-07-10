@@ -583,13 +583,12 @@
 
     // スマフォの場合、軽量版にする上、UIを隠す
     const wml =
-      "./wml.html?soundfont=" +
+      "https://logue.dev/sf2synth.js/wml.html?soundfont=" +
       encodeURIComponent(
         isIOS
           ? "Yamaha XG Sound Set.sf2&ui=false"
           : "Yamaha XG Sound Set Ver.2.0.sf2"
       );
-    // const wml = 'http://logue.dev/sf2synth.js/wml.html';
 
     var $progress = $("#progress");
 
