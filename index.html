@@ -1,318 +1,605 @@
 <!DOCTYPE html>
-<html lang="en" xmlns="http://www.w3.org/1999/xhtml" prefix="og: http://ogp.me/ns#" class="h-100">
+<html
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  prefix="og: http://ogp.me/ns#"
+  class="h-100"
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta
+      name="description"
+      content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file."
+    />
+    <meta name="author" content="Logue" />
+    <meta
+      name="keywords"
+      content="smf, midi, gs, xg, gm, smfplayer.js, standard midi"
+    />
+    <title>Standard MIDI Player for Web</title>
+    <link rel="shortcuticon" href="./favicon.ico" />
+    <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />
+    <!-- Web Fonts -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.css"
+      integrity="sha256-0kP9GjBI5CdeL8PdmthxSmNbvRHsfz5Me/r6FK7UVJ4="
+      crossorigin="anonymous"
+    />
+    <style>
+      .percentage {
+        font-family: 'DSEG14-Modern';
+      }
 
-<head>
-  <meta charset="utf-8" />
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <meta name="description"
-    content="Soundfont2 based Web MIDI Player written in JavaScript. This MIDI Player can playback XG or GS formatted midi file." />
-  <meta name="author" content="Logue" />
-  <meta name="keywords" content="smf, midi, gs, xg, gm, smfplayer.js, standard midi" />
-  <title>Standard MIDI Player for Web</title>
-  <link rel="shortcuticon" href="./favicon.ico" />
-  <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />
+      .Clock-Wrapper {
+        font-family: 'DSEG14-Modern';
+        font-style: italic;
+        position: relative;
+        height: 2rem;
+      }
 
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css"
-    integrity="sha256-YvdLHPgkqJ8DVUxjjnGVlMMJtNimJ6dYkowFFvp4kKs=" crossorigin="anonymous" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.3/font/bootstrap-icons.css"
-    integrity="sha256-YW7U7x59rUPZ3DWzQKbalM/9j2Cp8wapJVQPRxL4w1k=" crossorigin="anonymous">
-  <!-- Web Fonts -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.css"
-    integrity="sha256-0kP9GjBI5CdeL8PdmthxSmNbvRHsfz5Me/r6FK7UVJ4=" crossorigin="anonymous" />
-  <style>
-    /*<!CDATA[*/
-    .percentage {
-      font-family: 'DSEG14-Modern';
-    }
+      .Clock-Time-Front {
+        z-index: 100;
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
 
-    .Clock-Wrapper {
-      font-family: 'DSEG14-Modern';
-      font-style: italic;
-      position: relative;
-      height: 2rem;
-    }
+      .Clock-Time-Background {
+        z-index: 50;
+        position: absolute;
+        top: 0;
+        left: 0;
+        color: #e9ecef;
+      }
 
-    .Clock-Time-Front {
-      z-index: 100;
-      position: absolute;
-      top: 0;
-      left: 0;
-    }
+      iframe {
+        width: 100%;
+        min-height: 780px;
+        border: thin;
+      }
+    </style>
+  </head>
 
-    .Clock-Time-Background {
-      z-index: 50;
-      position: absolute;
-      top: 0;
-      left: 0;
-      color: #e9ecef;
-    }
-
-    iframe {
-      width: 100%;
-      height: 680px;
-      border: thin;
-    }
-
-    /*]]>*/
-
-  </style>
-</head>
-
-<body class="d-flex flex-column h-100">
-  <header>
-    <nav class="navbar navbar-expand-md navbar-dark bg-dark">
-      <div class="container-fluid d-flex justify-content-between">
-        <a class="navbar-brand" href="#">smfplayer.js</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
-          aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse flex-grow-0" id="navbarCollapse">
-          <ul class="navbar-nav">
-            <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="https://logue.dev/">
-                Home
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link active" href="https://github.com/logue/smfplayer.js/">
-                smfplayer.js
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="https://github.com/logue/sf2synth.js/">
-                sf2synth.js
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="https://github.com/logue/MabiMmlEmu/">
-                MabiMmlEmu
-              </a>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </header>
-
-  <main role="main" class="flex-shrink-0 mt-4">
-    <div class="container">
-      <div id="info" class="alert alert-warning alert-dismissible fade show" role="alert">
-        <p class="mb-0">Initializing...</p>
-        <div class="progress hide" id="progress">
-          <div class="progress-bar percentage" role="progressbar" style="width: 0%;" aria-valuemin="0"
-            aria-valuemax="100">
-            0%
+  <body class="d-flex flex-column h-100">
+    <header>
+      <nav class="navbar navbar-expand-md navbar-dark bg-dark">
+        <div class="container-fluid d-flex justify-content-between">
+          <a class="navbar-brand" href="#">smfplayer.js</a>
+          <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarCollapse"
+            aria-controls="navbarCollapse"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+          >
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse flex-grow-0" id="navbarCollapse">
+            <ul class="navbar-nav">
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  aria-current="page"
+                  href="https://logue.dev/"
+                >
+                  Home
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link active"
+                  href="https://github.com/logue/smfplayer.js/"
+                >
+                  smfplayer.js
+                </a>
+              </li>
+              <li class="nav-item">
+                <a
+                  class="nav-link"
+                  href="https://github.com/logue/sf2synth.js/"
+                >
+                  sf2synth.js
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="https://github.com/logue/MabiMmlEmu/">
+                  MabiMmlEmu
+                </a>
+              </li>
+            </ul>
           </div>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
+      </nav>
+    </header>
 
-      <!-- player panel-->
-      <div class="card mb-3" id="player">
-        <div class="card-header">
-          <h2 class="card-title h5">MIDI Player</h2>
-          <h3 class="card-subtitle mb-2 text-muted h6">
-            Drag and drop *.mid, *.mld, *.ms2mml, *.mms, *.mml, *.mmi file
-            here, to play local midi file.
-          </h3>
-          <!-- Tabs -->
-          <ul class="nav nav-tabs card-header-tabs" id="control-tab" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="tab-player" aria-current="true" data-bs-toggle="tab"
-                data-bs-target="#player-tab-content" type="button" role="tab" aria-controls="player-tab-content"
-                aria-selected="true">
-                Player
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="tab-option" aria-current="true" data-bs-toggle="tab"
-                data-bs-target="#option-tab-content" type="button" role="tab" aria-controls="option-tab-content">
-                Option
-              </button>
-            </li>
-          </ul>
+    <main role="main" class="flex-shrink-0 mt-4">
+      <div class="container">
+        <div
+          id="info"
+          class="alert alert-warning alert-dismissible fade show"
+          role="alert"
+        >
+          <p class="mb-0">Initializing...</p>
+          <div class="progress hide" id="progress">
+            <div
+              class="progress-bar percentage"
+              role="progressbar"
+              style="width: 0%"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              0%
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="alert"
+            aria-label="Close"
+          ></button>
         </div>
 
-        <div class="card-body">
-          <div class="tab-content" id="plyaer-tab-contents">
-            <div class="tab-pane fade show active" id="player-tab-content" role="tabpanel" aria-labelledby="player-tab">
-              <!-- Player control -->
-              <div class="d-sm-flex align-items-center mb-2">
-                <div>
-                  <button type="button" class="btn btn-info btn-lg control-btn" id="prev" disabled="disabled"
-                    title="Previous Music">
-                    <em class="bi bi-skip-start"></em>
-                  </button>
-                  <button type="button" class="btn btn-primary btn-lg control-btn" id="play" disabled="disabled"
-                    title="Play / Pause">
-                    <em class="bi bi-play"></em>
-                  </button>
-                  <button type="button" class="btn btn-danger btn-lg control-btn" id="stop" disabled="disabled"
-                    title="Stop">
-                    <em class="bi bi-stop"></em>
-                  </button>
-                  <button type="button" class="btn btn-info btn-lg control-btn" id="next" disabled="disabled"
-                    title="Next Music">
-                    <em class="bi bi-skip-end"></em>
-                  </button>
-                  <button type="button" class="btn btn-warning btn-lg control-btn" id="panic" disabled="disabled"
-                    title="Panic">
-                    <em class="bi bi-exclamation-octagon"></em>
-                  </button>
-                  <!--button type="button" class="btn btn-secondary btn-lg control-btn" id="copy" disabled="disabled"
+        <!-- player panel-->
+        <div class="card mb-3" id="player">
+          <div class="card-header">
+            <h2 class="card-title h5">MIDI Player</h2>
+            <h3 class="card-subtitle mb-2 text-muted h6">
+              Drag and drop *.mid, *.mld, *.ms2mml, *.mms, *.mml, *.mmi file
+              here, to play local midi file.
+            </h3>
+            <!-- Tabs -->
+            <ul
+              class="nav nav-tabs card-header-tabs"
+              id="control-tab"
+              role="tablist"
+            >
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link active"
+                  id="tab-player"
+                  aria-current="true"
+                  data-bs-toggle="tab"
+                  data-bs-target="#player-tab-content"
+                  type="button"
+                  role="tab"
+                  aria-controls="player-tab-content"
+                  aria-selected="true"
+                >
+                  Player
+                </button>
+              </li>
+              <li class="nav-item" role="presentation">
+                <button
+                  class="nav-link"
+                  id="tab-option"
+                  aria-current="true"
+                  data-bs-toggle="tab"
+                  data-bs-target="#option-tab-content"
+                  type="button"
+                  role="tab"
+                  aria-controls="option-tab-content"
+                >
+                  Option
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card-body">
+            <div class="tab-content" id="plyaer-tab-contents">
+              <div
+                class="tab-pane fade show active"
+                id="player-tab-content"
+                role="tabpanel"
+                aria-labelledby="player-tab"
+              >
+                <!-- Player control -->
+                <div class="d-sm-flex align-items-center mb-2">
+                  <div>
+                    <button
+                      type="button"
+                      class="btn btn-info btn-lg control-btn"
+                      id="prev"
+                      disabled="disabled"
+                      title="Previous Music"
+                    >
+                      <em class="bi bi-skip-start"></em>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-primary btn-lg control-btn"
+                      id="play"
+                      disabled="disabled"
+                      title="Play / Pause"
+                    >
+                      <em class="bi bi-play"></em>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-danger btn-lg control-btn"
+                      id="stop"
+                      disabled="disabled"
+                      title="Stop"
+                    >
+                      <em class="bi bi-stop"></em>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-info btn-lg control-btn"
+                      id="next"
+                      disabled="disabled"
+                      title="Next Music"
+                    >
+                      <em class="bi bi-skip-end"></em>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn btn-warning btn-lg control-btn"
+                      id="panic"
+                      disabled="disabled"
+                      title="Panic"
+                    >
+                      <em class="bi bi-exclamation-octagon"></em>
+                    </button>
+                    <!--button type="button" class="btn btn-secondary btn-lg control-btn" id="copy" disabled="disabled"
                     title="Copy midi URL to clipboard">
                     <em class="bi bi-share"></em>
                   </button-->
-                </div>
-                <!-- time -->
-                <div class="flex-grow-1 mx-3">
-                  <div class="Clock-Wrapper">
-                    <span class="Clock-Time-Background h4">
-                      <em class="bi bi-clock"></em>
-                      ~:~~:~~ / ~:~~:~~ &nbsp;
-                      <em class="bi bi-music-note"></em>
-                      ~~~
-                    </span>
-                    <span id="clock" class="Clock-Time-Front h4">
-                      <em class="bi bi-clock"></em>
-                      <span id="time-now">0:00:00</span>
-                      /
-                      <span id="time-total">0:00:00</span>
-                      &nbsp;
-                      <em class="bi bi-music-note"></em>
-                      <span id="current-tempo">120</span>
-                    </span>
                   </div>
+                  <!-- time -->
+                  <div class="flex-grow-1 mx-3">
+                    <div class="Clock-Wrapper">
+                      <span class="Clock-Time-Background h4">
+                        <em class="bi bi-clock"></em>
+                        ~:~~:~~ / ~:~~:~~ &nbsp;
+                        <em class="bi bi-music-note"></em>
+                        ~~~
+                      </span>
+                      <span id="clock" class="Clock-Time-Front h4">
+                        <em class="bi bi-clock"></em>
+                        <span id="time-now">0:00:00</span>
+                        /
+                        <span id="time-total">0:00:00</span>
+                        &nbsp;
+                        <em class="bi bi-music-note"></em>
+                        <span id="current-tempo">120</span>
+                      </span>
+                    </div>
 
-                  <div class="progress" id="music-progress">
-                    <div class="progress-bar percentage" role="progressbar" style="width: 0%" aria-valuemin="0"
-                      aria-valuemax="100">
-                      0%
+                    <div class="progress" id="music-progress">
+                      <div
+                        class="progress-bar percentage"
+                        role="progressbar"
+                        style="width: 0%"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                      >
+                        0%
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Midi selector -->
+                <div class="row">
+                  <div class="col-md-8 col-xs-12 mb-2">
+                    <label class="form-label" for="files">Sequence file:</label>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <em class="bi bi-music-note-list"></em>
+                      </span>
+                      <select id="files" class="form-select"></select>
+                      <button
+                        class="btn btn-secondary"
+                        type="button"
+                        title="Download"
+                        id="download"
+                      >
+                        <em class="bi bi-download"></em>
+                      </button>
+                    </div>
+                  </div>
+                  <div class="col-md-4 col-xs-12 mb-2">
+                    <label for="zips" class="form-label">
+                      Zip archive file:
+                    </label>
+                    <div class="input-group">
+                      <span class="input-group-text">
+                        <em class="bi bi-file-earmark-zip"></em>
+                      </span>
+                      <select id="zips" class="form-select">
+                        <option value="files/YAMAHA mididata library.zip">
+                          YAMAHA mididata library.zip
+                        </option>
+                        <option
+                          value="files/適当詰め合わせ.zip"
+                          selected="selected"
+                        >
+                          適当詰め合わせ.zip
+                        </option>
+                        <option disabled="disabled">
+                          ------------------------------
+                        </option>
+                        <optgroup label="MML">
+                          <option value="files/mp2mml_sample.zip">
+                            Maple Story MML Sample.zip
+                          </option>
+                          <option value="files/3MLE_Sample.zip">
+                            3MLE Sample
+                          </option>
+                          <option value="files/MakimabiSequence_Sample.zip">
+                            Makimabi Sequence Sample
+                          </option>
+                          <option value="files/MabiIcco_Sample.zip">
+                            MabiIcco Sample
+                          </option>
+                        </optgroup>
+                        <option disabled="disabled">
+                          ------------------------------
+                        </option>
+                        <option value="files/Midi01.zip">Midi01.zip</option>
+                        <option value="files/Midi03.zip">Midi03.zip</option>
+                        <option value="files/Midi04.zip">Midi04.zip</option>
+                        <option disabled="disabled">
+                          ------------------------------
+                        </option>
+                        <optgroup label="Famicom / NES / Super Famicom / SNES">
+                          <option value="files/Chrono_Trigger.zip">
+                            Chrono Trigger
+                          </option>
+                          <option value="files/Dragon_Warrior_2.zip">
+                            Dragon Quest II
+                          </option>
+                          <option value="files/Dragon_Warrior_3.zip">
+                            Dragon Quest III
+                          </option>
+                          <option value="files/Dragon_Warrior_4.zip">
+                            Dragon Quest IV
+                          </option>
+                          <option value="files/Final_Fantasy_4.zip">
+                            Final Fantasy IV
+                          </option>
+                          <option value="files/Final_Fantasy_5.zip">
+                            Final Fantasy V
+                          </option>
+                          <option value="files/Final_Fantasy_6.zip">
+                            Final Fantasy VI
+                          </option>
+                          <option value="files/Secret_of_Mana.zip">
+                            Secret of Mana
+                          </option>
+                          <option value="files/Super_Donkey_Kong.zip">
+                            Super Donkey Kong
+                          </option>
+                          <option
+                            value="files/Zelda_3_-_A_Link_to_the_Past.zip"
+                          >
+                            Legend of Zelda
+                          </option>
+                        </optgroup>
+                        <optgroup label="PlayStation / PlayStation2">
+                          <option value="files/A-Train_Global.zip">
+                            A-Train 4 Global
+                          </option>
+                          <option value="files/Alundra.zip">Alundra</option>
+                          <option value="files/Breath_of_Fire_4.zip">
+                            Breath of Fire IV
+                          </option>
+                          <option value="files/Final_Fantasy_7.zip">
+                            Final Fantasy VII
+                          </option>
+                          <option value="files/Final_Fantasy_8.zip">
+                            Final Fantasy VIII
+                          </option>
+                          <option value="files/Final_Fantasy_9.zip">
+                            Final Fantasy XI
+                          </option>
+                          <option value="files/Final_Fantasy_10.zip">
+                            Final Fantasy X
+                          </option>
+                          <option value="files/Final_Fantasy_11.zip">
+                            Final Fantasy XI
+                          </option>
+                          <option value="files/Legend_of_Mana.zip">
+                            Legend of Mana
+                          </option>
+                          <option value="files/Silent_Hill.zip">
+                            Silent Hill
+                          </option>
+                          <option
+                            value="files/Star_Ocean_the_second_story.zip"
+                          >
+                            Star Ocean the Second Story
+                          </option>
+                          <option value="files/Valkyrie_Profile.zip">
+                            Valkyrie Profile
+                          </option>
+                        </optgroup>
+                        <optgroup label="PC">
+                          <option value="files/A-Train.zip">
+                            A-Train (PC98 / MacOS)
+                          </option>
+                          <option value="files/Lemmings.zip">
+                            Lemmings Soundtrack (Amiga / DOS / MacOS / PC98)
+                          </option>
+                          <option value="files/Marathon1.zip">
+                            Marathon Soundtrack (MacOS)
+                          </option>
+                          <option value="files/SimCity2000.zip">
+                            SimCity 2000 Soundtrack (DOS / MacOS)
+                          </option>
+                          <option value="files/UO_MIDI_Music.zip">
+                            Ultima Online Soundtrack (Windows)
+                          </option>
+                          <option value="files/sor.zip">
+                            Sorcerian (PC98)
+                          </option>
+                        </optgroup>
+                        <optgroup label="MegaDrive / Saturn / Dreamcast">
+                          <option value="files/Outrun.zip">Outrun</option>
+                          <option value="files/PSO.zip">
+                            Phantasy Star Online
+                          </option>
+                          <option value="files/Sonic_the_Hedgehog.zip">
+                            Sonic the Hedgehog
+                          </option>
+                        </optgroup>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <!-- Meta info -->
+                <div class="row">
+                  <div class="col-md-7 col-xs-12 mb-2">
+                    <label class="form-label" for="music_title">Title</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="music_title"
+                      readonly="readonly"
+                    />
+                  </div>
+                  <div class="col-md-5 col-xs-12 mb-2">
+                    <label class="form-label" for="copyright ">Copyright</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="copyright"
+                      readonly="readonly"
+                    />
+                  </div>
+                  <div class="col-12 mb-2">
+                    <label class="form-label" for="text_event">Text</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      id="text_event"
+                      readonly="readonly"
+                    />
+                  </div>
+                  <div class="col-12">
+                    <div class="form-label">Lyrics (karaoke)</div>
+                    <div class="d-flex justify-content-center">
+                      <pre class="bg-light rounded" id="lyrics"></pre>
                     </div>
                   </div>
                 </div>
               </div>
-              <!-- Midi selector -->
-              <div class="row">
-                <div class="col-md-8 col-xs-12 mb-2">
-                  <label class="form-label" for="files">Sequence file:</label>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <em class="bi bi-music-note-list"></em>
-                    </span>
-                    <select id="files" class="form-select"></select>
-                    <button class="btn btn-secondary" type="button" title="Download" id="download">
-                      <em class="bi bi-download"></em>
-                    </button>
-                  </div>
-                </div>
-                <div class="col-md-4 col-xs-12 mb-2">
-                  <label for="zips" class="form-label">
-                    Zip archive file:
-                  </label>
-                  <div class="input-group">
-                    <span class="input-group-text">
-                      <em class="bi bi-file-earmark-zip"></em>
-                    </span>
-                    <select id="zips" class="form-select">
-                      <option value="demo.zip" selected="selected">
-                        demo.zip
-                      </option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <!-- Meta info -->
-              <div class="row">
-                <div class="col-md-7 col-xs-12 mb-2">
-                  <label class="form-label" for="music_title">Title</label>
-                  <input type="text" class="form-control" id="music_title" readonly="readonly" />
-                </div>
-                <div class="col-md-5 col-xs-12 mb-2">
-                  <label class="form-label" for="copyright ">Copyright</label>
-                  <input type="text" class="form-control" id="copyright" readonly="readonly" />
-                </div>
-                <div class="col-12 mb-2">
-                  <label class="form-label" for="text_event">Text</label>
-                  <input type="text" class="form-control" id="text_event" readonly="readonly" />
-                </div>
-                <div class="col-12">
-                  <div class="form-label">Lyrics (karaoke)</div>
-                  <div class="d-flex justify-content-center">
-                    <pre class="bg-light rounded" id="lyrics"></pre>
-                  </div>
-                </div>
-              </div>
-            </div>
 
-            <div class="tab-pane fade" id="option-tab-content" role="tabpanel" aria-labelledby="option-tab">
-              <div class="row">
-                <!-- Loop setting -->
-                <div class="col-md-5 col-xs-12">
-                  <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="random" />
-                    <label class="form-check-label" for="random">
-                      <em class="bi bi-shuffle"></em>
-                      Random
-                    </label>
-                  </div>
-                  <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="playerloop"
-                      onchange="player.setLoop(this.checked);" />
-                    <label class="form-check-label" for="playerloop">
-                      <em class="bi bi-arrow-repeat"></em>
-                      Loop
-                    </label>
-                  </div>
-                  <hr />
-                  <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="cc111loop"
-                      onchange="player.setCC111Loop(this.checked);" />
-                    <label class="form-check-label" for="cc111loop">
-                      CC#111 Loop
-                    </label>
-                  </div>
-                  <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="falcomloop"
-                      onchange="player.setFalcomLoop(this.checked);" />
-                    <label class="form-check-label" for="falcomloop">
-                      Marker A-B (Ys2 Eternal)
-                    </label>
-                  </div>
-                  <div class="form-check form-switch">
-                    <input type="checkbox" class="form-check-input" id="mfi"
-                      onchange="player.setMFiLoop(this.checked);" />
-                    <label class="form-check-label" for="mfi">MFi Loop</label>
-                  </div>
-                </div>
-                <!-- Tempo and volume -->
-                <div class="col-md-7 col-xs-12">
-                  <div>
-                    <label for="tempo" class="form-label">
-                      Tempo: x
-                      <span id="tempo_value" class="badge bg-secondary">
-                        1.0
-                      </span>
-                    </label>
-                    <div class="d-flex">
-                      <div><em class="bi bi-clock"></em></div>
-                      <input id="tempo" type="range" class="form-range ml-1" min="0.1" max="10.0" step="0.1"
-                        value="1.0" />
+              <div
+                class="tab-pane fade"
+                id="option-tab-content"
+                role="tabpanel"
+                aria-labelledby="option-tab"
+              >
+                <div class="row">
+                  <!-- Loop setting -->
+                  <div class="col-md-5 col-xs-12">
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="random"
+                      />
+                      <label class="form-check-label" for="random">
+                        <em class="bi bi-shuffle"></em>
+                        Random
+                      </label>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="playerloop"
+                        onchange="player.setLoop(this.checked);"
+                      />
+                      <label class="form-check-label" for="playerloop">
+                        <em class="bi bi-arrow-repeat"></em>
+                        Loop
+                      </label>
+                    </div>
+                    <hr />
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="cc111loop"
+                        onchange="player.setCC111Loop(this.checked);"
+                      />
+                      <label class="form-check-label" for="cc111loop">
+                        CC#111 Loop
+                      </label>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="falcomloop"
+                        onchange="player.setFalcomLoop(this.checked);"
+                      />
+                      <label class="form-check-label" for="falcomloop">
+                        Marker A-B (Ys2 Eternal)
+                      </label>
+                    </div>
+                    <div class="form-check form-switch">
+                      <input
+                        type="checkbox"
+                        class="form-check-input"
+                        id="mfi"
+                        onchange="player.setMFiLoop(this.checked);"
+                      />
+                      <label class="form-check-label" for="mfi">MFi Loop</label>
                     </div>
                   </div>
-                  <div>
-                    <label for="volume" class="form-label">
-                      Master Volume:
-                      <span id="volume_value" class="badge bg-secondary">
-                        0.5
-                      </span>
-                    </label>
-                    <div class="d-flex">
-                      <div><em class="bi bi-volume-off"></em></div>
-                      <input id="volume" type="range" class="form-range mx-1" min="0" max="1" step="0.01" value="0.5" />
-                      <div><em class="bi bi-volume-up"></em></div>
+                  <!-- Tempo and volume -->
+                  <div class="col-md-7 col-xs-12">
+                    <div>
+                      <label for="tempo" class="form-label">
+                        Tempo: x
+                        <span id="tempo_value" class="badge bg-secondary">
+                          1.0
+                        </span>
+                      </label>
+                      <div class="d-flex">
+                        <div><em class="bi bi-clock"></em></div>
+                        <input
+                          id="tempo"
+                          type="range"
+                          class="form-range ml-1"
+                          min="0.1"
+                          max="10.0"
+                          step="0.1"
+                          value="1.0"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label for="volume" class="form-label">
+                        Master Volume:
+                        <span id="volume_value" class="badge bg-secondary">
+                          0.5
+                        </span>
+                      </label>
+                      <div class="d-flex">
+                        <div><em class="bi bi-volume-off"></em></div>
+                        <input
+                          id="volume"
+                          type="range"
+                          class="form-range mx-1"
+                          min="0"
+                          max="1"
+                          step="0.01"
+                          value="0.5"
+                        />
+                        <div><em class="bi bi-volume-up"></em></div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -320,634 +607,30 @@
             </div>
           </div>
         </div>
-      </div>
-      <!-- WebMidiLink Placeholder -->
-      <div class="card">
-        <div class="card-header">
-          <h2 class="h5"><label for="synth">Synthesyther</label></h2>
+        <!-- WebMidiLink Placeholder -->
+        <div class="card">
+          <div class="card-header">
+            <h2 class="h5"><label for="synth">Synthesyther</label></h2>
+          </div>
+          <div class="card-body" id="wml"></div>
         </div>
-        <div class="card-body p-0" id="wml"></div>
       </div>
-    </div>
-  </main>
-  <footer class="footer mt-auto py-3 mb-0 bg-light">
-    <address class="container mb-0">
-      <a href="//github.com/gree/smfplayer.js">SMF.Player</a>
-      &copy; 2013 imaya / GREE Inc. / &copy; 2013-2022 by
-      <a href="//logue.dev/">Logue</a>
-      . Licensed under the
-      <a href="http://opensource.org/licenses/mit-license.php">MIT License</a>
-      .
-    </address>
-  </footer>
-  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.slim.min.js"
-    integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
-    integrity="sha256-JRXjfu4x9e89ZZsh3MhNxupzKwaHLaUQeLW1Jt40wME=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/unzip.min.js"
-    integrity="sha256-pKobUkzPTKMnWX5yXGUt55Lp7W9pboaAhaXiI/hgIr4=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/encoding-japanese@2.0.0/encoding.min.js"
-    integrity="sha256-JFu/2gVQWjH6acIFK57m/Ju1PFKyB+sz2XtXf1nbyqE=" crossorigin="anonymous"></script>
-  <script src="https://cdn.jsdelivr.net/npm/query-string@1.0.1/query-string.js"
-    integrity="sha256-grrS5HRy2p4Z2sCglfc9r6rqRBewKCdWzuWhbUpIEJ4=" crossorigin="anonymous"></script>
-
-  <script type="module">
-    import SMF from './src'
-    /*<![CDATA[*/
-    // インターバル関数用。準備完了フラグ
-    var isReady = false;
-
-    // QueryStrings
-    const params = queryString.parse(window.location.hash);
-
-    // SMF Player
-    const player = new SMF.Player('#wml');
-
-    const isIOS = /iP(hone|(o|a)d)/.test(navigator.userAgent);
-
-    // 利用可能な拡張子
-    const availableExts = [
-      '.mid',
-      '.midi',
-      '.mld',
-      '.mml',
-      '.mms',
-      '.mmi',
-      '.mp2mml',
-    ];
-
-    const wml = 'http://logue.dev/sf2synth.js/wml.html';
-
-    var $progress = $('#progress');
-
-    window.requestFileSystem =
-      window.requestFileSystem || window.webkitRequestFileSystem;
-
-    /**
-     * メイン処理
-     */
-    $(document).ready(function () {
-      $(':input').attr('disabled', 'disabled');
-      // AudioContextが使用可能かのチェック
-      window.AudioContext =
-        window.AudioContext ||
-        window.webkitAudioContext ||
-        window.mozAudioContext;
-      if (typeof window.AudioContext === 'undefined') {
-        $('#info')
-          .addClass('alert-danger')
-          .removeClass('alert-warning')
-          .text(
-            'Your browser has not supported AudioContent function. Please use Firefox or Blink based browser. (such as Chrome)'
-          );
-        return;
-      }
-      // fileプロトコルは使用不可。（Ajaxを使うため）
-      if (location.protocol === 'file:') {
-        $('#info')
-          .addClass('alert-danger')
-          .removeClass('alert-warning')
-          .text('This program require runs by server.');
-        return;
-        //}else if (location.protocol === 'http:') {
-        //    location.href = 'https://logue.github.io/smfplayer.js';
-      }
-
-      // smfplayer.jsの初期化
-      player.setLoop($('#playerloop').is(':checked'));
-      player.setCC111Loop($('#cc111loop').is(':checked'));
-      player.setFalcomLoop($('#falcomloop').is(':checked'));
-      player.setMFiLoop($('#mfiloop').is(':checked'));
-      player.setTempoRate($('#tempo').val());
-      player.setMasterVolume($('#volume').val() * 16383);
-      // player.setMasterChannel(new TimerMasterChannel(TimerMasterChannel.MODE_DEFAULT));
-      // WebMidiLink設定
-      player.setWebMidiLink(wml, 'wml');
-
-      var triggerTabList = [].slice.call(
-        document.querySelectorAll('#control-tab button')
-      );
-      triggerTabList.forEach(function (triggerEl) {
-        var tabTrigger = new bootstrap.Tab(triggerEl);
-
-        triggerEl.addEventListener('click', function (event) {
-          event.preventDefault();
-          tabTrigger.show();
-        });
-      });
-
-      // Zipファイルの取得
-      $('#files').on('change', function (e) {
-        handleSelect(this);
-      });
-
-      $('#zips').on('change', function (e) {
-        loadSample($(this).val());
-      });
-
-      if (params.zip && !initialized) {
-        // クエリからZipファイルを選択
-        $('#zips').val(params.zip);
-        loadSample(params.zip);
-      } else {
-        randomArchive();
-        loadSample($('#zips').val());
-      }
-
-      // MIDIファイルのドラッグアンドドロップ
-      $('#player *')
-        .on('drop', function (e) {
-          if (e.originalEvent.dataTransfer) {
-            if (e.originalEvent.dataTransfer.files.length) {
-              e.preventDefault();
-              e.stopPropagation();
-              /*UPLOAD FILES HERE*/
-              handleFile(e.originalEvent.dataTransfer.files[0]);
-            }
-          }
-          $('#player').removeClass('text-white bg-danger');
-        })
-        .on('dragover', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          $('#player').addClass('text-white bg-danger');
-        })
-        .on('dragleave', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          $('#player').removeClass('text-white bg-danger');
-        });
-
-      // テンポ設定
-      $('#tempo').on('change', function () {
-        var value = $(this).val();
-        player.setTempoRate(value);
-        $('#tempo_value').text(value);
-      });
-
-      // マスターボリューム
-      $('#volume').on('change', function () {
-        var value = $(this).val();
-        // console.log(value);
-        player.setMasterVolume(value * 16383);
-        $('#volume_value').text(value);
-      });
-
-      // 前に戻るボタン
-      $('#prev').on('click', function () {
-        // 現在選択中の項目を取得
-        var selected_music = $('#files').prop('selectedIndex');
-        if (selected_music == $('#files option').length) {
-          // 末尾の場合、最後の曲へ
-          $('#files').prop('selectedIndex', $('#files option').length);
-        } else {
-          // 選択されている項目の前の項目を選択
-          $('#files').prop('selectedIndex', selected_music - 1);
-        }
-        handleSelect(document.getElementById('files'));
-      });
-
-      // 次に進むボタン
-      $('#next').on('click', function () {
-        var selected_music = $('#files').prop('selectedIndex');
-        if (selected_music == $('#files option').length) {
-          // 末尾の場合最初に戻る
-          $('#files').prop('selectedIndex', 0);
-        } else {
-          // 今選択されてる項目の次の項目を選択
-          $('#files').prop('selectedIndex', selected_music + 1);
-        }
-        handleSelect(document.getElementById('files'));
-      });
-
-      // 再生／一時停止ボタン
-      $('#play').on('click', function () {
-        if (player.pause) {
-          // 再生
-          player.play();
-        } else {
-          // 停止
-          player.stop();
-        }
-      });
-
-      // 停止ボタン
-      $('#stop').on('click', function () {
-        handleSelect(document.getElementById('files'));
-        // ハッシュを削除
-        history.pushState('', document.title, window.location.pathname);
-        setTimeout(function () {
-          player.stop();
-        }, 51); // よく分からんが非同期で止めるらしい
-      });
-
-      // パニックボタン
-      $('#panic').on('click', function () {
-        player.sendAllSoundOff();
-      });
-
-      // MIDIファイルのダウンロード
-      $('#download').on('click', function () {
-        // 選択状態を取得
-        var select = document.getElementById('files');
-        var option = select.querySelectorAll('option')[select.selectedIndex];
-        var filename = option.dataset.midiplayerFilename;
-
-        // arraybufferをbase64に変換
-        var binary = '';
-        var bytes = new Uint8Array(select.zip.decompress(filename));
-        var len = bytes.byteLength;
-        for (var i = 0; i < len; i++) {
-          binary += String.fromCharCode(bytes[i]);
-        }
-
-        // この方法は泥臭い
-        window.location.href =
-          'data:audio/midi;base64,' + window.btoa(binary);
-      });
-
-      $('#synth').on('change', function (e) {
-        player.stop();
-        player.setWebMidiLink($(this).val(), 'wml');
-      });
-
-      $('*[title]').tooltip();
-
-      /*
-// 曲の位置を変更。将来実装予定・・・。
-$('#music-progress').on('click', function(e){
-ssvar progress_bar_percentage = e.offsetX / $(this).width();
-ssplayer.setPosition( player.getLength() * progress_bar_percentage);
-});
-*/
-    });
-
-    var $info = $('#info');
-
-    /**
-     * ファイルを読み込む
-     */
-    function handleFile(file) {
-      var reader = new FileReader();
-      player.sendGmReset();
-
-      reader.onload = function (e) {
-        var input = new Uint8Array(e.target.result);
-        handleInput(file.name, input);
-        $('#info p').text = 'Ready.';
-        $('#info').removeClass('alert-warning').addClass('alert-success');
-      };
-      reader.onloadstart = function (e) {
-        $('#info').removeClass('alert-success').addClass('alert-warning');
-      };
-
-      reader.onprogress = function (e) {
-        if (e.lengthComputable) {
-          var percentLoaded = (e.loaded / e.total) | (0 * 100);
-          $('#info div div')
-            .css('width', percentLoaded + '%')
-            .text(percentLoaded + '%');
-        }
-      };
-      reader.readAsArrayBuffer(file);
-    }
-    var initialized = false;
-
-    /**
-     * Zipファイルの内容を取得し、selectタグに割り当てる
-     */
-    function loadSample(zipfile) {
-      $(':input').attr('disabled', 'disabled');
-      const ready = stream => {
-        var input = new Uint8Array(stream);
-
-        // ファイルリストの子要素を一括削除
-        var select = document.getElementById('files');
-        while (select.firstChild) select.removeChild(select.firstChild);
-
-        // Zipファイルからファイル名一覧を取得
-        var zip = (select.zip = new Zlib.Unzip(input));
-        var filenames = zip.getFilenames().sort();
-        //console.log(filenames);
-
-        $('#info div')
-          .removeClass('progress-warning')
-          .addClass('progress-info')
-          .show();
-
-        // ファイル名一覧をセレクトボックスに流し込む
-        filenames.forEach(function (name, i) {
-          var ext = name.slice(name.lastIndexOf('.')).toLowerCase();
-          var percentLoaded = Math.round((i / filenames.length) * 10000);
-
-          $('#info p').text('Parsing zip file...');
-          $('#info div div')
-            .css('width', percentLoaded)
-            .text(percentLoaded + '%');
-
-          if (ext === '/' || !availableExts.includes(ext)) {
-            return;
-          }
-
-          var option = document.createElement('option');
-          // 項目名
-          option.textContent = Encoding.convert(name, 'UNICODE', 'AUTO');
-          // 実際のファイル名
-          option.setAttribute('data-midiplayer-filename', name);
-          // selectタグに流し込む
-          select.appendChild(option);
-        });
-
-        // 初期値が一番上の項目になるとつまらないのでランダム化
-        var prev = select.selectedIndex;
-        var next = prev;
-        while (prev == next) {
-          next = ~~(select.length * Math.random());
-        }
-        select.selectedIndex = next;
-
-        $('#info p').text('Ready.');
-        $('#info div').removeClass('progress-info').hide();
-        $('#info').removeClass('alert-warning').addClass('alert-success');
-        $(':input').removeAttr('disabled ');
-
-        if (params.file && !initialized) {
-          // クエリにファイル名が含まれている場合、それを選択
-          $('#files').val(params.file);
-          handleSelect(document.getElementById('files'));
-        }
-        initialized = true;
-      };
-
-      window.caches.open('zip').then(cache => {
-        cache
-          .match(zipfile)
-          .then(response => response.arrayBuffer())
-          .then(stream => ready(stream))
-          .catch(() => {
-            // キャッシュ処理
-            fetch(zipfile)
-              .then(response => {
-                if (!response.ok) {
-                  throw new Error('Network response was not ok.');
-                }
-                const copy = response.clone();
-                cache.put(zipfile, response);
-                return copy.arrayBuffer();
-              })
-              .then(stream => ready(stream))
-              .catch(e =>
-                console.error(
-                  'There has been a problem with your fetch operation: ' +
-                  e.message
-                )
-              );
-            //.catch(e => alert('Save to cache. please reselect zip file.'));
-          });
-      });
-      $(':input').attr('disabled', '');
-    }
-    /**
-     * 選択されたファイルを解凍
-     */
-    function handleSelect(select) {
-      var option = select.querySelectorAll('option')[select.selectedIndex];
-      var filename = option.dataset.midiplayerFilename;
-
-      if (filename) {
-        handleInput(filename, select.zip.decompress(filename));
-
-        // ページのタイトルを反映
-        var title = document.getElementById('files').value;
-        title = title.substr(0, title.lastIndexOf('.'));
-        document.title =
-          title +
-          ' ' +
-          document.getElementById('zips').value +
-          ' / SMF.Player';
-
-        var hash =
-          '#zip=' +
-          encodeURIComponent($('#zips').val()) +
-          '&file=' +
-          encodeURIComponent(filename);
-        var url = $('link[rel="canonical"]').attr('href') + hash;
-
-        // MIDIファイルに埋め込まれたメタデータを取得
-        $('#music_title').val(
-          Encoding.convert(player.getSequenceName(1), 'UNICODE', 'AUTO')
-        );
-        $('#copyright').val(
-          Encoding.convert(player.getCopyright(), 'UNICODE', 'AUTO')
-        );
-
-        // pushstateを使用
-        if (window.history && window.history.pushState) {
-          window.history.pushState(document.title, null, hash);
-          return false;
-        }
-      }
-    }
-    /**
-     * MIDI/MLDファイルを読み込ませる
-     * @param string filename ファイル名
-     * @param array buffer ファイルの中身
-     */
-    function handleInput(filename, buffer) {
-      // 再生中のMIDIを停止。
-      player.stop();
-      // 音を停止
-      player.sendAllSoundOff();
-      // GMリセットを送信
-      player.sendGmReset();
-
-      $('#lyrics').html('');
-
-      switch (filename.split('.').pop().toLowerCase()) {
-        case 'midi':
-        case 'mid':
-          // Load MIDI file
-          player.loadMidiFile(buffer);
-          break;
-        case 'mld':
-          // Load Polyphonic Ringtone File
-          player.loadMldFile(buffer);
-          break;
-        case 'ms2mml':
-          // Load Maple Story 2 MML File
-          player.loadMs2MmlFile(buffer);
-          break;
-        case 'mms':
-          // Load MakiMabi Sequence MML File
-          player.loadMakiMabiSequenceFile(buffer);
-          break;
-        case 'mml':
-          // Load 3MLE MML File
-          player.load3MleFile(buffer);
-          break;
-        case 'mmi':
-          // Load Mabicco MML File
-          player.loadMabiIccoFile(buffer);
-          break;
-      }
-
-      // マスターボリュームが低いままになるので
-      player.setMasterVolume($('#volume').val() * 16383);
-      $('#time-total').text(player.getTotalTime());
-      //よく分からんが非同期で読み込むらしい
-      setTimeout(function () {
-        player.play();
-      }, 1000);
-    }
-
-    /**
-     * ランダム再生
-     */
-    function randomPlay() {
-      var select = document.getElementById('files');
-      select.selectedIndex = ~~(select.length * Math.random());
-      handleSelect(select);
-    }
-
-    function randomArchive() {
-      var select = document.getElementById('zips');
-      select.selectedIndex = ~~(select.length * Math.random());
-      handleSelect(select);
-    }
-
-    /**
-     * IFRAMEから送られてくるwindow.postMessageを監視
-     */
-    $(window).on('message', function (e) {
-      var event = e.originalEvent.data; // Should work.
-
-      switch (event) {
-        case 'endoftrack':
-          // 曲が終了したとき
-          // 曲一覧の現在選択中の項目番号
-          var selected_music = $('#music').prop('selectedIndex');
-
-          player.stop();
-
-          // 曲は終了しても、player.pauseの値が変化しないので、ここで、再生ボタンにする。
-          $('#play')
-            .html('<em class="bi bi-play"></em>')
-            .removeClass('btn-success')
-            .addClass('btn-primary');
-          if ($('#random').is(':checked')) {
-            randomPlay();
-          } else {
-            var selected_music = $('#files').prop('selectedIndex');
-            if (selected_music !== 0) {
-              // ループで最初に戻った場合（player.positionがリセットされた場合）
-              // 次の曲を選択
-              if (selected_music == $('#files option').length) {
-                // 末尾の場合最初に戻る
-                $('#files').prop('selectedIndex', 0);
-              } else {
-                $('#files').prop('selectedIndex', selected_music + 1);
-              }
-              // 曲を変更
-              handleSelect(document.getElementById('files'));
-            }
-          }
-          break;
-        case 'progress':
-          $('#info p').text('Loading soundfont...');
-          break;
-        case 'link,ready':
-          // WMLが読み込まれた時
-          isReady = true;
-          if (document.querySelector('#random').checked) {
-            handleSelect(document.querySelector('#files'));
-          }
-          $('#info').addClass('alert-success').removeClass('alert-warning');
-          $('#info p').text('Ready.');
-          $(':input').prop('disabled', false);
-          break;
-      }
-    });
-
-    let parentLyrics = '';
-    let parentTextEvent = '';
-    let lyric = '';
-    /**
-     * インターバル関数
-     */
-    setInterval(function () {
-      if (isReady) {
-        // player.pauseの値で再生/一時停止ボタンを変化させる
-        // ただし、smfplayer.jsのバグでplayer.loadMidiFile()が実行された直後、
-        // 再生していない状態でもplayer.pauseの値がtrueになってしまうので、
-        // もう一工夫いる。
-        if (player.pause) {
-          $('#play')
-            .html('<em class="bi bi-play"></em>')
-            .removeClass('btn-success')
-            .addClass('btn-primary');
-        } else {
-          $('#play')
-            .html('<wm class="bi bi-pause"></em>')
-            .removeClass('btn-primary')
-            .addClass('btn-success');
-        }
-        var percentage =
-          ((player.getPosition() / player.getLength()) * 100) | 0;
-        $('#music-progress .progress-bar')
-          .css('width', percentage + '%')
-          .text(percentage + '%');
-        $('#time-now').text(player.getTime());
-        $('#current-tempo').text(player.getTempo());
-
-        // 歌詞の処理。（誰得？）
-        // やる気ないので、WebMidiカラオケ作りたい人は下の資料を参考にがんばってくれ。
-        // https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
-        let lyrics = player.getLyrics();
-        if (lyrics && lyrics.length !== 0) {
-          // console.log(Encoding.convert(lyrics, "UNICODE", "AUTO"));
-          if (parentLyrics !== lyrics) {
-            //if (lyrics.match(/^\</)) {
-            lyric = ''; // 改ページ
-            $('#lyrics').html('');
-            //}
-
-            lyrics
-              .replace(/\//g, '<br />') // 改行
-              .replace(/\>/g, '    ') // インデント
-              .replace(/\&m/g, '👨‍🎤') // 男性歌手
-              .replace(/\&f/g, '👩‍🎤') // 女性歌手
-              .replace(/\&c/g, '👫'); // コーラス
-
-            lyric += lyrics;
-
-            $('#lyrics').html(Encoding.convert(lyric, 'UNICODE', 'AUTO'));
-          }
-        }
-        if (parentTextEvent !== player.getTextEvent()) {
-          $('#text_event').val(
-            Encoding.convert(player.getTextEvent(), 'UNICODE', 'AUTO')
-          );
-        }
-
-        parentLyrics = player.getLyrics();
-        parentTextEvent = player.getTextEvent();
-
-        if (percentage === 100) {
-          // 次の曲
-          var selected_music = $('#files').prop('selectedIndex');
-          if (selected_music == $('#files option').length) {
-            // 末尾の場合最初に戻る
-            $('#files').prop('selectedIndex', 0);
-          } else {
-            // 今選択されてる項目の次の項目を選択
-            $('#files').prop('selectedIndex', selected_music + 1);
-          }
-          handleSelect(document.getElementById('files'));
-        }
-      }
-    }, 600);
-      /*]]>*/
-  </script>
-</body>
-
+    </main>
+    <footer class="footer mt-auto py-3 mb-0 bg-light">
+      <address class="container mb-0">
+        <a href="//github.com/gree/smfplayer.js">SMF.Player</a>
+        &copy; 2013 imaya / GREE Inc. / &copy; 2013-2022 by
+        <a href="//logue.dev/">Logue</a>
+        . Licensed under the
+        <a href="http://opensource.org/licenses/mit-license.php">MIT License</a>
+        .
+      </address>
+    </footer>
+    <script
+      src="https://cdn.jsdelivr.net/npm/zlibjs@0.3.1/bin/unzip.min.js"
+      integrity="sha256-pKobUkzPTKMnWX5yXGUt55Lp7W9pboaAhaXiI/hgIr4="
+      crossorigin="anonymous"
+    ></script>
+    <script type="module" src="/src/docs.js"></script>
+  </body>
 </html>

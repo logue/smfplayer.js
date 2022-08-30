@@ -2,7 +2,6 @@ import ThreeMacroLanguageEditor from './3mle';
 import MapleStory2Mml from './ms2mml';
 import MakiMabiSequence from './mms';
 import MabiIcco from './mmi';
-import Meta from './meta';
 import Mld from './mld';
 import SMF from './smf';
 
@@ -68,11 +67,6 @@ export default class Player {
     this.window = window;
     /** @type {Element} */
     this.target = this.window.document.querySelector(target);
-
-    /** @type {number} */
-    this.version = Meta.version;
-    /** @type {string} */
-    this.build = Meta.build;
   }
 
   /**
@@ -217,6 +211,7 @@ export default class Player {
    * シーケンス終了時
    */
   onSequenceEnd() {
+    this.pause = true;
     this.webMidiLink.contentWindow.postMessage('endoftrack', '*');
   }
 
@@ -258,13 +253,11 @@ export default class Player {
         const msg = ev.data.split(',');
 
         if (msg[0] === 'link') {
-          // console.log(ev.data);
           if (msg[1] === 'ready') {
             player.ready = true;
             player.loaded = 100;
             player.setMasterVolume(player.masterVolume);
           } else if (msg[1] === 'progress') {
-            // console.log(msg[2]);
             player.loaded = Math.round((msg[2] / msg[3]) * 10000);
           }
         }
@@ -345,6 +338,7 @@ export default class Player {
   }
 
   /**
+   * シーケンス再生
    */
   playSequence() {
     /** @type {Player} */

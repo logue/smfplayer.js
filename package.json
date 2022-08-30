@@ -1,8 +1,21 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "@logue/smfplayer",
-  "version": "0.4.0",
   "description": "smfplayer.js is JavaScript based Standard Midi Player for WebMidiLink based synthesizer.",
+  "type": "module",
+  "author": {
+    "name": "imaya / GREE Inc.",
+    "url": "https://github.com/gree"
+  },
+  "contributors": [
+    {
+      "name": "Logue",
+      "email": "logue@hotmail.co.jp",
+      "url": "https://logue.dev"
+    }
+  ],
+  "version": "0.4.0",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/logue/smfplayer.js.git"
@@ -21,18 +34,6 @@
     "wml",
     "webaudio"
   ],
-  "author": {
-    "name": "imaya / GREE Inc.",
-    "url": "https://github.com/gree"
-  },
-  "contributors": [
-    {
-      "name": "Logue",
-      "email": "logue@hotmail.co.jp",
-      "url": "https://logue.dev"
-    }
-  ],
-  "license": "MIT",
   "bugs": {
     "url": "https://github.com/logue/smfplayer.js/issues"
   },
@@ -48,6 +49,11 @@
       "require": "./dist/smf.umd.js"
     }
   },
+  "engines": {
+    "node": ">=16.16.0",
+    "yarn": ">=1.22.4"
+  },
+  "packageManager": "yarn@3.2.3",
   "scripts": {
     "dev": "vite",
     "clean": "rimraf node_modules/.vite",
@@ -58,16 +64,15 @@
     "preview": "vite preview --config vite.config.docs.js",
     "prepare": "husky install"
   },
-  "engines": {
-    "node": ">=16.16.0",
-    "yarn": ">=1.22.4"
-  },
-  "packageManager": "yarn@3.2.1",
   "dependencies": {
-    "ini": "^3.0.0"
+    "ini": "^3.0.1"
   },
   "devDependencies": {
-    "eslint": "^8.19.0",
+    "@popperjs/core": "^2.11.6",
+    "bootstrap": "^5.2.0",
+    "bootstrap-icons": "^1.9.1",
+    "encoding-japanese": "^2.0.0",
+    "eslint": "^8.23.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-alias": "^1.1.2",
@@ -76,10 +81,13 @@
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
+    "querystring": "^0.2.1",
     "rimraf": "^3.0.2",
-    "vite": "^2.9.14",
-    "vite-plugin-banner": "^0.3.0",
-    "vite-plugin-checker": "^0.4.8"
+    "sass": "^1.54.6",
+    "streamsaver": "^2.0.6",
+    "vite": "^3.0.9",
+    "vite-plugin-banner": "^0.4.0",
+    "vite-plugin-checker": "^0.5.0"
   },
   "husky": {
     "hooks": {

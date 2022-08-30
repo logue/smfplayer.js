@@ -11,6 +11,8 @@ smfplayer.js は [WebMidiLink](http://www.g200kg.com/en/docs/webmidilink/) 対�
 ## 使い方
 
 ```js
+import SMF from '@logue/smfplayer';
+
 const player = new SMF.Player();
 
 window.addEventListener(
@@ -128,14 +130,13 @@ function loadSMF(url) {
 
 ### MML を読み込む時の制限事項
 
-以下のファイルを読み込ませる場合、プログラムチェンジの値が MSXSprit.dls の値と一致しており、GM と互換性がありません。
-これらのファイルを再生する場合は、WML の値を <https://logue.dev/MabiMmlEmu/wml.html> にしてください。
+以下のファイルを読み込ませる場合、プログラムチェンジの値が MSXspirit.dls の値と一致しており、GM と互換性がありません。[MabiMmlEmu リポジトリ](https://github.com/logue/MabiMmlEmu/)から`MSXspirit.sf2`をダウンロードして、wml.html に読み込ませて使用してください。
 
-| 拡張子 | ファイル                                                                                           |
-| ------ | -------------------------------------------------------------------------------------------------- |
-| \*.mms | [まきまびしーく](https://web.archive.org/web/20190331144512/http://www.geocities.jp/makimabi/)形式 |
-| \*.mml | [3MLE](http://3ml.jp/)                                                                             |
-| \*.mmi | [MabiIcco](https://github.com/fourthline/mmlTools)                                                 |
+| 拡張子 | ファイル                                                |
+| ------ | ------------------------------------------------------- |
+| \*.mms | [まきまびしーく](https://booth.pm/ja/items/2372062)形式 |
+| \*.mml | [3MLE](http://3ml.jp/)                                  |
+| \*.mmi | [MabiIcco](https://github.com/fourthline/mmlTools)      |
 
 [MapleStory2](https://maplestory2.nexon.co.jp/)の MML ファイル（\*.ms2mml）を読み込む場合、プログラムチェンジがファイル形式に含まれていないため、楽器が 0（ピアノ固定）となります。
 
@@ -152,6 +153,6 @@ sf2synth.js は WebMidiLink の Link Level 1 にのみ対応しています。
 
 ## ライセンス
 
-Copyright &copy; 2013 imaya / GREE Inc.
-&copy; 2013-2022 Modified by Logue
+Copyright &copy; 2013 imaya / GREE Inc. / 2013-2022 by Logue.
+
 Licensed under the MIT License.

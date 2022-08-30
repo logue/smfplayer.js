@@ -1,4 +1,4 @@
-import checker from 'vite-plugin-checker';
+import { checker } from 'vite-plugin-checker';
 import { defineConfig } from 'vite';
 import path from 'path';
 import fs from 'fs';
@@ -50,16 +50,8 @@ const config = {
       name: 'SMF',
       fileName: format => `smf.${format}.js`,
     },
-    // Minify option
-    // https://vitejs.dev/config/#build-minify
-    minify: 'terser',
-    terserOptions: {
-      ecma: 2020,
-      compress: { drop_console: true },
-      mangle: true, // Note `mangle.properties` is `false` by default.
-      module: true,
-      output: { comments: true, beautify: false },
-    },
+    target: 'es2021',
+    minify: 'esbuild',
   },
 };
 
