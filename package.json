@@ -14,7 +14,7 @@
       "url": "https://logue.dev"
     }
   ],
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -41,8 +41,8 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/smf.umd.js",
-  "module": "./dist/smf.es.js",
+  "main": "dist/smf.umd.js",
+  "module": "dist/smf.es.js",
   "exports": {
     ".": {
       "import": "./dist/smf.es.js",
@@ -50,8 +50,8 @@
     }
   },
   "engines": {
-    "node": ">=16.16.0",
-    "yarn": ">=1.22.4"
+    "node": ">=16.17.0",
+    "yarn": ">=1.22.10"
   },
   "packageManager": "yarn@3.2.3",
   "scripts": {
@@ -65,13 +65,14 @@
     "prepare": "husky install"
   },
   "dependencies": {
-    "ini": "^3.0.1"
-  },
-  "devDependencies": {
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.0",
-    "bootstrap-icons": "^1.9.1",
     "encoding-japanese": "^2.0.0",
+    "ini": "^3.0.1",
+    "querystring": "^0.2.1",
+    "streamsaver": "^2.0.6"
+  },
+  "devDependencies": {
     "eslint": "^8.23.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
@@ -81,10 +82,8 @@
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
-    "querystring": "^0.2.1",
     "rimraf": "^3.0.2",
     "sass": "^1.54.6",
-    "streamsaver": "^2.0.6",
     "vite": "^3.0.9",
     "vite-plugin-banner": "^0.4.0",
     "vite-plugin-checker": "^0.5.0"

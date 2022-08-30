@@ -24,6 +24,18 @@
     <title>Standard MIDI Player for Web</title>
     <link rel="shortcuticon" href="./favicon.ico" />
     <link rel="dns-prefetch" href="https://cdn.jsdelivr.net/" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css"
+      integrity="sha256-7ZWbZUAi97rkirk4DcEp4GWDPkWpRMcNaEyXGsNXjLg="
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css"
+      integrity="sha256-8M+b2Hj+vy/2J5tZ9pYDHeuPD59KsaEZn1XXj3xVhjg="
+      crossorigin="anonymous"
+    />
     <!-- Web Fonts -->
     <link
       rel="stylesheet"
@@ -70,7 +82,9 @@
     <header>
       <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <div class="container-fluid d-flex justify-content-between">
-          <a class="navbar-brand" href="#">smfplayer.js</a>
+          <a class="navbar-brand" href="https://logue.dev/smfplayer.js/">
+            smfplayer.js
+          </a>
           <button
             class="navbar-toggler"
             type="button"
@@ -85,34 +99,69 @@
           <div class="collapse navbar-collapse flex-grow-0" id="navbarCollapse">
             <ul class="navbar-nav">
               <li class="nav-item">
-                <a
-                  class="nav-link"
-                  aria-current="page"
-                  href="https://logue.dev/"
-                >
-                  Home
-                </a>
+                <a class="nav-link active" href="./">Home</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="debug.html">sf2.js debug test</a>
               </li>
               <li class="nav-item">
                 <a
-                  class="nav-link active"
+                  class="nav-link"
                   href="https://github.com/logue/smfplayer.js/"
                 >
-                  smfplayer.js
+                  <em class="bi bi-github"></em>
                 </a>
               </li>
-              <li class="nav-item">
+            </ul>
+            <ul class="navbar-nav">
+              <li class="nav-item dropdown">
                 <a
-                  class="nav-link"
-                  href="https://github.com/logue/sf2synth.js/"
+                  class="nav-link dropdown-toggle"
+                  href="#"
+                  id="navbarDarkDropdownMenuLink"
+                  role="button"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
                 >
-                  sf2synth.js
+                  See Also
                 </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" href="https://github.com/logue/MabiMmlEmu/">
-                  MabiMmlEmu
-                </a>
+                <ul
+                  class="dropdown-menu dropdown-menu-end"
+                  aria-labelledby="navbarDarkDropdownMenuLink"
+                >
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="https://github.com/logue/smfplayer.js/"
+                    >
+                      smfplayer.js
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="https://github.com/logue/sf2synth.js/"
+                    >
+                      sf2synth.js
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="https://github.com/logue/Reverb.js/"
+                    >
+                      Reverb.js
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      class="dropdown-item"
+                      href="https://github.com/logue/MabiMmlEmu/"
+                    >
+                      MabiMmlEmu
+                    </a>
+                  </li>
+                </ul>
               </li>
             </ul>
           </div>
@@ -120,7 +169,7 @@
       </nav>
     </header>
 
-    <main role="main" class="flex-shrink-0 mt-4">
+    <main role="main" class="flex-shrink-0 my-3">
       <div class="container">
         <div
           id="info"
@@ -257,19 +306,22 @@
                   <!-- time -->
                   <div class="flex-grow-1 mx-3">
                     <div class="Clock-Wrapper">
-                      <span class="Clock-Time-Background h4">
+                      <span class="Clock-Time-Background h4" aria-hidden>
                         <em class="bi bi-clock"></em>
                         ~:~~:~~ / ~:~~:~~ &nbsp;
                         <em class="bi bi-music-note"></em>
                         ~~~
                       </span>
                       <span id="clock" class="Clock-Time-Front h4">
-                        <em class="bi bi-clock"></em>
+                        <em
+                          class="bi bi-clock"
+                          title="Current Time / Total Time"
+                        ></em>
                         <span id="time-now">0:00:00</span>
                         /
                         <span id="time-total">0:00:00</span>
                         &nbsp;
-                        <em class="bi bi-music-note"></em>
+                        <em class="bi bi-music-note" title="Current Tempo"></em>
                         <span id="current-tempo">120</span>
                       </span>
                     </div>
@@ -278,6 +330,7 @@
                       <div
                         class="progress-bar percentage"
                         role="progressbar"
+                        aria-label="Music progress"
                         style="width: 0%"
                         aria-valuemin="0"
                         aria-valuemax="100"
@@ -295,7 +348,9 @@
                       <span class="input-group-text">
                         <em class="bi bi-music-note-list"></em>
                       </span>
-                      <select id="files" class="form-select"></select>
+                      <select id="files" class="form-select">
+                        <!-- The MIDI files in zip files will be extracted here.-->
+                      </select>
                       <button
                         class="btn btn-secondary"
                         type="button"
@@ -311,10 +366,11 @@
                       Zip archive file:
                     </label>
                     <div class="input-group">
-                      <span class="input-group-text">
+                      <span class="input-group-text" aria-hidden>
                         <em class="bi bi-file-earmark-zip"></em>
                       </span>
                       <select id="zips" class="form-select">
+                        <!-- Change here to own midi archived zip -->
                         <option value="files/YAMAHA mididata library.zip">
                           YAMAHA mididata library.zip
                         </option>
@@ -413,9 +469,7 @@
                           <option value="files/Silent_Hill.zip">
                             Silent Hill
                           </option>
-                          <option
-                            value="files/Star_Ocean_the_second_story.zip"
-                          >
+                          <option value="files/Star_Ocean_the_second_story.zip">
                             Star Ocean the Second Story
                           </option>
                           <option value="files/Valkyrie_Profile.zip">
@@ -451,6 +505,12 @@
                             Sonic the Hedgehog
                           </option>
                         </optgroup>
+                        <option disabled="disabled">
+                          ------------------------------
+                        </option>
+                        <option value="files/YMO.zip">
+                          Yellow Magic Orchestra
+                        </option>
                       </select>
                     </div>
                   </div>
@@ -600,6 +660,15 @@
                         />
                         <div><em class="bi bi-volume-up"></em></div>
                       </div>
+                      <hr />
+                      <button
+                        type="button"
+                        class="btn btn-outline-dark btn-sm"
+                        id="reset"
+                      >
+                        <em class="bi bi-eject"></em>
+                        Send GM Reset
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -610,9 +679,83 @@
         <!-- WebMidiLink Placeholder -->
         <div class="card">
           <div class="card-header">
-            <h2 class="h5"><label for="synth">Synthesyther</label></h2>
+            <div class="d-flex justify-content-between">
+              <h2 class="h5"><label for="synth">Synthesyther</label></h2>
+              <div>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <em class="bi bi-soundwave"></em>
+                  </span>
+                  <select
+                    id="synth"
+                    class="form-select"
+                    aria-describedby="wmlHelp"
+                  >
+                    <option
+                      value="https://logue.dev/sf2synth.js/wml.html?soundfont=Yamaha XG Sound Set.sf2"
+                    >
+                      Yamaha XG Sound Set.sf2
+                    </option>
+                    <option
+                      value="https://logue.dev/sf2synth.js/wml.html?soundfont=Yamaha XG Sound Set.sf2&amp;ui=false"
+                    >
+                      Yamaha XG Sound Set.sf2 (Disable Keyboard)
+                    </option>
+                    <option
+                      value="https://logue.dev/sf2synth.js/wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2"
+                      selected
+                    >
+                      Yamaha XG Sound Set Ver2.0.sf2
+                    </option>
+                    <option
+                      value="https://logue.dev/sf2synth.js/wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2&amp;ui=false"
+                    >
+                      Yamaha XG Sound Set.sf2 (Disable Keyboard)
+                    </option>
+                    <option value="https://logue.dev/Wml2WebMidiApi/wml.html">
+                      Web MIDI API (Experimental)
+                    </option>
+                    <option value="https://logue.dev/MabiMmlEmu/wml.html">
+                      Mabinogi MML (MSXSpirit.sf2)
+                    </option>
+                    <option
+                      value="https://logue.dev/MabiMmlEmu/wml.html?ui=false"
+                    >
+                      Mabinogi MML (MSXSpirit.sf2) (Disable Keyboard)
+                    </option>
+                    <option disabled="disabled">
+                      ------------------------------
+                    </option>
+                    <option
+                      value="https://www.g200kg.com/webmidilink/gmplayer/"
+                    >
+                      GMPlayer
+                    </option>
+                    <option value="https://aikelab.net/websynth/">
+                      aike : WebAudioSynth
+                    </option>
+                    <option value="https://script-synthesizer.herokuapp.com/">
+                      mohayonao : timbre.js
+                    </option>
+                    <!--option value="//beatonica.com/">aike : Beatonica</option-->
+                    <!--option value="https://www.g200kg.com/en/docs/webmidilink/webbeeper.html">g200kg : WebBeeper</option-->
+                    <option value="https://aikelab.net/bitmaker/">
+                      aike : Bitmaker
+                    </option>
+                  </select>
+                </div>
+                <div id="wmlHelp" class="form-text">
+                  Select
+                  <a href="https://www.g200kg.com/en/docs/webmidilink/">
+                    WebMidiLink
+                    <em class="bi bi-box-arrow-up-right"></em>
+                  </a>
+                  based synthesizer
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="card-body" id="wml"></div>
+          <div class="card-body p-0" id="wml"></div>
         </div>
       </div>
     </main>

@@ -95,6 +95,8 @@ function loadSMF(url) {
 }
 ```
 
+より詳細は、[docs.js](./src/docs.js)を参考にしてください。
+
 ## 命令
 
 | メソッド/変数名                       | 内容                                                          |

@@ -1,7 +1,5 @@
-index.html
 .husky/
 .vscode/
 .yarn/
 dist/
-docs/*.js
-docs/*.css
+docs/

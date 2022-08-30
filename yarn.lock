@@ -94,7 +94,6 @@ __metadata:
   dependencies:
     "@popperjs/core": ^2.11.6
     bootstrap: ^5.2.0
-    bootstrap-icons: ^1.9.1
     encoding-japanese: ^2.0.0
     eslint: ^8.23.0
     eslint-config-google: ^0.14.0
@@ -383,13 +382,6 @@ __metadata:
   version: 2.2.0
   resolution: "binary-extensions@npm:2.2.0"
   checksum: ccd267956c58d2315f5d3ea6757cf09863c5fc703e50fbeb13a7dc849b812ef76e3cf9ca8f35a0c48498776a7478d7b4a0418e1e2b8cb9cb9731f2922aaad7f8
-  languageName: node
-  linkType: hard
-
-"bootstrap-icons@npm:^1.9.1":
-  version: 1.9.1
-  resolution: "bootstrap-icons@npm:1.9.1"
-  checksum: b388264719b5d2526809df509b83aa7e696d467f3b976d79faefb6fc7f07cee5427a894331af90b00b1ceb8d28a99fc398f1ca0553afaa53eb77a7749bb73ea5
   languageName: node
   linkType: hard
 
