@@ -1,5 +1,5 @@
 'use strict';
-
+/* eslint-disable */
 /**
  * @classdes SoundFont2 Class
  * Original version written by yoya<https://github.com/yoya/sf2.js>,
@@ -300,7 +300,7 @@ class SoundFont2 {
 
 (function (factory) {
   if (typeof module === 'object' && typeof module.exports === 'object') {
-    var v = factory(require, exports);
+    const v = factory(require, exports);
     if (v !== undefined) module.exports = v;
   } else if (typeof define === 'function' && define.amd) {
     define(['require', 'exports'], factory);

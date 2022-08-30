@@ -1,5 +1,5 @@
 'use strict';
-
+/* eslint-disable */
 window.AudioContext = window.AudioContext || window.webkitAudioContext;
 const acontext = new AudioContext();
 
@@ -30,7 +30,8 @@ function viewBanksPresets(sf) {
   const sftable_head = document.createElement('thead');
   const banks = sf.banks;
   let tr = document.createElement('tr');
-  let th, td;
+  let th;
+  let td;
   const preset_keylist = [
     'bank',
     'preset',
@@ -157,10 +158,11 @@ function viewBags(sf, preset, inst) {
     let nMods = 0;
     for (gen in gens) nGens++;
     nMods = mods.length;
-    for (let oper in gens) {
+    for (const oper in gens) {
       gen = gens[oper];
       const tr = document.createElement('tr');
-      let td, button;
+      let td;
+      let button;
       if (bagId !== prevBag) {
         td = document.createElement('td');
         td.innerHTML = bagId;
