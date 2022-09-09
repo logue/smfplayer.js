@@ -276,15 +276,16 @@ export default class Player {
       }
 
       /** @type {HTMLIFrameElement} */
-      const iframe = (this.webMidiLink =
-        /** @type {HTMLIFrameElement} */
-        (this.window.document.createElement('iframe')));
+      const iframe = document.createElement('iframe');
       iframe.src = port;
+      iframe.crossOrigin = 'anonymous';
+      iframe.allow = 'autoplay';
       iframe.className = 'wml';
 
       this.target.appendChild(iframe);
       this.window.addEventListener('message', process, false);
 
+      /** Sync Iframe height */
       const resizeHeight = () => {
         iframe.style.height =
           this.webMidiLink.contentWindow.document.body.scrollHeight + 'px';
@@ -303,6 +304,7 @@ export default class Player {
         },
         false
       );
+      this.webMidiLink = iframe;
     } else {
       // Worker Mode
       this.webMidiLink.addEventListener('message', process, false);
@@ -311,6 +313,7 @@ export default class Player {
 
   /**
    * マスターボリュームを変更
+   *
    * @param {number} volume
    */
   setMasterVolume(volume) {

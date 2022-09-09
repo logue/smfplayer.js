@@ -1,0 +1,35 @@
+@import '~bootstrap/scss/bootstrap';
+@import '~bootstrap-icons/font/bootstrap-icons.css';
+@import '~dseg/css/dseg.css';
+
+.percentage {
+  font-family: 'DSEG14-Modern';
+}
+
+.Clock-Wrapper {
+  font-family: 'DSEG14-Modern';
+  font-style: italic;
+  position: relative;
+  height: 2rem;
+}
+
+.Clock-Time-Front {
+  z-index: 100;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.Clock-Time-Background {
+  z-index: 50;
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: #e9ecef !important;
+}
+
+iframe {
+  width: 100%;
+  min-height: 640px;
+  border: thin;
+}

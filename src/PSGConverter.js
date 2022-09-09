@@ -3,10 +3,10 @@ import { ChannelEvent, MetaEvent } from './midi_event';
 /**
  * @class     PSGConverter
  * @classdesc Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * @version   3.0.3
+ * @version   3.0.4
  *
  * @author    Logue <logue@hotmail.co.jp>
- * @copyright 2019-2021 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright 2007-2022 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license   MIT
  */
 export default class PSGConverter {
@@ -49,18 +49,18 @@ export default class PSGConverter {
     this.endTime = 0;
     /** @type {number} ノートオフの逆オフセット(tick指定) */
     this.noteOffNegativeOffset = 2;
-    /** @type {bool} テンポ命令を無視する */
-    this.ignoreTempo = optParams.igonreTempo | false;
+    /** @type {boolean} テンポ命令を無視する */
+    this.ignoreTempo = optParams.igonreTempo || false;
     /** @type {number} 最大オクターブ */
-    this.maxOctave = optParams.maxOctave | 8;
+    this.maxOctave = optParams.maxOctave || 8;
     /** @type {number} 最小オクターブ */
-    this.minOctave = optParams.minOctave | 0;
+    this.minOctave = optParams.minOctave || 0;
     /** @type {number} オクターブモード（0：処理しない。1：外れる音階はその前後のオクターブをループする。2：常に同じ音を鳴らす */
-    this.octaveMode = optParams.octaveMode | 0;
+    this.octaveMode = optParams.octaveMode || 0;
     /** @type {number} 最低音階（octaveModeが0の場合は無視されます。デフォルトはピアノの音階。GM音源で再生するとき用） */
-    this.minNote = optParams.minNote | 12;
+    this.minNote = optParams.minNote || 12;
     /** @type {number} 最高音階（octaveModeが0の場合は無視されます。デフォルトはピアノの音階。GM音源で再生するとき用） */
-    this.maxNote = optParams.minNote | 98;
+    this.maxNote = optParams.minNote || 98;
     // 変換実行
     this.parse();
   }
@@ -75,7 +75,7 @@ export default class PSGConverter {
       // 小文字に変換した後正規表現で命令単位で分割する。
       mmls = this.mml.toLowerCase().match(this.PATTERN);
     } catch (e) {
-      console.warn('Could not parse MML.', this.mml);
+      console.error('[PSGConverter] Could not parse MML.', this.mml);
       return;
     }
 

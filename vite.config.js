@@ -7,7 +7,7 @@ const pkg = require('./package.json');
 const build = new Date().toISOString();
 
 // Export vite config
-export default defineConfig(async ({ command }) => {
+export default defineConfig(async ({ mode, command }) => {
   // Hook production build.
   /** @type {UserConfig} https://vitejs.dev/config/ */
   const config = {
@@ -20,6 +20,7 @@ export default defineConfig(async ({ command }) => {
         // Allow serving files from one level up to the project root
         allow: ['..'],
       },
+      cors: false,
     },
     resolve: {
       alias: [
@@ -60,10 +61,13 @@ export default defineConfig(async ({ command }) => {
         entry: path.resolve(__dirname, 'src/index.js'),
         name: 'SMF',
         formats: ['es', 'umd', 'iife'],
-        fileName: format => `smf.${format}.js`,
+        fileName: format => `smfplayer.${format}.js`,
       },
       target: 'es2021',
       minify: 'esbuild',
+    },
+    esbuild: {
+      drop: mode === 'serve' ? [] : ['console'],
     },
   };
   // Write meta data.

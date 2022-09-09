@@ -1,8 +1,9 @@
-import queryString from 'querystring';
-import Player from './player';
+import queryString from 'query-string';
+import Player from '../player';
 import { Tab, Tooltip } from 'bootstrap';
 import Encoding from 'encoding-japanese';
 import streamSaver from 'streamsaver';
+import './style.scss';
 
 formLock(true);
 
@@ -30,7 +31,8 @@ const availableExts = [
   '.mp2mml',
 ];
 
-const wml = 'wml.html';
+const wml =
+  import.meta.env.VITE_WML_URL || 'https://logue.dev/sf2synth.js/wml.html';
 
 /**
  * メイン処理
@@ -62,6 +64,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // WebMidiLink設定
   player.setWebMidiLink(wml, 'wml');
 
+  /** @type {HTMLButtonElement[]} */
   const triggerTabList = [].slice.call(
     document.querySelectorAll('#control-tab button')
   );
@@ -258,6 +261,7 @@ function handleFile(file) {
   progressOuter.appendChild(progress);
   info.appendChild(progressOuter);
 
+  /** @type {FileReader} */
   const reader = new FileReader();
   player.sendGmReset();
 
@@ -294,6 +298,11 @@ async function loadSample(zipfile) {
   /** @type {HTMLSelectElement} ファイルリスト */
   const select = document.getElementById('files');
 
+  /**
+   * 読み込まれたときの処理
+   *
+   * @param {ArrayBuffer} stream
+   */
   const ready = stream => {
     const input = new Uint8Array(stream);
 
@@ -355,11 +364,7 @@ async function loadSample(zipfile) {
   const response = await fetch(zipfile, {
     method: 'GET',
     mode: 'no-cors',
-    headers: {
-      Accept: 'application/zip',
-      'Access-Control-Allow-Origin': '*',
-      credentials: 'include',
-    },
+    credentials: 'include',
   });
   if (!response.ok) {
     throw new Error('Network response was not ok.');
@@ -397,7 +402,7 @@ function handleSelect() {
       title === ''
         ? Encoding.convert(filename, 'UNICODE', 'AUTO').substr(
             0,
-            title.lastIndexOf('.')
+            filename.lastIndexOf('.')
           )
         : title;
 
@@ -425,6 +430,10 @@ function handleSelect() {
     document
       .querySelector('link[rel="canonical"]')
       .setAttribute('href', `${location.href}/${hash}`);
+
+    if (params.zip && params.file) {
+      player.play();
+    }
   }
 }
 /**

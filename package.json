@@ -14,7 +14,7 @@
       "url": "https://logue.dev"
     }
   ],
-  "version": "0.4.1",
+  "version": "0.4.2",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -65,11 +65,15 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@logue/sf2synth": "^0.4.9",
     "@popperjs/core": "^2.11.6",
-    "bootstrap": "^5.2.0",
+    "aws-sdk": "^2.1212.0",
+    "bootstrap": "^5.2.1",
+    "bootstrap-icons": "^1.9.1",
+    "dseg": "^0.46.0",
     "encoding-japanese": "^2.0.0",
     "ini": "^3.0.1",
-    "querystring": "^0.2.1",
+    "query-string": "^7.1.1",
     "streamsaver": "^2.0.6"
   },
   "devDependencies": {
@@ -83,10 +87,10 @@
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
     "rimraf": "^3.0.2",
-    "sass": "^1.54.6",
-    "vite": "^3.0.9",
-    "vite-plugin-banner": "^0.4.0",
-    "vite-plugin-checker": "^0.5.0"
+    "sass": "^1.54.9",
+    "vite": "^3.1.0",
+    "vite-plugin-banner": "^0.5.0",
+    "vite-plugin-checker": "^0.5.1"
   },
   "husky": {
     "hooks": {

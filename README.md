@@ -95,7 +95,7 @@ function loadSMF(url) {
 }
 ```
 
-より詳細は、[docs.js](./src/docs.js)を参考にしてください。
+より詳細は、[docs.js](./src/demo/docs.js)を参考にしてください。
 
 ## 命令
 
