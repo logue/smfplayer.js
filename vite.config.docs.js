@@ -58,7 +58,6 @@ export default defineConfig(async ({ mode }) => {
       outDir: 'docs',
       // Minify option
       // https://vitejs.dev/config/#build-minify
-      target: 'esnext',
       rollupOptions: {
         input: {
           index: path.resolve(__dirname, 'index.html'),

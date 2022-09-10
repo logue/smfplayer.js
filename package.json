@@ -56,6 +56,7 @@
   "packageManager": "yarn@3.2.3",
   "scripts": {
     "dev": "vite",
+    "dev:doc": "vite --config vite.config.docs.js",
     "clean": "rimraf node_modules/.vite",
     "build": "vite build",
     "build:docs": "vite build --config vite.config.docs.js",

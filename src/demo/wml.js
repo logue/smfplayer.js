@@ -1,4 +1,4 @@
-import S3Client from 'aws-sdk/clients/s3';
+// import S3Client from 'aws-sdk/clients/s3';
 import SoundFont from '@logue/sf2synth';
 import QueryString from 'query-string';
 import '@logue/sf2synth/dist/style.css';
@@ -27,7 +27,7 @@ window.addEventListener(
 
     build.innerText = new Date(SoundFont.build).toLocaleString();
 
-    let url;
+    /*
     if (import.meta.env.VITE_S3_BUCKET_NAME) {
       // Fetch from Amazon S3, Cloudflare R2 etc.
       const s3 = new S3Client({
@@ -37,23 +37,24 @@ window.addEventListener(
         secretAccessKey: import.meta.env.VITE_S3_ACCESS_KEY_SECRET,
         signatureVersion: import.meta.env.VITE_S3_SIGNATURE_VERSION || 'v4',
       });
-      url = await s3.getSignedUrlPromise('getObject', {
+      const s3url = await s3.getSignedUrlPromise('getObject', {
         Bucket: import.meta.env.VITE_S3_BUCKET_NAME,
         Key: import.meta.env.VITE_S3_BUCKET_KEY,
         Expires: 3600,
       });
       name.innerText = import.meta.env.VITE_S3_BUCKET_NAME;
+      await wml.setup(s3url);
     } else {
-      url = qs.soundfont
-        ? qs.soundfont
-        : import.meta.env.VITE_SOUNDFONT_URL ||
-          'Yamaha XG Sound Set Ver.2.0.sf2';
+    */
+    const url = qs.soundfont
+      ? qs.soundfont
+      : import.meta.env.VITE_SOUNDFONT_URL || 'Yamaha XG Sound Set Ver.2.0.sf2';
 
-      name.innerText = url.match(/^http/)
-        ? new URL(url).pathname.substring(url.lastIndexOf('/') + 1)
-        : url;
-    }
+    name.innerText = url.match(/^http/)
+      ? new URL(url).pathname.substring(url.lastIndexOf('/') + 1)
+      : url;
     await wml.setup(url);
+    // }
 
     /**
      * Load sound font
