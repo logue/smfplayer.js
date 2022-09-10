@@ -1,4 +1,4 @@
-import queryString from 'query-string';
+import QueryString from 'query-string';
 import Player from '../player';
 import { Tab, Tooltip } from 'bootstrap';
 import Encoding from 'encoding-japanese';
@@ -15,7 +15,7 @@ const tooltipTriggerList = document.querySelectorAll('*[title]');
 let isReady = false;
 
 // QueryStrings
-const params = queryString.parse(window.location.hash);
+const params = QueryString.parse(window.location.hash);
 
 // SMF Player
 const player = new Player('#wml');
@@ -31,8 +31,7 @@ const availableExts = [
   '.mp2mml',
 ];
 
-const wml =
-  import.meta.env.VITE_WML_URL || 'https://logue.dev/sf2synth.js/wml.html';
+const wml = import.meta.env.VITE_WML_URL || './wml.html';
 
 /**
  * メイン処理
@@ -506,7 +505,7 @@ function randomPlay() {
 function formLock(lock = true) {
   document
     .querySelectorAll('input, button, select')
-    .forEach(e => (e.disabled = lock ? 'disabled' : ''));
+    .forEach(e => (e.disabled = lock));
 }
 
 /**

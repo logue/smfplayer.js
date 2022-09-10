@@ -122,7 +122,7 @@ __metadata:
   dependencies:
     "@logue/sf2synth": ^0.4.9
     "@popperjs/core": ^2.11.6
-    aws-sdk: ^2.1212.0
+    aws-sdk: ^2.1213.0
     bootstrap: ^5.2.1
     bootstrap-icons: ^1.9.1
     dseg: ^0.46.0
@@ -536,9 +536,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"aws-sdk@npm:^2.1212.0":
-  version: 2.1212.0
-  resolution: "aws-sdk@npm:2.1212.0"
+"aws-sdk@npm:^2.1213.0":
+  version: 2.1213.0
+  resolution: "aws-sdk@npm:2.1213.0"
   dependencies:
     buffer: 4.9.2
     events: 1.1.1
@@ -550,7 +550,7 @@ __metadata:
     util: ^0.12.4
     uuid: 8.0.0
     xml2js: 0.4.19
-  checksum: 7087a4b4141d918db3d376760b8b5091f1e2fed5013662ed9c43a876648edbd260b8aa6eb4a53be978c43064acabac9bfaf192525b9d9da3c2acadd00710d76e
+  checksum: 134e088e2397ffcef1bee3eebc6a5f86f2b8767c8bc85e7ad4c9b32c2083524cf986856134bfbcb54cbeeea516614199505a5fc5193026b66e372af233e65e09
   languageName: node
   linkType: hard
 

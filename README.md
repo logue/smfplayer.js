@@ -6,9 +6,9 @@
 [![npm version](https://img.shields.io/npm/v/@logue/smfplayer.svg)](https://www.npmjs.com/package/@logue/smfplayer)
 [![Open in Gitpod](https://shields.io/badge/Open%20in-Gitpod-green?logo=Gitpod)](https://gitpod.io/#https://github.com/logue/@logue/smfplayer)
 
-smfplayer.js は [WebMidiLink](http://www.g200kg.com/en/docs/webmidilink/) 対応シンセサイザを用いた標準 MIDI ファイルプレイヤーです。
+smfplayer.js is standard MIDI file player using a [WebMidiLink](http://www.g200kg.com/en/docs/webmidilink/) compatible synthesizer.
 
-## 使い方
+## Usage
 
 ```js
 import SMF from '@logue/smfplayer';
@@ -95,66 +95,65 @@ function loadSMF(url) {
 }
 ```
 
-より詳細は、[docs.js](./src/demo/docs.js)を参考にしてください。
+For more details, please refer to the source code in [demo](./src/demo/). (Although there are many [Bootstrap](https://getbootstrap.com/) dependent codes)
 
-## 命令
+## Methods
 
-| メソッド/変数名                       | 内容                                                          |
-| ------------------------------------- | ------------------------------------------------------------- |
-| play()                                | 再生                                                          |
-| stop()                                | 停止                                                          |
-| sendAllSoundOff()                     | AllSoundOff 命令を WML に送る                                 |
-| sendGmReset()                         | GM リセット命令を WML に送る                                  |
-| load3MleFile(ArrayBuffer)             | 3MLE（\*.mml）ファイルを読み込む                              |
-| loadMakiMabiSequenceFile(ArrayBuffer) | まきまびしーく（\*.mms）ファイルを読み込む                    |
-| loadMidiFile(ArrayBuffer)             | MIDI 形式のファイルを読み込む                                 |
-| loadMldFile(ArrayBuffer)              | ドコモ着メロ（\*.mld）形式のファイルを読み込む                |
-| loadMabiIccoFile(ArrayBuffer)         | MabiIcco（\*.mmi）ファイルを読み込む                          |
-| loadMs2MmlFile(ArrayBuffer)           | MapleStory2 MML（\*.ms2mml）ファイルを読み込む                |
-| setCC111Loop(boolean)                 | コントロールチェンジ No.111 の値でループする                  |
-| setFalcomLoop(boolean)                | Falcom で使用されている MIDI のループする                     |
-| setLoop(boolean)                      | 再生中のファイルをループ再生する                              |
-| setMFiLoop(boolean)                   | Mfi メタデータでループする                                    |
-| setMasterVolume(number)               | マスターボリュームの設定（0~1）                               |
-| setPosition(number)                   | 入力された値にジャンプする                                    |
-| setTempoRate(number)                  | テンポの倍率を指定する                                        |
-| setWebMidiLink(string)                | 再生に使用する WebMidiLink の URL を指定する                  |
-| getCopyright()                        | メタデータの著作権情報を取得                                  |
-| getLength()                           | データーの命令数を取得する                                    |
-| getLyrics()                           | 呼び出し時点の歌詞を取得する（※KAR、XF のパースは行いません） |
-| getPosition()                         | 呼び出し時点の現在の再生位置を取得                            |
-| getSequenceName()                     | メタデータのシーケンス名を取得する（通常は曲名）              |
-| getTextEvent()                        | 呼び出し時点の TextEvent を取得する                           |
-| getWebMidiLink()                      | 使用している WebMidiLink の URL を出力する                    |
-| getTempo()                            | 現在のテンポを取得                                            |
-| getTime(number)                       | 現在の演奏時間を出力する(hh:mm:ss 形式）                      |
-| getTotalTime()                        | 全演奏時間を出力する（テンポ変更はサポートせず）              |
+| Method                                | Description                                           |
+| ------------------------------------- | ----------------------------------------------------- |
+| play()                                | Play Sequence                                         |
+| stop()                                | Stop Sequence                                         |
+| sendAllSoundOff()                     | Send AllSoundOff to WML                               |
+| sendGmReset()                         | Send GM Reset SysEx to WML                            |
+| load3MleFile(ArrayBuffer)             | Load 3MLE（\*.mml）format MML file.                   |
+| loadMakiMabiSequenceFile(ArrayBuffer) | Load MakiMabi Sequence（\*.mms）MML file.             |
+| loadMidiFile(ArrayBuffer)             | Load Standard MIDI file.(SMF1, SMF2 both supported)   |
+| loadMldFile(ArrayBuffer)              | Load Docomo Ringtone Melody（\*.mld）file.            |
+| loadMabiIccoFile(ArrayBuffer)         | Load MabiIcco（\*.mmi）MML file.                      |
+| loadMs2MmlFile(ArrayBuffer)           | Load MapleStory2 MML（\*.ms2mml）file.                |
+| setCC111Loop(boolean)                 | Enable loop by ControlChange No.111                   |
+| setFalcomLoop(boolean)                | Enable Falcom loop (Used MIDI text)                   |
+| setLoop(boolean)                      | Enable Loop                                           |
+| setMFiLoop(boolean)                   | Enable Mfi meta data loop.                            |
+| setMasterVolume(number)               | Set Master volume（0~1）                              |
+| setPosition(number)                   | Jump sequence position.                               |
+| setTempoRate(number)                  | Set Tempo Rate                                        |
+| setWebMidiLink(string)                | Set WML url.                                          |
+| getCopyright()                        | Get Copyright meta data.                              |
+| getLength()                           | Get Sequence Length.                                  |
+| getLyrics()                           | Get Lyrics meta data of current position. [^1]        |
+| getPosition()                         | Get current position.                                 |
+| getSequenceName()                     | Get Sequence name. (usually contains the song title.) |
+| getTextEvent()                        | Get the TextEvent of current position.                |
+| getWebMidiLink()                      | Get WebMidiLink URL                                   |
+| getTempo()                            | Get current tempo.                                    |
+| getTime(number)                       | Output current playing time (hh:mm:ss)                |
+| getTotalTime()                        | Output playing time of MIDI file.[^2]                 |
 
-### MML を読み込む時の制限事項
+[^1] This program does not parse karaoke data. ([KAR](http://gnese.free.fr/Projects/KaraokeTime/Fichiers/karfaq.html), [XF](https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf), etc.)
+[^2] Since it is calculated based on the current tempo, if the tempo changes in the middle of the song, the value here will also change.
 
-以下のファイルを読み込ませる場合、プログラムチェンジの値が MSXspirit.dls の値と一致しており、GM と互換性がありません。[MabiMmlEmu リポジトリ](https://github.com/logue/MabiMmlEmu/)から`MSXspirit.sf2`をダウンロードして、wml.html に読み込ませて使用してください。
+### Restrictions when reading MML
 
-| 拡張子 | ファイル                                                |
-| ------ | ------------------------------------------------------- |
-| \*.mms | [まきまびしーく](https://booth.pm/ja/items/2372062)形式 |
-| \*.mml | [3MLE](http://3ml.jp/)                                  |
-| \*.mmi | [MabiIcco](https://github.com/fourthline/mmlTools)      |
+When reading the following files, the program change values match those of MSXspirit.dls and are not compatible with GM. Download `MSXspirit.sf2` from [MabiMmlEmu](https://github.com/logue/MabiMmlEmu/) and load it into wml.html to use it.
 
-[MapleStory2](https://maplestory2.nexon.co.jp/)の MML ファイル（\*.ms2mml）を読み込む場合、プログラムチェンジがファイル形式に含まれていないため、楽器が 0（ピアノ固定）となります。
+| Extension | Description                                            |
+| --------- | ------------------------------------------------------ |
+| \*.mms    | [MakiMabi Sequence](https://booth.pm/ja/items/2372062) |
+| \*.mml    | [3MLE](http://3ml.jp/)                                 |
+| \*.mmi    | [MabiIcco](https://github.com/fourthline/mmlTools)     |
 
-## 対応ブラウザ
+When reading an MML file (\*.ms2mml) from [MapleStory2](https://maplestory2.nexon.co.jp/), the program change is not included in the file format, so the instrument will be 0 (fixed to piano). increase.
+
+## Compatibility
 
 - Firefox 7+
 - Google Chrome 7+
 - Safari 5.1+
 - Edge
 
-## WebMidiLink 対応
-
-sf2synth.js は WebMidiLink の Link Level 1 にのみ対応しています。
-
-## ライセンス
+## License
 
 Copyright &copy; 2013 imaya / GREE Inc. / 2013-2022 by Logue.
 
-Licensed under the MIT License.
+Licensed under the [MIT](LICENSE) License.
