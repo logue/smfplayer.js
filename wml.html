@@ -9,8 +9,9 @@
     />
     <meta name="robots" content="noindex" />
     <title>Web Midi Link</title>
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <!-- Google Tag Manager -->
+    <script>
+      window.global = window;
+    </script>
     <script type="module">
       if (import.meta.env.VITE_GOOGLE_ANALYTICS_ID) {
         ((w, d, s, l, i) => {
@@ -31,7 +32,6 @@
         );
       }
     </script>
-    <!-- End Google Tag Manager -->
   </head>
 
   <body>
@@ -69,9 +69,6 @@
         <div id="placeholder"></div>
       </main>
     </div>
-    <script>
-      window.global = window;
-    </script>
     <script type="module" src="/src/demo/wml.js"></script>
   </body>
 </html>

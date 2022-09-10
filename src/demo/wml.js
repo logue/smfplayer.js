@@ -1,4 +1,5 @@
-// import S3Client from 'aws-sdk/clients/s3';
+import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import SoundFont from '@logue/sf2synth';
 import QueryString from 'query-string';
 import '@logue/sf2synth/dist/style.css';
@@ -27,34 +28,35 @@ window.addEventListener(
 
     build.innerText = new Date(SoundFont.build).toLocaleString();
 
-    /*
     if (import.meta.env.VITE_S3_BUCKET_NAME) {
       // Fetch from Amazon S3, Cloudflare R2 etc.
       const s3 = new S3Client({
+        credentials: {
+          accessKeyId: import.meta.env.VITE_S3_ACCESS_KEY_ID,
+          secretAccessKey: import.meta.env.VITE_S3_ACCESS_KEY_SECRET,
+        },
         endpoint: import.meta.env.VITE_S3_ENDPOINT,
         region: import.meta.env.VITE_S3_REGION || 'auto',
-        accessKeyId: import.meta.env.VITE_S3_ACCESS_KEY_ID,
-        secretAccessKey: import.meta.env.VITE_S3_ACCESS_KEY_SECRET,
         signatureVersion: import.meta.env.VITE_S3_SIGNATURE_VERSION || 'v4',
       });
-      const s3url = await s3.getSignedUrlPromise('getObject', {
+      const command = new GetObjectCommand({
         Bucket: import.meta.env.VITE_S3_BUCKET_NAME,
         Key: import.meta.env.VITE_S3_BUCKET_KEY,
-        Expires: 3600,
       });
+      // Create the presigned URL and fetch the object
+      const s3url = await getSignedUrl(s3, command, { expiresIn: 3600 });
       name.innerText = import.meta.env.VITE_S3_BUCKET_NAME;
       await wml.setup(s3url);
     } else {
-    */
-    const url = qs.soundfont
-      ? qs.soundfont
-      : import.meta.env.VITE_SOUNDFONT_URL || 'Yamaha XG Sound Set Ver.2.0.sf2';
+      const url = qs.soundfont
+        ? qs.soundfont
+        : import.meta.env.VITE_SOUNDFONT_URL || 'Yamaha XG Sound Set.sf2';
 
-    name.innerText = url.match(/^http/)
-      ? new URL(url).pathname.substring(url.lastIndexOf('/') + 1)
-      : url;
-    await wml.setup(url);
-    // }
+      name.innerText = url.match(/^http/)
+        ? new URL(url).pathname.substring(url.lastIndexOf('/') + 1)
+        : url;
+      await wml.setup(url);
+    }
 
     /**
      * Load sound font

@@ -2,6 +2,8 @@ import { checker } from 'vite-plugin-checker';
 import { defineConfig } from 'vite';
 import path from 'path';
 import banner from 'vite-plugin-banner';
+import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
+import inject from '@rollup/plugin-inject';
 const pkg = require('./package.json');
 
 // Export vite config
@@ -20,6 +22,8 @@ export default defineConfig(async ({ mode }) => {
           'node_modules/bootstrap-icons'
         ),
         '~dseg': path.resolve(__dirname, 'node_modules/dseg'),
+        // AWS Fix
+        './runtimeConfig': './runtimeConfig.browser',
       },
     },
     // https://vitejs.dev/config/#server-options
@@ -52,6 +56,14 @@ export default defineConfig(async ({ mode }) => {
   */
   `),
     ],
+    optimizeDeps: {
+      esbuildOptions: {
+        // Node.js global to browser globalThis
+        define: {
+          global: 'globalThis', // <-- AWS SDK
+        },
+      },
+    },
     // Build Options
     // https://vitejs.dev/config/#build-options
     build: {
@@ -63,6 +75,12 @@ export default defineConfig(async ({ mode }) => {
           index: path.resolve(__dirname, 'index.html'),
           wml: path.resolve(__dirname, 'wml.html'),
         },
+        plugins: [
+          // Enable rollup polyfills plugin
+          // used during production bundling
+          rollupNodePolyFill(),
+          inject({ Buffer: ['Buffer', 'Buffer'] }),
+        ],
       },
       minify: 'esbuild',
     },

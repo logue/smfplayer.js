@@ -31,37 +31,16 @@ const availableExts = [
   '.mp2mml',
 ];
 
-const wml = import.meta.env.VITE_WML_URL || './wml.html';
-
 /**
  * メイン処理
  */
 document.addEventListener('DOMContentLoaded', async () => {
-  const info = document.getElementById('info');
-
-  // fileプロトコルは使用不可。（Ajaxを使うため）
-  if (location.protocol === 'file:') {
-    info.classList.add('alert-danger');
-    info.classList.remove('alert-warning');
-    info.innerText = 'This program require runs by server.';
-    return;
-  }
-
-  // AudioContextが使用可能かのチェック
-  if (typeof window.AudioContext === 'undefined') {
-    info.classList.add('alert-danger');
-    info.classList.remove('alert-warning');
-    info.innerText =
-      'Your browser has not supported AudioContent function. Please use Firefox or Blink based browser. (such as Chrome)';
-    return;
-  }
-
   // smfplayer.jsの初期化
   player.setLoop(document.getElementById('playerloop').checked);
   player.setTempoRate(document.getElementById('tempo').value);
   player.setMasterVolume(document.getElementById('volume').value * 16383);
   // WebMidiLink設定
-  player.setWebMidiLink(wml, 'wml');
+  player.setWebMidiLink(import.meta.env.VITE_WML_URL || './wml.html', 'wml');
 
   /** @type {HTMLButtonElement[]} */
   const triggerTabList = [].slice.call(
@@ -389,32 +368,22 @@ function handleSelect() {
   if (filename) {
     handleInput(filename, select.zip.decompress(filename));
 
-    // メタ情報のタイトル
-    const title = Encoding.convert(
-      player.getSequenceName(1),
-      'UNICODE',
-      'AUTO'
-    );
-
     // ページのタイトルを反映
-    const file =
-      title === ''
-        ? Encoding.convert(filename, 'UNICODE', 'AUTO').substr(
-            0,
-            filename.lastIndexOf('.')
-          )
-        : title;
-
-    document.title = `${file} - ${
+    document.title = `${Encoding.convert(filename, 'UNICODE', 'AUTO')} - ${
       document.getElementById('zips').value
-    } / Standard MIDI Player`;
+    } / Standard MIDI Player for Web`;
 
     const hash = `#zip=${encodeURIComponent(
       document.getElementById('zips').value
     )}&file=${encodeURIComponent(filename)}`;
 
-    // MIDIファイルに埋め込まれたメタデータを取得
-    document.getElementById('music_title').value = title;
+    // メタ情報のタイトル
+    document.getElementById('music_title').value = Encoding.convert(
+      player.getSequenceName(1),
+      'UNICODE',
+      'AUTO'
+    );
+    // メタ情報の著作権表記
     document.getElementById('copyright').value = Encoding.convert(
       player.getCopyright(),
       'UNICODE',
