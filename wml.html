@@ -13,25 +13,43 @@
     <!-- Google Tag Manager -->
     
     <!-- End Google Tag Manager -->
-    <script type="module" crossorigin src="./assets/wml.44ff83b6.js"></script>
-    <link rel="modulepreload" crossorigin href="./assets/modulepreload-polyfill.c7c6310f.js">
+    <script type="module" crossorigin src="./assets/wml.b10ba908.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/index.9dd16a71.js">
+    <link rel="stylesheet" href="./assets/wml.be1f3594.css">
   </head>
 
   <body>
     <div class="container-fluid">
-      <header class="d-flex justify-content-between align-items-end">
-        <h1 class="h2">SoundFont: MSXspirit.sf2</h1>
-        <p class="text-right">
-          By
+      <header>
+        <h1 class="h2">
+          SoundFont:
+          <span id="name"></span>
+        </h1>
+        <p class="text-end">
           <a href="https://logue.dev/" target="_blank">Logue</a>
           /
-          <small>
+          <small class="text-muted">
             Last Modified:
             <span id="build"></span>
           </small>
         </p>
       </header>
       <main>
+        <div id="drop">
+          <label class="form-label" for="file">
+            Load SoundFont2 file
+            <small class="text-muted">
+              (drag and drop here *.sf2 file to change sound font)
+            </small>
+          </label>
+          <input
+            type="file"
+            class="form-control"
+            id="file"
+            accept="audio/x-soundfont"
+          />
+        </div>
+        <hr />
         <div id="placeholder"></div>
       </main>
     </div>
