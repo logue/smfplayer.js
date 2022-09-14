@@ -64,7 +64,7 @@ export default defineConfig(async ({ mode, command }) => {
         fileName: format => `smfplayer.${format}.js`,
       },
       target: 'es2021',
-      minify: 'esbuild',
+      minify: false,
     },
     esbuild: {
       drop: mode === 'serve' ? [] : ['console'],

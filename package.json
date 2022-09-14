@@ -69,9 +69,6 @@
     "ini": "^3.0.1"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.168.0",
-    "@aws-sdk/s3-request-presigner": "^3.168.0",
-    "@aws-sdk/signature-v4-crt": "^3.168.0",
     "@logue/sf2synth": "^0.4.9",
     "@popperjs/core": "^2.11.6",
     "@rollup/plugin-inject": "^4.0.4",
@@ -80,7 +77,7 @@
     "buffer": "^6.0.3",
     "dseg": "^0.46.0",
     "encoding-japanese": "^2.0.0",
-    "eslint": "^8.23.0",
+    "eslint": "^8.23.1",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-alias": "^1.1.2",
