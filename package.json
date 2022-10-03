@@ -50,7 +50,7 @@
     }
   },
   "engines": {
-    "node": ">=16.17.0",
+    "node": ">=16.17.1",
     "yarn": ">=1.22.10"
   },
   "packageManager": "yarn@3.2.3",
@@ -72,12 +72,12 @@
     "@logue/sf2synth": "^0.4.9",
     "@popperjs/core": "^2.11.6",
     "@rollup/plugin-inject": "^4.0.4",
-    "bootstrap": "^5.2.1",
+    "bootstrap": "^5.2.2",
     "bootstrap-icons": "^1.9.1",
     "buffer": "^6.0.3",
     "dseg": "^0.46.0",
     "encoding-japanese": "^2.0.0",
-    "eslint": "^8.23.1",
+    "eslint": "^8.24.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-alias": "^1.1.2",
@@ -89,9 +89,9 @@
     "query-string": "^7.1.1",
     "rimraf": "^3.0.2",
     "rollup-plugin-node-polyfills": "^0.2.1",
-    "sass": "^1.54.9",
+    "sass": "^1.55.0",
     "streamsaver": "^2.0.6",
-    "vite": "^3.1.0",
+    "vite": "^3.1.4",
     "vite-plugin-banner": "^0.5.0",
     "vite-plugin-checker": "^0.5.1"
   },
