@@ -27,6 +27,9 @@ jobs:
         run: |
           yarn install
           yarn build:docs
+        env:
+          VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.VITE_GOOGLE_ANALYTICS_ID }}
+          VITE_WML_URL: ${{ secrets.VITE_WML_URL }}
 
       - name: Deploy to gh-pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4.4.0
