@@ -28,8 +28,8 @@ jobs:
           yarn install
           yarn build:docs
         env:
-          VITE_GOOGLE_ANALYTICS_ID: ${{ secrets.VITE_GOOGLE_ANALYTICS_ID }}
-          VITE_WML_URL: ${{ secrets.VITE_WML_URL }}
+          VITE_GOOGLE_ANALYTICS_ID: UA-33600926-1
+          VITE_WML_URL: https://logue.dev/sf2synth.js/wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2
 
       - name: Deploy to gh-pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4.4.0
