@@ -69,9 +69,8 @@
     "ini": "^3.0.1"
   },
   "devDependencies": {
-    "@logue/sf2synth": "^0.4.9",
+    "@logue/sf2synth": "^0.4.10",
     "@popperjs/core": "^2.11.6",
-    "@rollup/plugin-inject": "^4.0.4",
     "bootstrap": "^5.2.2",
     "bootstrap-icons": "^1.9.1",
     "buffer": "^6.0.3",
@@ -88,7 +87,6 @@
     "prettier": "^2.7.1",
     "query-string": "^7.1.1",
     "rimraf": "^3.0.2",
-    "rollup-plugin-node-polyfills": "^0.2.1",
     "sass": "^1.55.0",
     "streamsaver": "^2.0.6",
     "vite": "^3.1.4",

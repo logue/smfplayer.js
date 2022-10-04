@@ -29,7 +29,8 @@ window.addEventListener(
 
     const url = qs.soundfont
       ? qs.soundfont
-      : import.meta.env.VITE_SOUNDFONT_URL || 'Yamaha XG Sound Set.sf2';
+      : import.meta.env.VITE_SOUNDFONT_URL ||
+        `${import.meta.env.BASE_URL}Yamaha XG Sound Set.sf2`;
 
     name.innerText = url.match(/^http/)
       ? new URL(url).pathname.substring(url.lastIndexOf('/') + 1)
@@ -77,3 +78,23 @@ window.addEventListener(
   },
   false
 );
+
+if (import.meta.env.VITE_GOOGLE_ANALYTICS_ID) {
+  // Global site tag (gtag.js) - Google Analytics
+  ((w, d, s, l, i) => {
+    w[l] = w[l] || [];
+    w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+    const f = d.getElementsByTagName(s)[0];
+    const j = d.createElement(s);
+    const dl = l != 'dataLayer' ? '&l=' + l : '';
+    j.async = true;
+    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+    f.parentNode.insertBefore(j, f);
+  })(
+    window,
+    document,
+    'script',
+    'dataLayer',
+    import.meta.env.VITE_GOOGLE_ANALYTICS_ID
+  );
+}

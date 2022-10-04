@@ -1,10 +1,6 @@
 import { checker } from 'vite-plugin-checker';
 import { defineConfig } from 'vite';
-import path from 'path';
-import banner from 'vite-plugin-banner';
-import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
-import inject from '@rollup/plugin-inject';
-const pkg = require('./package.json');
+import { fileURLToPath } from 'url';
 
 // Export vite config
 export default defineConfig(async ({ mode }) => {
@@ -16,14 +12,13 @@ export default defineConfig(async ({ mode }) => {
     resolve: {
       // https://vitejs.dev/config/shared-options.html#resolve-alias
       alias: {
-        '~bootstrap': path.resolve(__dirname, 'node_modules/bootstrap'),
-        '~bootstrap-icons': path.resolve(
-          __dirname,
-          'node_modules/bootstrap-icons'
+        '~bootstrap': fileURLToPath(
+          new URL('./node_modules/bootstrap', import.meta.url)
         ),
-        '~dseg': path.resolve(__dirname, 'node_modules/dseg'),
-        // AWS Fix
-        './runtimeConfig': './runtimeConfig.browser',
+        '~bootstrap-icons': fileURLToPath(
+          new URL('./node_modules/bootstrap-icons', import.meta.url)
+        ),
+        '~dseg': fileURLToPath(new URL('./node_modules/dseg', import.meta.url)),
       },
     },
     // https://vitejs.dev/config/#server-options
@@ -43,27 +38,7 @@ export default defineConfig(async ({ mode }) => {
           lintCommand: `eslint`, // for example, lint .ts & .tsx
         },
       }),
-      // vite-plugin-banner
-      // https://github.com/chengpeiquan/vite-plugin-banner
-      banner(`/**
-  * ${pkg.name}
-  *
-  * @description ${pkg.description}
-  * @author iyama, Logue
-  * @license ${pkg.license}
-  * @version ${pkg.version}
-  * @see {@link ${pkg.homepage}}
-  */
-  `),
     ],
-    optimizeDeps: {
-      esbuildOptions: {
-        // Node.js global to browser globalThis
-        define: {
-          global: 'globalThis', // <-- AWS SDK
-        },
-      },
-    },
     // Build Options
     // https://vitejs.dev/config/#build-options
     build: {
@@ -72,15 +47,9 @@ export default defineConfig(async ({ mode }) => {
       // https://vitejs.dev/config/#build-minify
       rollupOptions: {
         input: {
-          index: path.resolve(__dirname, 'index.html'),
-          wml: path.resolve(__dirname, 'wml.html'),
+          index: fileURLToPath(new URL('./index.html', import.meta.url)),
+          wml: fileURLToPath(new URL('./wml.html', import.meta.url)),
         },
-        plugins: [
-          // Enable rollup polyfills plugin
-          // used during production bundling
-          rollupNodePolyFill(),
-          inject({ Buffer: ['Buffer', 'Buffer'] }),
-        ],
       },
       minify: 'esbuild',
     },

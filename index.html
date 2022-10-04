@@ -53,27 +53,6 @@
     <title>Standard MIDI Player for Web</title>
     <link rel="shortcuticon" href="./favicon.ico" />
     <link rel="canonical" href="https://logue.dev/smfplayer.js/" />
-    <script type="module">
-      if (import.meta.env.VITE_GOOGLE_ANALYTICS_ID) {
-        // Global site tag (gtag.js) - Google Analytics
-        ((w, d, s, l, i) => {
-          w[l] = w[l] || [];
-          w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-          var f = d.getElementsByTagName(s)[0],
-            j = d.createElement(s),
-            dl = l != 'dataLayer' ? '&l=' + l : '';
-          j.async = true;
-          j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-          f.parentNode.insertBefore(j, f);
-        })(
-          window,
-          document,
-          'script',
-          'dataLayer',
-          import.meta.env.VITE_GOOGLE_ANALYTICS_ID
-        );
-      }
-    </script>
   </head>
 
   <body class="d-flex flex-column h-100">
@@ -195,7 +174,7 @@
         </div>
 
         <!-- player panel-->
-        <div class="card mb-3" id="player">
+        <section class="card mb-3" id="player">
           <div class="card-header">
             <h2 class="card-title h5">MIDI Player</h2>
             <h3 class="card-subtitle mb-2 text-muted h6">
@@ -673,9 +652,9 @@
               </div>
             </div>
           </div>
-        </div>
+        </section>
         <!-- WebMidiLink Placeholder -->
-        <div class="card">
+        <section class="card">
           <div class="card-header">
             <div class="d-flex justify-content-between">
               <h2 class="h5"><label for="synth">Synthesyther</label></h2>
@@ -754,7 +733,7 @@
             </div>
           </div>
           <div class="card-body p-0" id="wml"></div>
-        </div>
+        </section>
       </div>
     </main>
     <footer class="footer mt-auto py-3 mb-0 bg-light">
