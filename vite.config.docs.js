@@ -1,6 +1,6 @@
 import { checker } from 'vite-plugin-checker';
 import { defineConfig } from 'vite';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, URL } from 'url';
 
 // Export vite config
 export default defineConfig(async ({ mode }) => {
@@ -35,7 +35,7 @@ export default defineConfig(async ({ mode }) => {
         typescript: false,
         vueTsc: false,
         eslint: {
-          lintCommand: `eslint`, // for example, lint .ts & .tsx
+          lintCommand: `eslint ./src --fix --cache --cache-location ./node_modules/.vite/vite-plugin-eslint`, // for example, lint .ts & .tsx
         },
       }),
     ],
@@ -51,6 +51,7 @@ export default defineConfig(async ({ mode }) => {
           wml: fileURLToPath(new URL('./wml.html', import.meta.url)),
         },
       },
+      target: 'esnext',
       minify: 'esbuild',
     },
     esbuild: {

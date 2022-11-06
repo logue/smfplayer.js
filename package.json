@@ -14,7 +14,7 @@
       "url": "https://logue.dev"
     }
   ],
-  "version": "0.4.3",
+  "version": "0.4.4",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -50,10 +50,10 @@
     }
   },
   "engines": {
-    "node": ">=16.17.1",
+    "node": ">=18.12.1",
     "yarn": ">=1.22.10"
   },
-  "packageManager": "yarn@3.2.3",
+  "packageManager": "yarn@3.2.4",
   "scripts": {
     "dev": "vite",
     "dev:doc": "vite --config vite.config.docs.js",
@@ -69,14 +69,14 @@
     "ini": "^3.0.1"
   },
   "devDependencies": {
-    "@logue/sf2synth": "^0.4.10",
+    "@logue/sf2synth": "^0.4.12",
     "@popperjs/core": "^2.11.6",
     "bootstrap": "^5.2.2",
     "bootstrap-icons": "^1.9.1",
     "buffer": "^6.0.3",
     "dseg": "^0.46.0",
     "encoding-japanese": "^2.0.0",
-    "eslint": "^8.24.0",
+    "eslint": "^8.27.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-alias": "^1.1.2",
@@ -89,8 +89,8 @@
     "rimraf": "^3.0.2",
     "sass": "^1.55.0",
     "streamsaver": "^2.0.6",
-    "vite": "^3.1.4",
-    "vite-plugin-banner": "^0.5.0",
+    "vite": "^3.2.2",
+    "vite-plugin-banner": "^0.6.1",
     "vite-plugin-checker": "^0.5.1"
   },
   "husky": {
