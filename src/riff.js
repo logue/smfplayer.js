@@ -5,11 +5,11 @@
  */
 export default class Riff {
   /**
-   * @param {ByteArray} input input buffer.
+   * @param {ArrayBuffer} input input buffer.
    * @param {Object=} optParams option parameters.
    */
   constructor(input, optParams = {}) {
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     this.input = input;
     /** @type {number} */
     this.ip = optParams.index || 0;
@@ -42,7 +42,7 @@ export default class Riff {
   /**
    */
   parseChunk() {
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;

@@ -242,9 +242,9 @@ export default class Player {
   }
 
   /**
-   * @param {string|Worker} port WebMidiLink url.
+   * @param {string} port WebMidiLink url.
    */
-  setWebMidiLink(port = './wml.html') {
+  setWebMidiLink(port = import.meta.env.VITE_WML_URL || './wml.html') {
     /** @type {Player} */
     const player = this;
 

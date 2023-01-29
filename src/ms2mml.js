@@ -11,7 +11,7 @@ import MakiMabiSequence from './mms';
  */
 export default class MapleStory2Mml extends MakiMabiSequence {
   /**
-   * @param {ByteArray} input
+   * @param {ArrayBuffer} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
@@ -51,9 +51,9 @@ export default class MapleStory2Mml extends MakiMabiSequence {
    * MML parse
    */
   parseTracks() {
-    /** @type {array} MIDIイベント */
+    /** @type {MidiEvent[]} MIDIイベント */
     let track = [];
-    /** @type {array} 終了時間比較用 */
+    /** @type {number[]} 終了時間比較用 */
     const endTimes = [];
 
     for (const i of this.input) {

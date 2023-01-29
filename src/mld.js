@@ -5,11 +5,11 @@
  */
 export default class Mld {
   /**
-   * @param {ByteArray} input
+   * @param {ArrayBuffer} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     this.input = input;
     /** @type {number} */
     this.ip = optParams.index || 0;
@@ -34,7 +34,7 @@ export default class Mld {
   /**
    */
   parseHeader() {
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
@@ -71,7 +71,7 @@ export default class Mld {
   /**
    */
   parseDataInformation() {
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
@@ -137,7 +137,7 @@ export default class Mld {
   /**
    */
   parseTracks() {
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
@@ -231,7 +231,7 @@ export default class Mld {
       };
     };
     /**
-     * @return {{data: ByteArray}}
+     * @return {{data: ArrayBuffer}}
      */
     const parseDeviceSpecific = () => {
       /** @type {number} */
@@ -823,8 +823,8 @@ export default class Mld {
   }
 
   /**
-   * @param {Array.<Array.<ByteArray>>} plainTracks
-   * @return {ByteArray}
+   * @param {Array.<Array.<ArrayBuffer>>} plainTracks
+   * @return {ArrayBuffer}
    */
   toSMF(plainTracks) {
     /** @type {number} @const */
@@ -833,7 +833,7 @@ export default class Mld {
     let trackHeader;
     /** @type {Array.<number>} */
     let trackData;
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     let result = [
       0x4d,
       0x54,

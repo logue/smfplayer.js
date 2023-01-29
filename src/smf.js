@@ -9,14 +9,14 @@ import Riff from './riff';
  */
 export default class Parser {
   /**
-   * @param {ByteArray} input input buffer.
+   * @param {ArrayBuffer} input input buffer.
    * @param {Object=} optParams option parameters.
    */
   constructor(input, optParams = {}) {
     optParams.padding = false;
     optParams.bigEndian = true;
 
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     this.input = input;
     /** @type {number} */
     this.ip = optParams.index || 0;
@@ -36,9 +36,9 @@ export default class Parser {
     this.numberOfTracks = 0;
     /** @type {number} */
     this.timeDivision = 480;
-    /** @type {Array.<Array.<Midi.Event>>} */
+    /** @type {MidiEvent[][]} */
     this.tracks = [];
-    /** @type {Array.<Array.<ByteArray>>} */
+    /** @type {ArrayBuffer[][]} */
     this.plainTracks = [];
 
     /** @type {number} */
@@ -72,7 +72,7 @@ export default class Parser {
   parseHeaderChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     const data = this.input;
     /** @type {number} */
     let ip = chunk.offset;
@@ -91,7 +91,7 @@ export default class Parser {
   parseTrackChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     const data = this.input;
     /** @type {number} */
     let ip = chunk.offset;
@@ -117,9 +117,9 @@ export default class Parser {
     let length = 0;
     /** @type {number} */
     let status = 0;
-    /** @type {Event} */
+    /** @type {MidiEvent} */
     let event;
-    /** @type {ByteArray} */
+    /** @type {ArrayBuffer} */
     let plainBytes;
 
     /** @return {number} */
