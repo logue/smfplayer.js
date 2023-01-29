@@ -1,15 +1,21 @@
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
 import PSGConverter from './PSGConverter';
-import Ini from 'ini';
+import { parse } from 'ini';
 
 /**
  * @classdesc MakiMabi Sequence File Parser
  *
  * @author    Logue <logue@hotmail.co.jp>
- * @copyright 2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright 2019,2023 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license   MIT
  */
 export default class MakiMabiSequence {
+  /** @type {Array<number>} まきまびしーくの楽器番号変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
+  static mmsInstTable = [
+    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 65, 66, 67,
+    68, 69, 70, 71, 72, 73, 74, 75, 76, 18,
+  ];
+
   /**
    * @param {ByteArray} input
    * @param {Object=} optParams
@@ -18,7 +24,7 @@ export default class MakiMabiSequence {
     /** @type {string} */
     const string = String.fromCharCode.apply('', new Uint16Array(input));
     /** @type {Ini} MMSファイルをパースしたもの */
-    this.input = Ini.parse(string) || {};
+    this.input = parse(string) || {};
     /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
@@ -26,7 +32,9 @@ export default class MakiMabiSequence {
     /** @param {number} トラック数 */
     this.numberOfTracks = 1;
     /** @type {number} 分解能 */
-    this.timeDivision = optParams.timeDivision || 96;
+    this.timeDivision = optParams.timeDivision
+      ? parseInt(optParams.timeDivision)
+      : 96;
   }
 
   /**
@@ -44,22 +52,17 @@ export default class MakiMabiSequence {
     /** @type {TextEncoder} */
     this.encoder = new TextEncoder('shift_jis');
     /** @type {object} インフォメーション情報 */
-    const header = this.input.infomation; // informationじゃない
+    const header = this.input.infomation || {}; // informationじゃない
     /** @type {string} タイトル */
-    this.title = header.title;
+    this.title = header.title || '';
     /** @type {string} 著者情報 */
-    this.author = header.auther; // authorじゃない。
+    this.author = header.auther || ''; // authorじゃない。
     /** @param {number} 解像度 */
-    this.timeDivision = header.timeBase | 0 || 96;
-    /** @type {array} まきまびしーくの楽器番号変換テーブル（MabiIccoのMMSFile.javaのテーブルを流用） */
-    this.mmsInstTable = [
-      0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 65, 66, 67,
-      68, 69, 70, 71, 72, 73, 74, 75, 76, 18,
-    ];
+    this.timeDivision = header.timeBase ? parseInt(header.timeBase) : 96;
 
     // 曲名と著者情報を付加
 
-    /** @type {array}  */
+    /** @type {MetaEvent[]}  */
     const headerTrack = [];
     // GM Reset
     headerTrack.push(
@@ -74,8 +77,8 @@ export default class MakiMabiSequence {
     headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
     headerTrack.push(
       new MetaEvent('TimeSignature', 0, 0, [
-        header.rythmNum | 0 || 4,
-        header.rythmBase | 0 || 4,
+        parseInt(header.rythmNum) || 4,
+        parseInt(header.rythmBase) || 4,
         0,
         0,
       ])
@@ -91,7 +94,8 @@ export default class MakiMabiSequence {
    * MML parse
    */
   parseTracks() {
-    /** @type {array} MIDIイベント */
+    console.log(this.input);
+    /** @type {ChannelEvent[]} MIDIイベント */
     let track = [];
     /** @type {array} 終了時間比較用 */
     const endTimes = [];
@@ -103,14 +107,14 @@ export default class MakiMabiSequence {
         continue;
       }
       const currentPart = this.input[part];
-      /** @param {array} MMLの配列 */
+      /** @param {string[]} MMLの配列 */
       const mmls = [
         currentPart.ch0_mml,
         currentPart.ch1_mml,
         currentPart.ch2_mml,
       ];
       /** @param {number} パンポット */
-      const panpot = Number(currentPart.panpot) + 64;
+      const panpot = parseInt(currentPart.panpot) + 64;
 
       // 楽器名
       track.push(new MetaEvent('InsturumentName', 0, 48, [currentPart.name]));
@@ -121,9 +125,10 @@ export default class MakiMabiSequence {
           0,
           96,
           ch,
-          this.mmsInstTable[currentPart.instrument] | 0
+          MakiMabiSequence.mmsInstTable[currentPart.instrument]
         )
       );
+
       // パン
       track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, panpot));
 

@@ -3,48 +3,58 @@ import { ChannelEvent, MetaEvent } from './midi_event';
 /**
  * @class     PSGConverter
  * @classdesc Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * @version   3.0.4
+ * @version   3.0.5
  *
  * @author    Logue <logue@hotmail.co.jp>
- * @copyright 2007-2022 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright 2007-2023 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license   MIT
  */
 export default class PSGConverter {
+  /** @type {string} MMLのチャンネルごとのマッチパターン */
+  static PATTERN = /[a-glnortv<>][+#-]?\d*\.?&?/g;
+  /** @type {Array<string, number>} ノートのマッチングテーブル */
+  static NOTE_TABLE = {
+    c: 0,
+    d: 2,
+    e: 4,
+    f: 5,
+    g: 7,
+    a: 9,
+    b: 11,
+  };
+  /** @type {number} ベロシティの倍率 */
+  static VELOCITY_MAGNIFICATION = 7; // 127÷15≒8.4
+
   /**
    * Constructor
-   * @param {array} optParams
+   * @param {object} optParams
    */
-  constructor(optParams = {}) {
+  constructor(
+    optParams = {
+      timeDivision: 96,
+      channel: 0,
+      timeOffset: 0,
+      mml: [],
+    }
+  ) {
     /** @type {number} 分解能 */
-    this.timeDivision = optParams.timeDivision | 0 || 96;
+    this.timeDivision = optParams.timeDivision
+      ? parseInt(optParams.timeDivision)
+      : 96;
     /** @type {number} チャンネル（0～15） */
-    this.channel = optParams.channel | 0;
+    this.channel = optParams.channel ? parseInt(optParams.channel) : 0;
     /** @type {number} 演奏開始までのオフセット時間 */
-    this.timeOffset = optParams.timeOffset | 0;
-    /** @type {string} MMLのチャンネルごとのマッチパターン */
-    this.PATTERN = /[a-glnortv<>][+#-]?\d*\.?&?/g;
-    /** @type {Array<string, number>} ノートのマッチングテーブル */
-    this.NOTE_TABLE = {
-      c: 0,
-      d: 2,
-      e: 4,
-      f: 5,
-      g: 7,
-      a: 9,
-      b: 11,
-    };
+    this.timeOffset = optParams.timeOffset ? parseInt(optParams.timeOffset) : 0;
+
     /** @type {number} １拍（Tick連動） */
     this.MINIM = this.timeDivision * 2;
     /** @type {number} 1小節 */
     this.SEMIBREVE = this.timeDivision * 4;
-    /** @type {number} ベロシティの倍率 */
-    this.VELOCITY_MAGNIFICATION = 7; // 127÷15≒8.4
-    /** @type {array} MMLデータ */
+
+    /** @type {string[]} MMLデータ */
     this.mml = optParams.mml;
-    /** @type {array} イベント */
+    /** @type {MidiEvent[]} イベント */
     this.events = [];
-    /** @type {array} WML送信用イベント */
-    this.plainEvents = [];
     /** @type {number} 終了時間 */
     this.endTime = 0;
     /** @type {number} ノートオフの逆オフセット(tick指定) */
@@ -69,11 +79,11 @@ export default class PSGConverter {
    * Parse MML
    */
   parse() {
-    /** @type {Array} MMLストリーム */
+    /** @type {string[]} MMLストリーム */
     let mmls = [];
     try {
       // 小文字に変換した後正規表現で命令単位で分割する。
-      mmls = this.mml.toLowerCase().match(this.PATTERN);
+      mmls = this.mml.toLowerCase().match(PSGConverter.PATTERN);
     } catch (e) {
       console.error('[PSGConverter] Could not parse MML.', this.mml);
       return;
@@ -94,10 +104,10 @@ export default class PSGConverter {
     let currentVelocity = 8;
     /** @type {number} オクターブ(0~8) */
     let currentOctave = 4;
-    /** @type {bool} タイ記号 */
+    /** @type {boolean} タイ記号 */
     let tieEnabled = false;
 
-    /** @type {array} MIDIイベント */
+    /** @type {ChannelEvent[]} MIDIイベント */
     const events = [];
 
     // MMLを命令単位でパース
@@ -109,12 +119,14 @@ export default class PSGConverter {
       /** @type {number} 値 */
       let value = 0;
 
-      // 音長(L)、オクターブ(O<>)、テンポ（T）、ベロシティ（V）をパース
-      if (message.match(/([lotv<>])([1-9]\d*|0?)(\.?)(&?)/)) {
-        command = RegExp.$1.toLowerCase();
-        value = RegExp.$2 | 0;
+      /** @type {string[]} 音長(L)、オクターブ(O<>)、テンポ（T）、ベロシティ（V）をパース */
+      const matches = message.match(/([lotv<>])([1-9]\d*|0?)(\.?)(&?)/);
 
-        if (tieEnabled && RegExp.$4 !== '&') {
+      if (matches) {
+        command = matches[1].toLowerCase();
+        value = parseInt(matches[2]);
+
+        if (tieEnabled && matches[4] !== '&') {
           // タイ記号
           tieEnabled = false;
           events.push(
@@ -195,7 +207,7 @@ export default class PSGConverter {
 
           if (this.octaveMode !== 2) {
             // 音名→音階番号変換(C1 -> 12, C4 -> 48, ..)
-            note = 12 * currentOctave + this.NOTE_TABLE[command];
+            note = 12 * currentOctave + PSGConverter.NOTE_TABLE[command];
 
             // 調音記号の処理
             if (RegExp.$2 === '+' || RegExp.$2 === '#') {
@@ -233,7 +245,7 @@ export default class PSGConverter {
               time,
               this.channel,
               note,
-              currentVelocity * this.VELOCITY_MAGNIFICATION // ※127÷15≒8.4なので8とする。
+              currentVelocity * PSGConverter.VELOCITY_MAGNIFICATION // ※127÷15≒8.4なので8とする。
             )
           );
         } else if (note !== currentNote) {

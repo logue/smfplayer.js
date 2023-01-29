@@ -15,24 +15,6 @@ export default defineConfig(async ({ mode, command }) => {
   const config = {
     // https://vitejs.dev/config/#base
     base: './',
-    publicDir: command === 'serve' ? 'public' : false,
-    // https://vitejs.dev/config/#server-options
-    server: {
-      fs: {
-        // Allow serving files from one level up to the project root
-        allow: ['..'],
-      },
-      cors: false,
-    },
-    resolve: {
-      alias: [
-        {
-          // this is required for the SCSS modules
-          find: /^~(.*)$/,
-          replacement: '$1',
-        },
-      ],
-    },
     plugins: [
       // vite-plugin-checker
       // https://github.com/fi3ework/vite-plugin-checker
@@ -56,20 +38,46 @@ export default defineConfig(async ({ mode, command }) => {
   */
   `),
     ],
+    publicDir: command === 'serve' ? 'public' : false,
+    // https://vitejs.dev/config/#server-options
+    server: {
+      fs: {
+        // Allow serving files from one level up to the project root
+        allow: ['..'],
+      },
+      cors: false,
+    },
+    resolve: {
+      // https://vitejs.dev/config/shared-options.html#resolve-alias
+      alias: {
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+        '~': fileURLToPath(new URL('./node_modules', import.meta.url)),
+      },
+      extensions: ['.js', '.json', '.jsx', '.mjs', '.ts', '.tsx', '.vue'],
+    },
     // Build Options
     // https://vitejs.dev/config/#build-options
     build: {
-      lib: {
-        entry: fileURLToPath(new URL('./src/index.js', import.meta.url)),
-        name: 'SMF',
-        formats: ['es', 'umd', 'iife'],
-        fileName: format => `smfplayer.${format}.js`,
-      },
+      // Build Target
+      // https://vitejs.dev/config/build-options.html#build-target
       target: 'esnext',
-      minify: false,
+      outDir: mode === 'docs' ? 'docs' : 'dist',
+      // Minify option
+      // https://vitejs.dev/config/build-options.html#build-minify
+      minify: mode === 'docs',
+      // https://vitejs.dev/config/build-options.html#build-lib
+      lib:
+        mode === 'docs'
+          ? undefined
+          : {
+              entry: fileURLToPath(new URL('./src/index.js', import.meta.url)),
+              name: 'SMF',
+              formats: ['es', 'umd', 'iife'],
+              fileName: format => `smfplayer.${format}.js`,
+            },
     },
     esbuild: {
-      drop: mode === 'serve' ? [] : ['console'],
+      drop: command === 'serve' ? [] : ['console'],
     },
   };
   // Write meta data.

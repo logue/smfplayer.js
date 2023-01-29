@@ -6,17 +6,25 @@ import MakiMabiSequence from './mms';
  * @classdesc MabiIcco MML File Parser
  *
  * @author    Logue <logue@hotmail.co.jp>
- * @copyright 2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright 2019,2023 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license   MIT
  */
 export default class MabiIcco extends MakiMabiSequence {
+  /** @type {string[]} 各トラックごと複数存在する変数名 */
+  static multipleKeys = [
+    'mml-track',
+    'name',
+    'program',
+    'songProgram',
+    'panpot',
+  ];
   /**
-   * @param {ByteArray} input
+   * @param {ArrayBuffer} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
-    /** @type {array} 入力データ。行ごとに配列化 */
+    /** @type {Array<string>} 入力データ。行ごとに配列化 */
     this.input =
       String.fromCharCode
         .apply('', new Uint16Array(input))
@@ -28,7 +36,11 @@ export default class MabiIcco extends MakiMabiSequence {
     /** @param {number} トラック数 */
     this.numberOfTracks = 1;
     /** @type {number} 分解能 */
-    this.timeDivision = optParams.timeDivision || 96;
+    this.timeDivision = optParams.timeDivision
+      ? parseInt(optParams.timeDivision)
+      : 96;
+    /** @type {TextEncoder} */
+    this.encoder = new TextEncoder('utf-8');
   }
 
   /**
@@ -44,32 +56,23 @@ export default class MabiIcco extends MakiMabiSequence {
    * ヘッダーメタ情報をパース
    */
   parseHeader() {
-    /** @type {TextEncoder} */
-    this.encoder = new TextEncoder('utf-8');
-
-    /** @type {array} 各トラックごと複数存在する変数名 */
-    const multipleKeys = [
-      'mml-track',
-      'name',
-      'program',
-      'songProgram',
-      'panpot',
-    ];
     const ret = {};
     /** @type {number} トラック番号（ヘッダー情報があるので初期値は-1） */
     let trackNo = -1;
     ret.track = [];
 
     for (let i = 0; i < this.input.length; i++) {
+      /** @type {string} */
       const line = this.input[i].trim();
-      if (i === 0) {
-        if (line !== '[mml-score]') {
-          throw new Error('Not MabiIcco File.');
-        }
-        continue;
+      // ヘッダーチェック
+      if (i === 0 && line !== '[mml-score]') {
+        throw new Error('Not MabiIcco File.');
       }
+      /** @type {string[]} キーと値 */
       const [key, value] = line.split('=');
-      if (multipleKeys.includes(key)) {
+
+      if (MabiIcco.multipleKeys.includes(key)) {
+        // トラックごとの処理
         if (key === 'mml-track') {
           trackNo++;
           ret.track[trackNo] = {};
@@ -91,10 +94,10 @@ export default class MabiIcco extends MakiMabiSequence {
     /** @param {number} 分解能 */
     this.timeDivision = 96;
     /** @param {number} テンポ */
-    this.tempo = mmiTempo[1] | 0;
-    /** @param {array} 拍子記号 */
+    this.tempo = parseInt(mmiTempo[1]) || 120;
+    /** @param {number[]} 拍子記号 */
     const timeSig = ret.time.split('/');
-    /** @type {array}  */
+    /** @type {MidiEvent[]}  */
     const headerTrack = [];
     // GM Reset
     headerTrack.push(
@@ -110,8 +113,8 @@ export default class MabiIcco extends MakiMabiSequence {
     headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
     headerTrack.push(
       new MetaEvent('TimeSignature', 0, 0, [
-        timeSig[0] | 0 || 4,
-        timeSig[1] | 0 || 4,
+        parseInt(timeSig[0]) || 4,
+        parseInt(timeSig[1]) || 4,
         0,
         0,
       ])
@@ -123,7 +126,6 @@ export default class MabiIcco extends MakiMabiSequence {
     this.tracks.push(headerTrack);
 
     this.input = ret.track;
-    // console.log(this);
   }
 
   /**
@@ -142,7 +144,7 @@ export default class MabiIcco extends MakiMabiSequence {
         continue;
       }
 
-      /** @type {array} MMLの配列（簡易マッチ） */
+      /** @type {string[]} MMLの配列（簡易マッチ） */
       const mmls = RegExp.$1.split(',');
 
       // 楽器名

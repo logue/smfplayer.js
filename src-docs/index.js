@@ -1,5 +1,5 @@
 import QueryString from 'query-string';
-import Player from '../player';
+import Player from '@/player.js';
 import { Tab, Tooltip } from 'bootstrap';
 import Encoding from 'encoding-japanese';
 import streamSaver from 'streamsaver';
@@ -40,7 +40,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   player.setTempoRate(document.getElementById('tempo').value);
   player.setMasterVolume(document.getElementById('volume').value * 16383);
   // WebMidiLink設定
-  player.setWebMidiLink(import.meta.env.VITE_WML_URL || './wml.html', 'wml');
+  player.setWebMidiLink(
+    import.meta.env.VITE_WML_URL || 'https://logue.dev/sf2synth.js/',
+    'wml'
+  );
 
   /** @type {HTMLButtonElement[]} */
   const triggerTabList = [].slice.call(

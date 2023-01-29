@@ -21,7 +21,9 @@ rules:
   valid-jsdoc: off
   import/no-named-as-default: off
   jsdoc/require-param-type: off
-  jsdoc/require-param: ['off', { enableRootFixer: false }]
+  jsdoc/require-param:
+    - off
+    - enableRootFixer: false
   jsdoc/require-returns-description: off
   jsdoc/require-returns-type: off
   jsdoc/require-returns: off
@@ -30,5 +32,6 @@ settings:
     alias:
       map:
         - ['@', './src']
+        - ['~', './node_modules']
       extensions:
         - .js

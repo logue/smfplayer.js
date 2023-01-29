@@ -11,7 +11,7 @@ import MakiMabiSequence from './mms';
  */
 export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
   /**
-   * @param {ByteArray} input
+   * @param {ArrayBuffer} input
    * @param {Object=} optParams
    */
   constructor(input, optParams = {}) {
@@ -35,10 +35,10 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     /** @param {string} */
     this.author = header.Source;
     /** @param {number} */
-    this.timeDivision = header.TimeBase | 0 || 32;
+    this.timeDivision = header.TimeBase ? parseInt(header.TimeBase) : 32;
 
     // 曲名と著者情報を付加
-    /** @type {array}  */
+    /** @type {MidiEvent[]}  */
     const headerTrack = [];
     // GM Reset
     headerTrack.push(
@@ -54,8 +54,8 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     headerTrack.push(new MetaEvent('TextEvent', 0, 0, [header.Memo]));
     headerTrack.push(
       new MetaEvent('TimeSignature', 0, 0, [
-        header.TimeSignatureNN | 0 || 4,
-        header.TimeSignatureDD | 0 || 4,
+        header.TimeSignatureNN ? parseInt(header.TimeSignatureNN) : 4,
+        header.TimeSignatureDD ? parseInt(header.TimeSignatureDD) : 4,
         0,
         0,
       ])
@@ -73,10 +73,10 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
    */
   parseTracks() {
     const input = this.input;
-    /** @type {array} 終了時間比較用 */
+    /** @type {number[]} 終了時間比較用 */
     const endTimes = [];
 
-    /** @type {array} 各ブロックのMML */
+    /** @type {string[]} 各ブロックのMML */
     const mmls = [];
     /** @type {array} 各ブロックの演奏情報 */
     const settings = [];
@@ -98,8 +98,8 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
         // 各パートの楽器情報などは[ChannelProperty[n]]に格納されている
         settings[(RegExp.$1 | 0) - 1] = {
           name: input[block].Name,
-          instrument: input[block].Patch | 0,
-          panpot: input[block].Pan | 0,
+          instrument: parseInt(input[block].Patch),
+          panpot: parseInt(input[block].Pan),
         };
       }
     }
@@ -137,7 +137,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
       }
       /** @type {number} */
       const ch = part | 0;
-      /** @type {array} MIDIイベント */
+      /** @type {MidiEvent[]} MIDIイベント */
       let track = [];
       if (data[part].mml === '') {
         // 空っぽのMMLトラックの場合処理しない

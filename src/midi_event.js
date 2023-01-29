@@ -3,7 +3,7 @@
  * @author    imaya
  * @license   MIT
  */
-class Event {
+class MidiEvent {
   /**
    * @param {string} subtype event subtype name.
    * @param {number} deltaTime delta time.
@@ -21,9 +21,9 @@ class Event {
 
 /**
  * Midi Channel Event Structure
- * @extends {Event}
+ * @extends {MidiEvent}
  */
-class ChannelEvent extends Event {
+class ChannelEvent extends MidiEvent {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
@@ -45,9 +45,9 @@ class ChannelEvent extends Event {
 
 /**
  * System Exclusive Event Structure
- * @extends {Event}
+ * @extends {MidiEvent}
  */
-class SystemExclusiveEvent extends Event {
+class SystemExclusiveEvent extends MidiEvent {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.
@@ -63,9 +63,9 @@ class SystemExclusiveEvent extends Event {
 
 /**
  * Midi Meta Event Structure
- * @extends {Event}
+ * @extends {MidiEvent}
  */
-class MetaEvent extends Event {
+class MetaEvent extends MidiEvent {
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.

@@ -14,7 +14,7 @@
       "url": "https://logue.dev"
     }
   ],
-  "version": "0.4.4",
+  "version": "0.5.0-beta.0",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -51,47 +51,48 @@
   },
   "engines": {
     "node": ">=18.12.1",
-    "yarn": ">=1.22.10"
+    "yarn": ">=1.22.19"
   },
-  "packageManager": "yarn@3.2.4",
+  "packageManager": "yarn@3.3.1",
   "scripts": {
     "dev": "vite",
-    "dev:doc": "vite --config vite.config.docs.js",
+    "dev:doc": "vite --mode=docs",
     "clean": "rimraf node_modules/.vite",
     "build": "vite build",
-    "build:docs": "vite build --config vite.config.docs.js",
+    "build:docs": "vite build --mode=docs",
     "build:clean": "rimraf dist",
     "lint": "eslint . --fix --cache --cache-location ./node_modules/.vite/vite-plugin-eslint && prettier . --write",
-    "preview": "vite preview --config vite.config.docs.js",
+    "preview": "vite preview--mode=docs",
     "prepare": "husky install"
   },
   "dependencies": {
     "ini": "^3.0.1"
   },
   "devDependencies": {
-    "@logue/sf2synth": "^0.4.12",
+    "@logue/smfplayer": "^0.4.3",
     "@popperjs/core": "^2.11.6",
-    "bootstrap": "^5.2.2",
-    "bootstrap-icons": "^1.9.1",
+    "@types/ini": "^1.3.31",
+    "bootstrap": "5.3.0-alpha1",
+    "bootstrap-icons": "^1.10.3",
     "buffer": "^6.0.3",
     "dseg": "^0.46.0",
     "encoding-japanese": "^2.0.0",
-    "eslint": "^8.27.0",
+    "eslint": "^8.33.0",
     "eslint-config-google": "^0.14.0",
-    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-prettier": "^8.6.0",
     "eslint-import-resolver-alias": "^1.1.2",
-    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-import": "^2.27.5",
     "eslint-plugin-prettier": "^4.2.1",
-    "husky": "^8.0.1",
-    "lint-staged": "^13.0.3",
-    "prettier": "^2.7.1",
-    "query-string": "^7.1.1",
-    "rimraf": "^3.0.2",
-    "sass": "^1.55.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^13.1.0",
+    "prettier": "^2.8.3",
+    "query-string": "^8.1.0",
+    "rimraf": "^4.1.2",
+    "sass": "^1.57.1",
     "streamsaver": "^2.0.6",
-    "vite": "^3.2.2",
-    "vite-plugin-banner": "^0.6.1",
-    "vite-plugin-checker": "^0.5.1"
+    "vite": "^4.0.4",
+    "vite-plugin-banner": "^0.7.0",
+    "vite-plugin-checker": "^0.5.5"
   },
   "husky": {
     "hooks": {
@@ -103,6 +104,6 @@
     "*": "prettier -w -u"
   },
   "resolutions": {
-    "prettier": "^2.7.1"
+    "json5": "^2.2.3"
   }
 }

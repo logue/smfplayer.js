@@ -16,10 +16,10 @@ jobs:
 
     steps:
       - name: Checkout ✅
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3.3.0
 
       - name: Use Node.js ${{ matrix.node-version }} ⚡
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v3.4.1
         with:
           node-version: ${{ matrix.node-version }}
 
@@ -29,7 +29,7 @@ jobs:
           yarn build:docs
         env:
           VITE_GOOGLE_ANALYTICS_ID: UA-33600926-1
-          VITE_WML_URL: https://logue.dev/sf2synth.js/wml.html?soundfont=Yamaha XG Sound Set Ver.2.0.sf2
+          VITE_WML_URL: https://logue.dev/sf2synth.js/?soundfont=Yamaha XG Sound Set Ver.2.0.sf2
 
       - name: Deploy to gh-pages 🚀
         uses: JamesIves/github-pages-deploy-action@v4.4.0
