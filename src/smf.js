@@ -170,6 +170,106 @@ export default class Parser {
         prevChannel = channel;
       }
 
+      // Channel Event
+      if (eventType !== 0xf) {
+        event = new ChannelEvent(
+          ChannelEvent.table[eventType],
+          deltaTime,
+          totalTime,
+          channel,
+          data[ip++],
+          eventType === 0xc ? undefined : data[ip++]
+        );
+      } else {
+        if (channel !== 0xf) {
+          tmp = readNumber();
+          if (channel === 0x0 && data[ip + tmp - 1] !== 0xf7) {
+            throw new Error('invalid SysEx event');
+          }
+          event = new SystemExclusiveEvent(
+            SystemExclusiveEvent.table[channel],
+            deltaTime,
+            totalTime,
+            data.subarray(ip, (ip += tmp) - 1)
+          );
+        } else {
+          eventType = data[ip++];
+          tmp = readNumber();
+          switch (eventType) {
+            case 0x00: // sequence number
+              event = new MetaEvent('SequenceNumber', deltaTime, totalTime, [
+                data[ip++],
+                data[ip++],
+              ]);
+              break;
+            case 0x01: // text event
+            case 0x02: // copyright notice
+            case 0x03: // sequence/track name
+            case 0x04: // instrument name
+            case 0x05: // lyrics
+            case 0x06: // marker
+            case 0x07: // cue point
+              event = new MetaEvent(
+                MetaEvent.table[eventType],
+                deltaTime,
+                totalTime,
+                [
+                  String.fromCharCode.apply(
+                    null,
+                    data.subarray(ip, (ip += tmp))
+                  ),
+                ]
+              );
+              break;
+            case 0x2f: // end of track
+              event = new MetaEvent('EndOfTrack', deltaTime, totalTime, []);
+              break;
+            case 0x51: // set tempo
+              event = new MetaEvent('SetTempo', deltaTime, totalTime, [
+                (data[ip++] << 16) | (data[ip++] << 8) | data[ip++],
+              ]);
+              break;
+            case 0x54: // smpte offset
+              event = new MetaEvent('SmpteOffset', deltaTime, totalTime, [
+                data[ip++],
+                data[ip++],
+                data[ip++],
+                data[ip++],
+                data[ip++],
+              ]);
+              break;
+            case 0x58: // time signature
+              event = new MetaEvent('TimeSignature', deltaTime, totalTime, [
+                data[ip++],
+                data[ip++],
+                data[ip++],
+                data[ip++],
+              ]);
+              break;
+            case 0x59: // key signature
+              event = new MetaEvent('KeySignature', deltaTime, totalTime, [
+                data[ip++],
+                data[ip++],
+              ]);
+              break;
+            case 0x7f: // sequencer specific
+              event = new MetaEvent('SequencerSpecific', deltaTime, totalTime, [
+                data.subarray(ip, (ip += tmp)),
+              ]);
+              break;
+            default:
+              // unknown
+              event = new MetaEvent(
+                MetaEvent.table[eventType],
+                deltaTime,
+                totalTime,
+                [eventType, data.subarray(ip, (ip += tmp))]
+              );
+          }
+        }
+      }
+
+      /*
       // TODO
       const table = [
         null,
@@ -192,18 +292,18 @@ export default class Parser {
       switch (eventType) {
         // channel events
         case 0x8:
-        /* FALLTHROUGH */
+        // FALLTHROUGH
         case 0x9:
-        /* FALLTHROUGH */
+        // FALLTHROUGH
         case 0xa:
-        /* FALLTHROUGH */
+        // FALLTHROUGH
         case 0xb:
-        /* FALLTHROUGH */
+        // FALLTHROUGH
         case 0xd:
-        /* FALLTHROUGH */
+        // FALLTHROUGH
         case 0xe:
           event = new ChannelEvent(
-            table[eventType],
+            ChannelEvent.table[eventType],
             deltaTime,
             totalTime,
             channel,
@@ -213,7 +313,7 @@ export default class Parser {
           break;
         case 0xc:
           event = new ChannelEvent(
-            table[eventType],
+            ChannelEvent.table[eventType],
             deltaTime,
             totalTime,
             channel,
@@ -392,6 +492,7 @@ export default class Parser {
         default:
           throw new Error('invalid status');
       }
+      */
 
       // plain queue
       length = ip - offset;
@@ -403,7 +504,7 @@ export default class Parser {
         /** @type {ChannelEvent} */
         (event).parameter2 === 0
       ) {
-        event.subtype = table[8];
+        event.subtype = ChannelEvent.table[8];
         plainBytes = new Uint8Array([
           0x80 | event.channel,
           event.parameter1,
