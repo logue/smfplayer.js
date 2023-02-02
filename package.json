@@ -50,7 +50,7 @@
     }
   },
   "engines": {
-    "node": ">=18.12.1",
+    "node": ">=18.13.0",
     "yarn": ">=1.22.19"
   },
   "packageManager": "yarn@3.3.1",
@@ -88,7 +88,7 @@
     "prettier": "^2.8.3",
     "query-string": "^8.1.0",
     "rimraf": "^4.1.2",
-    "sass": "^1.57.1",
+    "sass": "^1.58.0",
     "streamsaver": "^2.0.6",
     "vite": "^4.0.4",
     "vite-plugin-banner": "^0.7.0",

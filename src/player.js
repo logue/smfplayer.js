@@ -14,7 +14,7 @@ export default class Player {
   /**
    * @param {string} target WML attach dom
    */
-  constructor(target = '#wml') {
+  constructor(target = '#wml', targetOrigin = '*') {
     /** @type {number} テンポ（マイクロ秒）*/
     this.tempo = 500000; // default = 0.5[ms] = 120[bpm]
     /** @type {HTMLIFrameElement} */
@@ -67,6 +67,8 @@ export default class Player {
     this.window = window;
     /** @type {Element} */
     this.target = this.window.document.querySelector(target);
+    /** @type {string} */
+    this.targetOrigin = targetOrigin;
   }
 
   /**
@@ -110,7 +112,7 @@ export default class Player {
       for (i = 0; i < 16; ++i) {
         this.webMidiLink.contentWindow.postMessage(
           'midi,b' + i.toString(16) + ',78,0',
-          '*'
+          this.targetOrigin
         );
       }
     }
@@ -152,6 +154,9 @@ export default class Player {
       this.window.addEventListener(
         'message',
         ev => {
+          if (ev.target.origin !== '*' && ev.origin !== this.targetOrigin) {
+            throw Error(`Cross orgin ${ev.origin} is refused.`);
+          }
           if (ev.data === 'link,ready') {
             player.sendInitMessage();
           }
@@ -195,6 +200,9 @@ export default class Player {
       this.window.addEventListener(
         'message',
         ev => {
+          if (ev.target.origin !== '*' && ev.origin !== this.targetOrigin) {
+            throw Error(`Cross orgin ${ev.origin} is refused.`);
+          }
           if (ev.data === 'link,ready') {
             player.ready = true;
             player.webMidiLink.style.height =
@@ -212,7 +220,7 @@ export default class Player {
    */
   onSequenceEnd() {
     this.pause = true;
-    this.webMidiLink.contentWindow.postMessage('endoftrack', '*');
+    this.webMidiLink.contentWindow.postMessage('endoftrack', this.targetOrigin);
   }
 
   /**
@@ -225,18 +233,18 @@ export default class Player {
 
     for (i = 0; i < 16; ++i) {
       // all sound off
-      win.postMessage('midi,b' + i.toString(16) + ',128,0', '*');
+      win.postMessage('midi,b' + i.toString(16) + ',128,0', this.targetOrigin);
       // volume
-      win.postMessage('midi,b' + i.toString(16) + ',07,64', '*');
+      win.postMessage('midi,b' + i.toString(16) + ',07,64', this.targetOrigin);
       // panpot
-      win.postMessage('midi,b' + i.toString(16) + ',0a,40', '*');
+      win.postMessage('midi,b' + i.toString(16) + ',0a,40', this.targetOrigin);
       // pitch bend
-      win.postMessage('midi,e' + i.toString(16) + ',00,40', '*');
+      win.postMessage('midi,e' + i.toString(16) + ',00,40', this.targetOrigin);
       // pitch bend range
-      win.postMessage('midi,b' + i.toString(16) + ',64,00', '*');
-      win.postMessage('midi,b' + i.toString(16) + ',65,00', '*');
-      win.postMessage('midi,b' + i.toString(16) + ',06,02', '*');
-      win.postMessage('midi,b' + i.toString(16) + ',26,00', '*');
+      win.postMessage('midi,b' + i.toString(16) + ',64,00', this.targetOrigin);
+      win.postMessage('midi,b' + i.toString(16) + ',65,00', this.targetOrigin);
+      win.postMessage('midi,b' + i.toString(16) + ',06,02', this.targetOrigin);
+      win.postMessage('midi,b' + i.toString(16) + ',26,00', this.targetOrigin);
     }
     this.sendGmReset();
   }
@@ -327,7 +335,7 @@ export default class Player {
             ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
             '7f',
           ].join(','),
-        '*'
+        this.targetOrigin
       );
     }
   }
@@ -456,7 +464,10 @@ export default class Player {
         }
 
         // send message
-        webMidiLink.postMessage(mergedTrack[pos++].webMidiLink, '*');
+        webMidiLink.postMessage(
+          mergedTrack[pos++].webMidiLink,
+          this.targetOrigin
+        );
       } while (pos < length && mergedTrack[pos].time === time);
 
       if (pos < length) {
@@ -725,7 +736,10 @@ export default class Player {
   sendGmReset() {
     if (this.webMidiLink) {
       // F0 7E 7F 09 01 F7
-      this.webMidiLink.contentWindow.postMessage('midi,F0,7E,7F,09,01,F7', '*');
+      this.webMidiLink.contentWindow.postMessage(
+        'midi,F0,7E,7F,09,01,F7',
+        this.targetOrigin
+      );
     }
   }
 
@@ -733,7 +747,10 @@ export default class Player {
    */
   sendAllSoundOff() {
     if (this.webMidiLink) {
-      this.webMidiLink.contentWindow.postMessage('midi,b0,78,0', '*');
+      this.webMidiLink.contentWindow.postMessage(
+        'midi,b0,78,0',
+        this.targetOrigin
+      );
     }
   }
   /**
