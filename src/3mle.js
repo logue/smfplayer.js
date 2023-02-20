@@ -6,7 +6,7 @@ import MakiMabiSequence from './mms';
  * @classdesc Three Macro Language Editor (3MLE) mml file Parser
  *
  * @author    Logue <logue@hotmail.co.jp>
- * @copyright 2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright 2019,2023 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license   MIT
  */
 export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
@@ -49,9 +49,17 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
         [0x7e, 0x7f, 0x09, 0x01]
       )
     );
-    headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
-    headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
-    headerTrack.push(new MetaEvent('TextEvent', 0, 0, [header.Memo]));
+    headerTrack.push(
+      new MetaEvent('SequenceTrackName', 0, 0, [
+        this.encoder.encode(this.title),
+      ])
+    );
+    headerTrack.push(
+      new MetaEvent('CopyrightNotice', 0, 0, [this.encoder.encode(this.author)])
+    );
+    headerTrack.push(
+      new MetaEvent('TextEvent', 0, 0, [this.encoder.encode(header.Memo)])
+    );
     headerTrack.push(
       new MetaEvent('TimeSignature', 0, 0, [
         header.TimeSignatureNN ? parseInt(header.TimeSignatureNN) : 4,
@@ -145,7 +153,11 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
       }
 
       // 楽器名
-      track.push(new MetaEvent('InsturumentName', 0, 48, [data[part].name]));
+      track.push(
+        new MetaEvent('InsturumentName', 0, 48, [
+          this.encoder.encode(data[part].name),
+        ])
+      );
       // プログラムチェンジ
       track.push(
         new ChannelEvent('ProgramChange', 0, 96, ch, data[part].instrument)

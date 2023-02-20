@@ -73,8 +73,14 @@ export default class MakiMabiSequence {
         [0x7e, 0x7f, 0x09, 0x01]
       )
     );
-    headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
-    headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(
+      new MetaEvent('SequenceTrackName', 0, 0, [
+        this.encoder.encode(this.title),
+      ])
+    );
+    headerTrack.push(
+      new MetaEvent('CopyrightNotice', 0, 0, [this.encoder.encode(this.author)])
+    );
     headerTrack.push(
       new MetaEvent('TimeSignature', 0, 0, [
         parseInt(header.rythmNum) || 4,
@@ -117,7 +123,11 @@ export default class MakiMabiSequence {
       const panpot = parseInt(currentPart.panpot) + 64;
 
       // 楽器名
-      track.push(new MetaEvent('InsturumentName', 0, 48, [currentPart.name]));
+      track.push(
+        new MetaEvent('InsturumentName', 0, 48, [
+          this.encoder.encode(currentPart.name),
+        ])
+      );
       // プログラムチェンジ
       track.push(
         new ChannelEvent(

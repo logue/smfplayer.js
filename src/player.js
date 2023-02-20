@@ -4,7 +4,7 @@ import MakiMabiSequence from './mms';
 import MabiIcco from './mmi';
 import Mld from './mld';
 import SMF from './smf';
-
+import { MetaEvent } from './midi_event';
 /**
  * @classdesc Midi Player Class
  * @author    imaya
@@ -69,6 +69,8 @@ export default class Player {
     this.target = this.window.document.querySelector(target);
     /** @type {string} */
     this.targetOrigin = targetOrigin;
+    /** @type {TextDecoder} */
+    this.decoder = new TextDecoder('shift_jis');
   }
 
   /**
@@ -390,7 +392,7 @@ export default class Player {
         switch (event.subtype) {
           case 'TextEvent': // 0x01
             // 主に歌詞などが入っている。MIDI作成者によってはデバッグ情報やお遊びも・・・。
-            player.textEvent = event.data[0];
+            player.textEvent = this.decoder.decode(event.data[0]);
             break;
           case 'Lyrics': // 0x05
             // カラオケデーターが入っている。Textとの違いは、どの位置で表示するかやページ送りなどの制御コードが含まれている。
@@ -399,7 +401,7 @@ export default class Player {
             // カラオケのパーサーは本プログラムでは実装しない。
             // KAR形式：https://www.mixagesoftware.com/en/midikit/help/HTML/karaoke_formats.html
             // XF形式：https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
-            player.lyrics = event.data[0];
+            player.lyrics = this.decoder.decode(event.data[0]);
             break;
           case 'Maker': // 0x06
             if (player.enableFalcomLoop) {
@@ -633,13 +635,17 @@ export default class Player {
     for (i = 0, il = tracks.length; i < il; ++i) {
       track = tracks[i];
       for (j = 0, jl = track.length; j < jl; ++j) {
-        if (midi.formatType === 0 || i === 0) {
+        if (track[j] instanceof MetaEvent) {
           // 著作権情報と曲名を取得
           // SMF1のときは先頭のトラックから情報を取得する。
-          if (track[j].subtype === 'SequenceTrackName') {
-            this.sequenceName = track[j].data[0];
+          if (
+            midi.formatType === 0 &&
+            i === 0 &&
+            track[j].subtype === 'SequenceTrackName'
+          ) {
+            this.sequenceName = this.decoder.decode(track[j].data[0]);
           } else if (track[j].subtype === 'CopyrightNotice') {
-            this.copyright = track[j].data[0];
+            this.copyright = this.decoder.decode(track[j].data[0]);
           }
         }
 

@@ -213,13 +213,9 @@ export default class Parser {
                 MetaEvent.table[eventType],
                 deltaTime,
                 totalTime,
-                [
-                  String.fromCharCode.apply(
-                    null,
-                    data.subarray(ip, (ip += tmp))
-                  ),
-                ]
+                [data.subarray(ip, (ip += tmp))]
               );
+
               break;
             case 0x2f: // end of track
               event = new MetaEvent('EndOfTrack', deltaTime, totalTime, []);

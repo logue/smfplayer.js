@@ -1,26 +1,26 @@
 import QueryString from 'query-string';
 import Player from '@/player.js';
 import { Tab, Tooltip } from 'bootstrap';
-import Encoding from 'encoding-japanese';
 import streamSaver from 'streamsaver';
+import * as zip from '@zip.js/zip.js';
 import './style.scss';
 
 formLock(true);
 
-// Bootstrapのツールチップ
+/** @type {NodeListOf<Element>} - Bootstrapのツールチップ */
 const tooltipTriggerList = document.querySelectorAll('*[title]');
 [...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
 
-// インターバル関数用。準備完了フラグ
+/** @type {boolean} - インターバル関数用。準備完了フラグ */
 let isReady = false;
 
-// QueryStrings
+/** @type {Record<string, any>} - QueryStrings */
 const params = QueryString.parse(window.location.hash);
 
-// SMF Player
+/** @type {require(../player.js).Player} SMF Player */
 const player = new Player('#wml');
 
-// 利用可能な拡張子
+/** @type {string[]} - 利用可能な拡張子 */
 const availableExts = [
   '.mid',
   '.midi',
@@ -203,21 +203,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     .addEventListener('click', () => player.sendGmReset());
 
   // MIDIファイルのダウンロード
-  document.getElementById('download').addEventListener('click', () => {
+  document.getElementById('download').addEventListener('click', async () => {
     // 選択状態を取得
     const select = document.getElementById('files');
     const option = select.querySelectorAll('option')[select.selectedIndex];
-    const filename = option.dataset.midiplayerFilename;
+    const filename = option.value;
+
+    /** @type {import('@zip.js/zip.js').Entry[]} ファイルデータ一覧 */
+    const entries = await select.zip.getEntries({
+      filenameEncoding: 'shift_jis',
+    });
+
+    /** @type {import('@zip.js/zip.js').Entry} - ファイル */
+    const entry = entries.find(entry => entry.filename === filename);
 
     /** シーケンスデーター */
-    const bytes = new Uint8Array(select.zip.decompress(filename));
+    const bytes = await entry.getData(new zip.Uint8ArrayWriter());
 
-    const fileStream = streamSaver.createWriteStream(
-      Encoding.convert(filename, 'UNICODE', 'AUTO'),
-      {
-        size: bytes.byteLength,
-      }
-    );
+    const fileStream = streamSaver.createWriteStream(filename, {
+      size: bytes.byteLength,
+    });
 
     const writer = fileStream.getWriter();
     writer.write(bytes);
@@ -259,11 +264,7 @@ function handleFile(file) {
     const input = new Uint8Array(e.target.result);
     handleInput(file.name, input);
     info.removeChild(progressOuter);
-    info.innerHtml = `Now Playing "${Encoding.convert(
-      file.name,
-      'UNICODE',
-      'AUTO'
-    )}".`;
+    info.innerHtml = `Now Playing "${file.name}".`;
     info.classList.remove('alert-warning');
     info.classList.add('alert-success');
   };
@@ -295,36 +296,38 @@ async function loadSample(zipfile) {
   /**
    * 読み込まれたときの処理
    *
-   * @param {ArrayBuffer} stream
+   * @param {Blob} stream
    */
-  const ready = stream => {
-    const input = new Uint8Array(stream);
-
+  const ready = async stream => {
     // ファイルリストの子要素を一括削除
     while (select.firstChild) select.removeChild(select.firstChild);
 
     // Zipファイルを展開
-    // eslint-disable-next-line no-undef
-    select.zip = new Zlib.Unzip(input);
+    select.zip = new zip.ZipReader(new zip.BlobReader(stream));
 
-    // ファイル名一覧を取得
-    const filenames = select.zip.getFilenames().sort();
-    // セレクトボックスに流し込む
-    filenames.forEach((name, i) => {
-      const ext = name.slice(name.lastIndexOf('.')).toLowerCase();
-
-      if (ext === '/' || !availableExts.includes(ext)) {
-        return;
-      }
-
-      const option = document.createElement('option');
-      // 項目名
-      option.textContent = Encoding.convert(name, 'UNICODE', 'AUTO');
-      // 実際のファイル名
-      option.value = name;
-      // selectタグに流し込む
-      select.appendChild(option);
+    /** @type {import('@zip.js/zip.js').Entry[]} ファイルデータ一覧 */
+    const entries = await select.zip.getEntries({
+      filenameEncoding: 'shift_jis',
     });
+    // セレクトボックスに流し込む
+    entries.forEach(
+      async (/** @type {import('@zip.js/zip.js').Entry}*/ entry) => {
+        const ext = entry.filename
+          .slice(entry.filename.lastIndexOf('.'))
+          .toLowerCase();
+
+        if (ext === '/' || !availableExts.includes(ext)) {
+          return;
+        }
+        const option = document.createElement('option');
+        // 項目名
+        option.textContent = entry.filename;
+        // 生のファイル名
+        option.value = entry.filename;
+        // selectタグに流し込む
+        select.appendChild(option);
+      }
+    );
 
     // 初期値が一番上の項目になるとつまらないのでランダム化
     const prev = select.selectedIndex;
@@ -350,11 +353,11 @@ async function loadSample(zipfile) {
   const cached = await cache.match(select.value);
 
   if (cached) {
-    ready(await cached.arrayBuffer());
+    ready(await cached.blob());
     return;
   }
 
-  /** @type {Response} キャッシュがない場合Fetchで取得 */
+  /** @type {Response} - キャッシュがない場合Fetchで取得 */
   const response = await fetch(zipfile, {
     method: 'GET',
     mode: 'no-cors',
@@ -369,65 +372,71 @@ async function loadSample(zipfile) {
   if (cache) {
     cache.put(zipfile, clonedResponse);
   }
-  ready(await response.arrayBuffer());
+  ready(await response.blob());
   formLock(false);
 }
+
 /**
  * 選択されたファイルを解凍
  */
-function handleSelect() {
+async function handleSelect() {
   /** @type {HTMLSelectElement} */
   const select = document.getElementById('files');
   /** @type {string} */
   const filename = select.value;
 
-  if (filename) {
-    handleInput(filename, select.zip.decompress(filename));
+  if (!filename) {
+    return;
+  }
 
-    const f = Encoding.convert(filename, 'UNICODE', 'AUTO');
-    document.getElementById('info').innerHTML = `Now playing "${f}".`;
+  /** @type {import('@zip.js/zip.js').Entry[]} ファイルデータ一覧 */
+  const entries = await select.zip.getEntries({
+    filenameEncoding: 'shift_jis',
+  });
 
-    // ページのタイトルを反映
-    document.title = `${f} - ${
-      document.getElementById('zips').value
-    } / Standard MIDI Player for Web`;
+  /** @type {import('@zip.js/zip.js').Entry} - ファイル */
+  const entry = entries.find(entry => entry.filename === filename);
 
-    const hash = `#zip=${encodeURIComponent(
-      document.getElementById('zips').value
-    )}&file=${encodeURIComponent(filename)}`;
+  /** @type {import('@zip.js/zip.js').Uint8ArrayWriter} - Uint8Arrayバッファライター */
+  const writer = new zip.Uint8ArrayWriter();
 
-    // メタ情報のタイトル
-    document.getElementById('music_title').value = Encoding.convert(
-      player.getSequenceName(1),
-      'UNICODE',
-      'AUTO'
-    );
-    // メタ情報の著作権表記
-    document.getElementById('copyright').value = Encoding.convert(
-      player.getCopyright(),
-      'UNICODE',
-      'AUTO'
-    );
+  handleInput(filename, await entry.getData(writer));
 
-    // pushstateを使用
-    if (window.history && window.history.pushState) {
-      window.history.pushState(document.title, null, hash);
-      return false;
-    }
-    document
-      .querySelector('link[rel="canonical"]')
-      .setAttribute('href', `${location.href}/${hash}`);
+  document.getElementById('info').innerHTML = `Now playing "${filename}".`;
 
-    if (params.zip && params.file) {
-      player.play();
-    }
+  // ページのタイトルを反映
+  document.title = `${filename} - ${
+    document.getElementById('zips').value
+  } / Standard MIDI Player for Web`;
+
+  const hash = `#zip=${encodeURIComponent(
+    document.getElementById('zips').value
+  )}&file=${encodeURIComponent(filename)}`;
+
+  // メタ情報のタイトル
+  document.getElementById('music_title').value = player.getSequenceName(1);
+  // メタ情報の著作権表記
+  document.getElementById('copyright').value = player.getCopyright();
+
+  // pushstateを使用
+  if (window.history && window.history.pushState) {
+    window.history.pushState(document.title, null, hash);
+    return false;
+  }
+  document
+    .querySelector('link[rel="canonical"]')
+    .setAttribute('href', `${location.href}/${hash}`);
+
+  if (params.zip && params.file) {
+    player.play();
   }
 }
+
 /**
  * MIDI/MLDファイルを読み込ませる
  *
- * @param string filename ファイル名
- * @param array buffer ファイルの中身
+ * @param {string} filename ファイル名
+ * @param {ArrayBuffer} buffer ファイルの中身
  */
 function handleInput(filename, buffer) {
   // 再生中のMIDIを停止。
@@ -560,6 +569,15 @@ window.onmessage = (/** @type {MessageEvent} */ e) => {
   }
 };
 
+/**
+ * UTF8変換
+ * @param {string} str
+ * @return {string}
+ */
+function toUtf8(str) {
+  return decodeURI(encodeURIComponent(str));
+}
+
 let parentLyrics = '';
 let parentTextEvent = '';
 let lyric = '';
@@ -611,19 +629,11 @@ setInterval(() => {
 
         lyric += lyrics;
 
-        document.getElementById('lyrics').innerText = Encoding.convert(
-          lyric,
-          'UNICODE',
-          'AUTO'
-        );
+        document.getElementById('lyrics').innerText = lyric;
       }
     }
     if (parentTextEvent !== player.getTextEvent()) {
-      document.getElementById('text_event').value = Encoding.convert(
-        player.getTextEvent(),
-        'UNICODE',
-        'AUTO'
-      );
+      document.getElementById('text_event').value = player.getTextEvent();
     }
 
     parentLyrics = player.getLyrics();

@@ -38,7 +38,7 @@ export default defineConfig(async ({ mode, command }) => {
   */
   `),
     ],
-    publicDir: command === 'serve' ? 'public' : false,
+    publicDir: mode === 'docs',
     // https://vitejs.dev/config/#server-options
     server: {
       fs: {

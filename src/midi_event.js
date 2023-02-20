@@ -125,7 +125,7 @@ class MetaEvent extends MidiEvent {
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @param {Array.<*>} data meta data.
+   * @param {ArrayBuffer} data meta data.
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);

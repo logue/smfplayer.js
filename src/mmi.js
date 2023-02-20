@@ -109,8 +109,14 @@ export default class MabiIcco extends MakiMabiSequence {
       )
     );
     // 曲名と著者情報を付加
-    headerTrack.push(new MetaEvent('SequenceTrackName', 0, 0, [this.title]));
-    headerTrack.push(new MetaEvent('CopyrightNotice', 0, 0, [this.author]));
+    headerTrack.push(
+      new MetaEvent('SequenceTrackName', 0, 0, [
+        this.encoder.encode(this.title),
+      ])
+    );
+    headerTrack.push(
+      new MetaEvent('CopyrightNotice', 0, 0, [this.encoder.encode(this.author)])
+    );
     headerTrack.push(
       new MetaEvent('TimeSignature', 0, 0, [
         parseInt(timeSig[0]) || 4,
@@ -148,7 +154,11 @@ export default class MabiIcco extends MakiMabiSequence {
       const mmls = RegExp.$1.split(',');
 
       // 楽器名
-      track.push(new MetaEvent('InsturumentName', 0, 48, [current.name]));
+      track.push(
+        new MetaEvent('InsturumentName', 0, 48, [
+          this.encoder.encode(current.name),
+        ])
+      );
       // プログラムチェンジ
       track.push(new ChannelEvent('ProgramChange', 0, 96, ch, current.program));
       if (current.songProgram !== -1) {
