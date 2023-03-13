@@ -1,4 +1,4 @@
-import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
+import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '../midi_event';
 import PSGConverter from './PSGConverter';
 import MakiMabiSequence from './mms';
 
@@ -25,22 +25,18 @@ export default class MabiIcco extends MakiMabiSequence {
   constructor(input, optParams = {}) {
     super(input, optParams);
     /** @type {Array<string>} 入力データ。行ごとに配列化 */
-    this.input =
-      String.fromCharCode
-        .apply('', new Uint16Array(input))
-        .split(/\r\n|\r|\n/) || [];
+    this.input = this.source.split(/\r\n|\r|\n/) || [];
+    console.log(this.input);
     /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
     this.plainTracks = [];
-    /** @param {number} トラック数 */
+    /** @type {number} トラック数 */
     this.numberOfTracks = 1;
     /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision
       ? parseInt(optParams.timeDivision)
       : 96;
-    /** @type {TextEncoder} */
-    this.encoder = new TextEncoder('utf-8');
   }
 
   /**
@@ -85,11 +81,14 @@ export default class MabiIcco extends MakiMabiSequence {
         ret[key] = value;
       }
     }
+
+    // MabiIccoはUTF-8フォーマットなので変換処理は挟まない
+
     /** @param {string} タイトル */
     this.title = ret.title;
     /** @param {string} 著者情報 */
     this.author = ret.author;
-    /** @param {array} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
+    /** @param {number[]} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
     const mmiTempo = ret.tempo !== '' ? ret.tempo.split('T') : [0, 120];
     /** @param {number} 分解能 */
     this.timeDivision = 96;
@@ -97,7 +96,7 @@ export default class MabiIcco extends MakiMabiSequence {
     this.tempo = parseInt(mmiTempo[1]) || 120;
     /** @param {number[]} 拍子記号 */
     const timeSig = ret.time.split('/');
-    /** @type {MidiEvent[]}  */
+    /** @type {import('../midi_event.js').MidiEvent[]}  */
     const headerTrack = [];
     // GM Reset
     headerTrack.push(
@@ -138,20 +137,21 @@ export default class MabiIcco extends MakiMabiSequence {
    * MML parse
    */
   parseTracks() {
-    /** @type {array} MIDIイベント */
+    /** @type {import('../midi_event.js').MidiEvent[]} MIDIイベント */
     let track = [];
-    /** @type {array} 終了時間比較用 */
+    /** @type {number[]} 終了時間比較用 */
     const endTimes = [];
 
     for (let ch = 0; ch < this.input.length; ch++) {
       /** @type {array} 現在のチャンネルの情報 */
       const current = this.input[ch];
-      if (!current.mml.match(/^(?:MML@)(.*)/gm)) {
+      /** @type {string[]} */
+      const mml = current.mml.match(/^(?:MML@)(.*)/gm);
+      if (!mml) {
         continue;
       }
-
       /** @type {string[]} MMLの配列（簡易マッチ） */
-      const mmls = RegExp.$1.split(',');
+      const mmls = mml[0].split(',');
 
       // 楽器名
       track.push(

@@ -1,6 +1,6 @@
-import PSGConverter from './PSGConverter';
-import { MetaEvent } from './midi_event';
+import { MetaEvent } from '../midi_event';
 import MakiMabiSequence from './mms';
+import PSGConverter from './PSGConverter';
 
 /**
  * @classdesc MapleStory2 Mml Parser
@@ -11,13 +11,11 @@ import MakiMabiSequence from './mms';
  */
 export default class MapleStory2Mml extends MakiMabiSequence {
   /**
-   * @param {ArrayBuffer} input
-   * @param {Object=} optParams
+   * @param {Uint8Array} input
+   * @param {Object} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
-    /** @type {TextEncoder} */
-    this.encoder = new TextEncoder('utf-8');
     /** @type {DOMParser} */
     const parser = new DOMParser();
     /** @type {Document} */
@@ -25,11 +23,11 @@ export default class MapleStory2Mml extends MakiMabiSequence {
       String.fromCharCode.apply('', new Uint16Array(input)),
       'text/xml'
     );
-    /** @param {Element} */
+    /** @param {NodeList} */
     this.input = doc.querySelectorAll('ms2 > *');
-    /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
+    /** @type {Object[][]} 全トラックの演奏情報 */
     this.tracks = [];
-    /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
+    /** @type {Uint8Array[][]} WMLに送る生のMIDIイベント */
     this.plainTracks = [];
     /** @param {number} トラック数 */
     this.numberOfTracks = 1;
@@ -51,7 +49,7 @@ export default class MapleStory2Mml extends MakiMabiSequence {
    * MML parse
    */
   parseTracks() {
-    /** @type {MidiEvent[]} MIDIイベント */
+    /** @type {import('../midi_event.js').MidiEvent[][]} MIDIイベント */
     let track = [];
     /** @type {number[]} 終了時間比較用 */
     const endTimes = [];

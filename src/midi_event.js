@@ -43,16 +43,23 @@ class ChannelEvent extends MidiEvent {
    * @param {number} deltaTime delta time.
    * @param {number} time time.
    * @param {number} channel
-   * @param {number=} optParameter1
-   * @param {number=} optParameter2
+   * @param {number} optParameter1
+   * @param {number} optParameter2
    */
-  constructor(subtype, deltaTime, time, channel, optParameter1, optParameter2) {
+  constructor(
+    subtype,
+    deltaTime,
+    time,
+    channel,
+    optParameter1 = undefined,
+    optParameter2 = undefined
+  ) {
     super(subtype, deltaTime, time);
     /** @type {number} */
     this.channel = channel;
-    /** @type {(number|undefined)} */
+    /** @type {number | undefined} */
     this.parameter1 = optParameter1;
-    /** @type {(number|undefined)} */
+    /** @type {number | undefined} */
     this.parameter2 = optParameter2;
   }
 }
@@ -85,11 +92,11 @@ class SystemExclusiveEvent extends MidiEvent {
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @param {ArrayBuffer} data
+   * @param {Uint8Array} data
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
-    /** @type {ByteArray} */
+    /** @type {Uint8Array} */
     this.data = data;
   }
 }
@@ -125,13 +132,13 @@ class MetaEvent extends MidiEvent {
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @param {ArrayBuffer} data meta data.
+   * @param {Uint8Array[]} data meta data.
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
-    /** @type {Array.<*>} */
+    /** @type {Uint8Array[]} */
     this.data = data;
   }
 }
 
-export { ChannelEvent, SystemExclusiveEvent, MetaEvent };
+export { MidiEvent, ChannelEvent, SystemExclusiveEvent, MetaEvent };

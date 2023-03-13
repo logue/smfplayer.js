@@ -1,4 +1,4 @@
-import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from './midi_event';
+import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '../midi_event';
 import PSGConverter from './PSGConverter';
 import MakiMabiSequence from './mms';
 
@@ -11,8 +11,8 @@ import MakiMabiSequence from './mms';
  */
 export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
   /**
-   * @param {ArrayBuffer} input
-   * @param {Object=} optParams
+   * @param {Uint8Array} input
+   * @param {object} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
@@ -27,18 +27,17 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
   /**
    */
   parseHeader() {
+    /** @type {Record<string, string>} */
     const header = this.input.Settings;
-    /** @type {TextEncoder} */
-    this.encoder = new TextEncoder(header.Encoding || 'shift_jis');
-    /** @param {string} */
+    /** @type {string} */
     this.title = header.Title;
-    /** @param {string} */
+    /** @type {string} */
     this.author = header.Source;
-    /** @param {number} */
+    /** @type {number} */
     this.timeDivision = header.TimeBase ? parseInt(header.TimeBase) : 32;
 
     // 曲名と著者情報を付加
-    /** @type {MidiEvent[]}  */
+    /** @type {import('../midi_event.js').MidiEvent[]}  */
     const headerTrack = [];
     // GM Reset
     headerTrack.push(
@@ -86,7 +85,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
 
     /** @type {string[]} 各ブロックのMML */
     const mmls = [];
-    /** @type {array} 各ブロックの演奏情報 */
+    /** @type {any[]} 各ブロックの演奏情報 */
     const settings = [];
 
     for (const block in this.input) {
@@ -145,7 +144,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
       }
       /** @type {number} */
       const ch = part | 0;
-      /** @type {MidiEvent[]} MIDIイベント */
+      /** @type {import('../midi_event.js').MidiEvent[]} MIDIイベント */
       let track = [];
       if (data[part].mml === '') {
         // 空っぽのMMLトラックの場合処理しない

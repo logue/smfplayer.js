@@ -53,7 +53,7 @@ export default defineConfig(async ({ mode, command }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
         '~': fileURLToPath(new URL('./node_modules', import.meta.url)),
       },
-      extensions: ['.js', '.json', '.jsx', '.mjs', '.ts', '.tsx', '.vue'],
+      extensions: ['.js'],
     },
     // Build Options
     // https://vitejs.dev/config/#build-options
@@ -64,7 +64,7 @@ export default defineConfig(async ({ mode, command }) => {
       outDir: mode === 'docs' ? 'docs' : 'dist',
       // Minify option
       // https://vitejs.dev/config/build-options.html#build-minify
-      minify: mode === 'docs',
+      minify: true,
       // https://vitejs.dev/config/build-options.html#build-lib
       lib:
         mode === 'docs'

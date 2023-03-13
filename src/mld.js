@@ -5,21 +5,21 @@
  */
 export default class Mld {
   /**
-   * @param {ArrayBuffer} input
-   * @param {Object=} optParams
+   * @param {Uint8Array} input
+   * @param {object} optParams
    */
   constructor(input, optParams = {}) {
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     this.input = input;
     /** @type {number} */
     this.ip = optParams.index || 0;
     /** @type {number} */
     this.timeDivision = optParams.timeDivision || 48;
-    /** @type {Object} */
+    /** @type {object} */
     this.header = {};
-    /** @type {Object} */
+    /** @type {object} */
     this.dataInformation = {};
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {import('../midi_event.js').MidiEvent[][]} */
     this.tracks = [];
   }
 
@@ -34,11 +34,11 @@ export default class Mld {
   /**
    */
   parseHeader() {
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
-    /** @type {Object} */
+    /** @type {object} */
     const header = (this.header = {});
     /** @type {string} */
     const signature = String.fromCharCode(
@@ -71,11 +71,11 @@ export default class Mld {
   /**
    */
   parseDataInformation() {
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
-    /** @type {Object} */
+    /** @type {object} */
     const dataInformation = (this.dataInformation = {
       copy: null,
       date: null,
@@ -137,7 +137,7 @@ export default class Mld {
   /**
    */
   parseTracks() {
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
@@ -151,7 +151,7 @@ export default class Mld {
     let status;
     /** @type {number} */
     let extendStatus;
-    /** @type {Object} */
+    /** @type {import('../midi_event.js').MidiEvent} */
     let message;
     /** @type {Array.<Array.<Object>>} */
     const tracks = (this.tracks = []);

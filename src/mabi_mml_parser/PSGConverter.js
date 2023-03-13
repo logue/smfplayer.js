@@ -1,9 +1,9 @@
-import { ChannelEvent, MetaEvent } from './midi_event';
+import { ChannelEvent, MetaEvent } from '../midi_event';
 
 /**
  * @class     PSGConverter
  * @classdesc Mabinogi MML and Maple Story 2 MML to MIDI Converter.
- * @version   3.0.5
+ * @version   3.0.6
  *
  * @author    Logue <logue@hotmail.co.jp>
  * @copyright 2007-2023 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
@@ -53,7 +53,7 @@ export default class PSGConverter {
 
     /** @type {string[]} MMLデータ */
     this.mml = optParams.mml;
-    /** @type {MidiEvent[]} イベント */
+    /** @type {import('../midi_event.js').MidiEvent[]} イベント */
     this.events = [];
     /** @type {number} 終了時間 */
     this.endTime = 0;
@@ -85,8 +85,7 @@ export default class PSGConverter {
       // 小文字に変換した後正規表現で命令単位で分割する。
       mmls = this.mml.toLowerCase().match(PSGConverter.PATTERN);
     } catch (e) {
-      console.error('[PSGConverter] Could not parse MML.', this.mml);
-      return;
+      throw new MediaError('[PSGConverter] Could not parse MML.', this.mml);
     }
 
     if (!mmls) {

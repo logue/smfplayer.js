@@ -1,7 +1,7 @@
 import QueryString from 'query-string';
 import Player from '@/player.js';
 import { Tab, Tooltip } from 'bootstrap';
-import streamSaver from 'streamsaver';
+import { createWriteStream } from 'streamsaver';
 import * as zip from '@zip.js/zip.js';
 import './style.scss';
 
@@ -17,7 +17,7 @@ let isReady = false;
 /** @type {Record<string, any>} - QueryStrings */
 const params = QueryString.parse(window.location.hash);
 
-/** @type {require(../player.js).Player} SMF Player */
+/** @type {import(''../src/player.js')} SMF Player */
 const player = new Player('#wml');
 
 /** @type {string[]} - 利用可能な拡張子 */
@@ -92,6 +92,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   loadSample(zips.value);
 
+  /** @type {HTMLDivElement} */
   const playerCard = document.getElementById('player');
 
   // MIDIファイルのドラッグアンドドロップ
@@ -159,7 +160,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 次に進むボタン
   document.getElementById('next').addEventListener('click', () => {
+    /** @type {HTMLSelectElement} */
     const select = document.getElementById('files');
+    /** @type {number} */
     const selected = select.selectedIndex;
     if (selected === select.options.length) {
       // 末尾の場合最初に戻る
@@ -204,8 +207,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // MIDIファイルのダウンロード
   document.getElementById('download').addEventListener('click', async () => {
-    // 選択状態を取得
+    /** @type {HTMLSelectElement} 選択状態を取得 */
     const select = document.getElementById('files');
+    /** @type {HTMLOptionElement} */
     const option = select.querySelectorAll('option')[select.selectedIndex];
     const filename = option.value;
 
@@ -217,10 +221,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     /** @type {import('@zip.js/zip.js').Entry} - ファイル */
     const entry = entries.find(entry => entry.filename === filename);
 
-    /** シーケンスデーター */
+    /** @type {ArrayBuffer} シーケンスデーター */
     const bytes = await entry.getData(new zip.Uint8ArrayWriter());
 
-    const fileStream = streamSaver.createWriteStream(filename, {
+    const fileStream = createWriteStream(filename, {
       size: bytes.byteLength,
     });
 
@@ -378,6 +382,8 @@ async function loadSample(zipfile) {
 
 /**
  * 選択されたファイルを解凍
+ *
+ * @returns {void}
  */
 async function handleSelect() {
   /** @type {HTMLSelectElement} */
@@ -421,7 +427,7 @@ async function handleSelect() {
   // pushstateを使用
   if (window.history && window.history.pushState) {
     window.history.pushState(document.title, null, hash);
-    return false;
+    return;
   }
   document
     .querySelector('link[rel="canonical"]')
@@ -436,7 +442,7 @@ async function handleSelect() {
  * MIDI/MLDファイルを読み込ませる
  *
  * @param {string} filename ファイル名
- * @param {ArrayBuffer} buffer ファイルの中身
+ * @param {Uint8Array} buffer ファイルの中身
  */
 function handleInput(filename, buffer) {
   // 再生中のMIDIを停止。
@@ -520,8 +526,11 @@ function randomArchive() {
 window.onmessage = (/** @type {MessageEvent} */ e) => {
   // console.log(e);
   const event = e.data; // Should work.
-  const selected = document.getElementById('files').selectedIndex || 0;
+  /** @type {HTMLSelectElement} */
+  const select = document.getElementById('files');
+  /** @type {HTMLButtonElement} */
   const playButton = document.getElementById('play');
+  /** @type {HTMLDivElement} */
   const info = document.getElementById('info');
 
   switch (event) {
@@ -536,14 +545,14 @@ window.onmessage = (/** @type {MessageEvent} */ e) => {
         randomPlay();
       } else {
         const files = document.getElementById('files');
-        if (selected !== 0) {
+        if (select.selectedIndex !== 0) {
           // ループで最初に戻った場合（player.positionがリセットされた場合）
           // 次の曲を選択
-          if (selected == files.options.length) {
+          if (select.selectedIndex == files.options.length) {
             // 末尾の場合最初に戻る
             files.selectedIndex = 0;
           } else {
-            files.selectedIndex = selected + 1;
+            files.selectedIndex = select.selectedIndex + 1;
           }
           // 曲を変更
           handleSelect();
@@ -569,15 +578,6 @@ window.onmessage = (/** @type {MessageEvent} */ e) => {
   }
 };
 
-/**
- * UTF8変換
- * @param {string} str
- * @return {string}
- */
-function toUtf8(str) {
-  return decodeURI(encodeURIComponent(str));
-}
-
 let parentLyrics = '';
 let parentTextEvent = '';
 let lyric = '';
@@ -585,10 +585,12 @@ let lyric = '';
  * インターバル関数
  */
 setInterval(() => {
+  /** @type {HTMLDivElement} */
   const progressBar = document
     .getElementById('music-progress')
     .querySelector('.progress-bar');
 
+  /** @type {HTMLButtonElement} */
   const playButton = document.getElementById('play');
 
   if (isReady) {
@@ -605,7 +607,10 @@ setInterval(() => {
       playButton.classList.remove('btn-primary');
       playButton.classList.add('btn-success');
     }
-    const percentage = ((player.getPosition() / player.getLength()) * 100) | 0;
+    /** @type {number} */
+    const percentage = parseInt(
+      (player.getPosition() / player.getLength()) * 100
+    );
     progressBar.style.width = percentage + '%';
     progressBar.innerText = percentage + '%';
 
@@ -613,9 +618,12 @@ setInterval(() => {
     document.getElementById('time-total').innerText = player.getTotalTime();
     document.getElementById('current-tempo').innerText = player.getTempo();
 
-    // 歌詞の処理。（誰得？）
-    // やる気ないので、WebMidiカラオケ作りたい人は下の資料を参考にがんばってくれ。
-    // https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
+    /**
+     * @type {string} 歌詞の処理。（誰得？）
+     * やる気ないので、WebMidiカラオケ作りたい人は下の資料を参考にがんばってくれ。
+     *
+     * @see https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
+     */
     const lyrics = player.getLyrics();
     if (lyrics && lyrics.length !== 0) {
       if (parentLyrics !== lyrics) {

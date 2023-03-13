@@ -1,10 +1,13 @@
-import ThreeMacroLanguageEditor from './3mle';
-import MapleStory2Mml from './ms2mml';
-import MakiMabiSequence from './mms';
-import MabiIcco from './mmi';
+import { MetaEvent } from './midi_event';
+import {
+  MabiIcco,
+  MakiMabiSequence,
+  MapleStory2Mml,
+  ThreeMacroLanguageEditor,
+} from './mabi_mml_parser';
 import Mld from './mld';
 import SMF from './smf';
-import { MetaEvent } from './midi_event';
+
 /**
  * @classdesc Midi Player Class
  * @author    imaya
@@ -13,6 +16,7 @@ import { MetaEvent } from './midi_event';
 export default class Player {
   /**
    * @param {string} target WML attach dom
+   * @param {string} targetOrigin CSP Origin
    */
   constructor(target = '#wml', targetOrigin = '*') {
     /** @type {number} テンポ（マイクロ秒）*/
@@ -27,11 +31,11 @@ export default class Player {
     this.ready = false;
     /** @type {number} */
     this.position = 0;
-    /** @type {Array.<Object>} */
+    /** @type {import('./midi_event').MidiEvent[]} */
     this.track = [];
     /** @type {number} */
     this.timer = 0;
-    /** @type {Object} TODO: 最低限のプロパティは記述する */
+    /** @type {object} TODO: 最低限のプロパティは記述する */
     this.sequence = {};
     /** @type {boolean} */
     this.enableCC111Loop = false;
@@ -45,16 +49,16 @@ export default class Player {
     this.tempoRate = 1;
     /** @type {number} */
     this.masterVolume = 16383;
-    /** @type {?string} */
+    /** @type {string} */
     this.textEvent = '';
-    /** @type {?string} */
+    /** @type {string} */
     this.sequenceName = '';
-    /** @type {?string} */
+    /** @type {string} */
     this.copyright = '';
-    /** @type {?string} */
+    /** @type {string} */
     this.lyrics = '';
-    /** @type {HTMLIFrameElement|Worker} */
-    this.webMidiLink = null;
+    /** @type {HTMLIFrameElement | Worker} */
+    this.webMidiLink = undefined;
     /** @type {number} */
     this.length = 0;
     /** @type {number} */
@@ -65,12 +69,12 @@ export default class Player {
     this.loaded = 0;
     /** @type {Window} */
     this.window = window;
-    /** @type {Element} */
+    /** @type {HTMLElement} */
     this.target = this.window.document.querySelector(target);
     /** @type {string} */
     this.targetOrigin = targetOrigin;
     /** @type {TextDecoder} */
-    this.decoder = new TextDecoder('shift_jis');
+    this.decoder = new TextDecoder('UTF-8');
   }
 
   /**
@@ -372,11 +376,11 @@ export default class Player {
       const time = mergedTrack[pos].time;
       /** @type {number} */
       const length = mergedTrack.length;
-      /** @type {Object} TODO */
+      /** @type {import('./midi_event').MidiEvent} TODO */
       let event;
-      /** @type {?Array.<string>} */
+      /** @type {string[]} */
       let match;
-      /** @type {*} */
+      /** @type {any} */
       let tmp;
       /** @type {number} */
       let procTime = window.performance.now();
@@ -392,7 +396,9 @@ export default class Player {
         switch (event.subtype) {
           case 'TextEvent': // 0x01
             // 主に歌詞などが入っている。MIDI作成者によってはデバッグ情報やお遊びも・・・。
-            player.textEvent = this.decoder.decode(event.data[0]);
+            player.textEvent = this.decoder.decode(
+              Uint8Array.from(event.data[0])
+            );
             break;
           case 'Lyrics': // 0x05
             // カラオケデーターが入っている。Textとの違いは、どの位置で表示するかやページ送りなどの制御コードが含まれている。
@@ -401,7 +407,7 @@ export default class Player {
             // カラオケのパーサーは本プログラムでは実装しない。
             // KAR形式：https://www.mixagesoftware.com/en/midikit/help/HTML/karaoke_formats.html
             // XF形式：https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf
-            player.lyrics = this.decoder.decode(event.data[0]);
+            player.lyrics = this.decoder.decode(Uint8Array.from(event.data[0]));
             break;
           case 'Maker': // 0x06
             if (player.enableFalcomLoop) {
@@ -521,7 +527,7 @@ export default class Player {
 
   /**
    * MIDIファイルをロード
-   * @param {ArrayBuffer} buffer
+   * @param {Uint8Array} buffer
    */
   loadMidiFile(buffer) {
     /** @type {SMF} */
@@ -535,7 +541,7 @@ export default class Player {
 
   /**
    * MLD形式（着メロ）のファイルをロード
-   * @param {ArrayBuffer} buffer
+   * @param {Uint8Array} buffer
    */
   loadMldFile(buffer) {
     /** @type {Mld} */
@@ -549,7 +555,7 @@ export default class Player {
 
   /**
    * MapleStory2のMMLをロード
-   * @param {ArrayBuffer} buffer
+   * @param {Uint8Array} buffer
    */
   loadMs2MmlFile(buffer) {
     /** @type {MapleStory2Mml} */
@@ -563,7 +569,7 @@ export default class Player {
 
   /**
    * まきまびしーく形式のMMLをロード
-   * @param {ArrayBuffer} buffer
+   * @param {Uint8Array} buffer
    */
   loadMakiMabiSequenceFile(buffer) {
     /** @type {MakiMabiSequence} */
@@ -577,7 +583,7 @@ export default class Player {
 
   /**
    * Three Macro Language Editor形式のMMLファイルをロード
-   * @param {ArrayBuffer} buffer
+   * @param {Uint8Array} buffer
    */
   load3MleFile(buffer) {
     /** @type {ThreeMacroLanguageEditor} */
@@ -591,7 +597,7 @@ export default class Player {
 
   /**
    * まびっこ形式のファイルをロード
-   * @param {ArrayBuffer} buffer
+   * @param {Uint8Array} buffer
    */
   loadMabiIccoFile(buffer) {
     /** @type {MabiIcco} */
@@ -607,7 +613,7 @@ export default class Player {
    * @param {Object} midi
    */
   mergeMidiTracks(midi) {
-    /** @type {Array.<Object>} */
+    /** @type {import('./midi_event').MidiEvent[]} */
     const mergedTrack = (this.track = []);
     /** @type {Array.<Array.<Object>>} */
     const tracks = midi.tracks;
@@ -615,7 +621,7 @@ export default class Player {
     const trackPosition = new Array(tracks.length);
     /** @type {Array.<Array.<Array.<number>>>} */
     const plainTracks = midi.plainTracks;
-    /** @type {Array.<Object>} */
+    /** @type {import('./midi_event').MidiEvent[]} */
     let track;
     /** @type {number} */
     let i;
@@ -635,17 +641,21 @@ export default class Player {
     for (i = 0, il = tracks.length; i < il; ++i) {
       track = tracks[i];
       for (j = 0, jl = track.length; j < jl; ++j) {
-        if (track[j] instanceof MetaEvent) {
+        if (track[j] instanceof MetaEvent && track[j].data) {
           // 著作権情報と曲名を取得
           // SMF1のときは先頭のトラックから情報を取得する。
           if (
-            midi.formatType === 0 &&
+            // midi.formatType === 0 &&
             i === 0 &&
             track[j].subtype === 'SequenceTrackName'
           ) {
-            this.sequenceName = this.decoder.decode(track[j].data[0]);
+            this.sequenceName = this.decoder.decode(
+              Uint8Array.from(track[j].data[0])
+            );
           } else if (track[j].subtype === 'CopyrightNotice') {
-            this.copyright = this.decoder.decode(track[j].data[0]);
+            this.copyright = this.decoder.decode(
+              Uint8Array.from(track[j].data[0])
+            );
           }
         }
 
@@ -768,19 +778,21 @@ export default class Player {
   }
   /**
    * Tick数を時間に変換
+   *
    * @param {number} tick
    * @returns {string}
+   * @private
    */
   tick2time(tick) {
-    // １拍あたりの秒（T120 = 0.5s）
+    /** @type {number} １拍あたりの秒（T120 = 0.5s） */
     const s = this.tempo / 1000000;
-    // 1Tickあたりの秒
+    /** @type {number} 1Tickあたりの秒 */
     const div = s / this.sequence.timeDivision;
-    // トータル秒
-    const seconds = (tick * div) | 0;
-    // 分
+    /** @type {number} トータル秒 */
+    const seconds = parseInt(tick * div);
+    /** @type {number} 分 */
     const divisorForMinutes = seconds % 3600;
-    // 秒
+    /** @type {number} 秒 */
     const divisorForSeconds = divisorForMinutes % 60;
 
     return (

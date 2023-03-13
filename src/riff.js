@@ -5,17 +5,17 @@
  */
 export default class Riff {
   /**
-   * @param {ArrayBuffer} input input buffer.
-   * @param {Object=} optParams option parameters.
+   * @param {Uint8Array} input input buffer.
+   * @param {object} optParams option parameters.
    */
   constructor(input, optParams = {}) {
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     this.input = input;
     /** @type {number} */
     this.ip = optParams.index || 0;
     /** @type {number} */
     this.length = optParams.length || input.length - this.ip;
-    /** @type {Array.<RiffChunk>} */
+    /** @type {RiffChunk[]} */
     this.chunkList = [];
     /** @type {number} */
     this.offset = this.ip;
@@ -42,7 +42,7 @@ export default class Riff {
   /**
    */
   parseChunk() {
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
@@ -79,17 +79,12 @@ export default class Riff {
 
   /**
    * @param {number} index chunk index.
-   * @return {?RiffChunk}
+   * @return {RiffChunk | null}
    */
   getChunk(index) {
     /** @type {RiffChunk} */
     const chunk = this.chunkList[index];
-
-    if (chunk === void 0) {
-      return null;
-    }
-
-    return chunk;
+    return chunk !== undefined ? chunk : null;
   }
 
   /**

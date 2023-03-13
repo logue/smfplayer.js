@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/jsconfig",
+  "compilerOptions": {
+    "module": "es6",
+    "target": "esnext",
+    "lib": ["DOM"]
+  },
+  "exclude": ["node_modules"]
+}

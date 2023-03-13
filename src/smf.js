@@ -1,22 +1,23 @@
+import { convert } from 'encoding-japanese';
+
 import { ChannelEvent, SystemExclusiveEvent, MetaEvent } from './midi_event';
-import Meta from './meta';
 import Riff from './riff';
 
 /**
  * @classdesc Standard Midi File Parser class
- * @author    imaya
+ * @author    imaya, Logue
  * @license   MIT
  */
 export default class Parser {
   /**
-   * @param {ArrayBuffer} input input buffer.
-   * @param {Object=} optParams option parameters.
+   * @param {Uint8Array} input input buffer.
+   * @param {object} optParams option parameters.
    */
   constructor(input, optParams = {}) {
     optParams.padding = false;
     optParams.bigEndian = true;
 
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     this.input = input;
     /** @type {number} */
     this.ip = optParams.index || 0;
@@ -36,15 +37,10 @@ export default class Parser {
     this.numberOfTracks = 0;
     /** @type {number} */
     this.timeDivision = 480;
-    /** @type {MidiEvent[][]} */
+    /** @type {import('./midi_event').MidiEvent[][]} */
     this.tracks = [];
-    /** @type {ArrayBuffer[][]} */
+    /** @type {Uint8Array[][]} */
     this.plainTracks = [];
-
-    /** @type {number} */
-    this.version = Meta.version;
-    /** @type {string} */
-    this.build = Meta.build;
   }
 
   /**
@@ -72,7 +68,7 @@ export default class Parser {
   parseHeaderChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     const data = this.input;
     /** @type {number} */
     let ip = chunk.offset;
@@ -91,7 +87,7 @@ export default class Parser {
   parseTrackChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     const data = this.input;
     /** @type {number} */
     let ip = chunk.offset;
@@ -117,9 +113,9 @@ export default class Parser {
     let length = 0;
     /** @type {number} */
     let status = 0;
-    /** @type {MidiEvent} */
+    /** @type {import('./midi_event').MidiEvent} */
     let event;
-    /** @type {ArrayBuffer} */
+    /** @type {Uint8Array} */
     let plainBytes;
 
     /** @return {number} */
@@ -208,15 +204,26 @@ export default class Parser {
             case 0x04: // instrument name
             case 0x05: // lyrics
             case 0x06: // marker
-            case 0x07: // cue point
+            case 0x07: {
+              // cue point
+              const buffer = data.subarray(ip, (ip += tmp));
+
               event = new MetaEvent(
                 MetaEvent.table[eventType],
                 deltaTime,
                 totalTime,
-                [data.subarray(ip, (ip += tmp))]
+                [
+                  // UTF-8にして登録
+                  convert(buffer, {
+                    to: 'UTF-8',
+                    from: 'AUTO',
+                    type: 'arraybuffer',
+                  }),
+                ]
               );
 
               break;
+            }
             case 0x2f: // end of track
               event = new MetaEvent('EndOfTrack', deltaTime, totalTime, []);
               break;
@@ -264,231 +271,6 @@ export default class Parser {
           }
         }
       }
-
-      /*
-      // TODO
-      const table = [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        'NoteOff', // 0x8
-        'NoteOn',
-        'NoteAftertouch',
-        'ControlChange',
-        'ProgramChange',
-        'ChannelAftertouch',
-        'PitchBend',
-      ];
-
-      switch (eventType) {
-        // channel events
-        case 0x8:
-        // FALLTHROUGH
-        case 0x9:
-        // FALLTHROUGH
-        case 0xa:
-        // FALLTHROUGH
-        case 0xb:
-        // FALLTHROUGH
-        case 0xd:
-        // FALLTHROUGH
-        case 0xe:
-          event = new ChannelEvent(
-            ChannelEvent.table[eventType],
-            deltaTime,
-            totalTime,
-            channel,
-            data[ip++],
-            data[ip++]
-          );
-          break;
-        case 0xc:
-          event = new ChannelEvent(
-            ChannelEvent.table[eventType],
-            deltaTime,
-            totalTime,
-            channel,
-            data[ip++]
-          );
-          break;
-        // meta events, system exclusive event
-        case 0xf:
-          switch (channel) {
-            // SysEx event
-            case 0x0:
-              tmp = readNumber();
-              if (data[ip + tmp - 1] !== 0xf7) {
-                throw new Error('invalid SysEx event');
-              }
-              event = new SystemExclusiveEvent(
-                'SystemExclusive',
-                deltaTime,
-                totalTime,
-                data.subarray(ip, (ip += tmp) - 1)
-              );
-              break;
-            case 0x7:
-              tmp = readNumber();
-              event = new SystemExclusiveEvent(
-                'SystemExclusive(F7)',
-                deltaTime,
-                totalTime,
-                data.subarray(ip, (ip += tmp))
-              );
-              break;
-            // meta event
-            case 0xf:
-              eventType = data[ip++];
-              tmp = readNumber();
-              switch (eventType) {
-                case 0x00: // sequence number
-                  event = new MetaEvent(
-                    'SequenceNumber',
-                    deltaTime,
-                    totalTime,
-                    [data[ip++], data[ip++]]
-                  );
-                  break;
-                case 0x01: // text event
-                  event = new MetaEvent('TextEvent', deltaTime, totalTime, [
-                    String.fromCharCode.apply(
-                      null,
-                      data.subarray(ip, (ip += tmp))
-                    ),
-                  ]);
-                  break;
-                case 0x02: // copyright notice
-                  event = new MetaEvent(
-                    'CopyrightNotice',
-                    deltaTime,
-                    totalTime,
-                    [
-                      String.fromCharCode.apply(
-                        null,
-                        data.subarray(ip, (ip += tmp))
-                      ),
-                    ]
-                  );
-                  break;
-                case 0x03: // sequence/track name
-                  event = new MetaEvent(
-                    'SequenceTrackName',
-                    deltaTime,
-                    totalTime,
-                    [
-                      String.fromCharCode.apply(
-                        null,
-                        data.subarray(ip, (ip += tmp))
-                      ),
-                    ]
-                  );
-                  break;
-                case 0x04: // instrument name
-                  event = new MetaEvent(
-                    'InstrumentName',
-                    deltaTime,
-                    totalTime,
-                    [
-                      String.fromCharCode.apply(
-                        null,
-                        data.subarray(ip, (ip += tmp))
-                      ),
-                    ]
-                  );
-                  break;
-                case 0x05: // lyrics
-                  event = new MetaEvent('Lyrics', deltaTime, totalTime, [
-                    String.fromCharCode.apply(
-                      null,
-                      data.subarray(ip, (ip += tmp))
-                    ),
-                  ]);
-                  break;
-                case 0x06: // marker
-                  event = new MetaEvent('Marker', deltaTime, totalTime, [
-                    String.fromCharCode.apply(
-                      null,
-                      data.subarray(ip, (ip += tmp))
-                    ),
-                  ]);
-                  break;
-                case 0x07: // cue point
-                  event = new MetaEvent('CuePoint', deltaTime, totalTime, [
-                    String.fromCharCode.apply(
-                      null,
-                      data.subarray(ip, (ip += tmp))
-                    ),
-                  ]);
-                  break;
-                case 0x20: // midi channel prefix
-                  event = new MetaEvent(
-                    'MidiChannelPrefix',
-                    deltaTime,
-                    totalTime,
-                    [data[ip++]]
-                  );
-                  break;
-                case 0x2f: // end of track
-                  event = new MetaEvent('EndOfTrack', deltaTime, totalTime, []);
-                  break;
-                case 0x51: // set tempo
-                  event = new MetaEvent('SetTempo', deltaTime, totalTime, [
-                    (data[ip++] << 16) | (data[ip++] << 8) | data[ip++],
-                  ]);
-                  break;
-                case 0x54: // smpte offset
-                  event = new MetaEvent('SmpteOffset', deltaTime, totalTime, [
-                    data[ip++],
-                    data[ip++],
-                    data[ip++],
-                    data[ip++],
-                    data[ip++],
-                  ]);
-                  break;
-                case 0x58: // time signature
-                  event = new MetaEvent('TimeSignature', deltaTime, totalTime, [
-                    data[ip++],
-                    data[ip++],
-                    data[ip++],
-                    data[ip++],
-                  ]);
-                  break;
-                case 0x59: // key signature
-                  event = new MetaEvent('KeySignature', deltaTime, totalTime, [
-                    data[ip++],
-                    data[ip++],
-                  ]);
-                  break;
-                case 0x7f: // sequencer specific
-                  event = new MetaEvent(
-                    'SequencerSpecific',
-                    deltaTime,
-                    totalTime,
-                    [data.subarray(ip, (ip += tmp))]
-                  );
-                  break;
-                default:
-                  // unknown
-                  event = new MetaEvent('Unknown', deltaTime, totalTime, [
-                    eventType,
-                    data.subarray(ip, (ip += tmp)),
-                  ]);
-              }
-              break;
-            default:
-              console.warn('unknown message:', status.toString(16));
-          }
-          break;
-        // error
-        default:
-          throw new Error('invalid status');
-      }
-      */
 
       // plain queue
       length = ip - offset;
