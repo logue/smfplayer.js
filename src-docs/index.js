@@ -17,7 +17,7 @@ let isReady = false;
 /** @type {Record<string, any>} - QueryStrings */
 const params = QueryString.parse(window.location.hash);
 
-/** @type {import(''../src/player.js')} SMF Player */
+/** @type {import('../src/player.js')} SMF Player */
 const player = new Player('#wml');
 
 /** @type {string[]} - 利用可能な拡張子 */
@@ -28,7 +28,7 @@ const availableExts = [
   '.mml',
   '.mms',
   '.mmi',
-  '.mp2mml',
+  '.ms2mml',
 ];
 
 /**

@@ -6,7 +6,7 @@ import PSGConverter from './PSGConverter';
  * @classdesc MapleStory2 Mml Parser
  *
  * @author    Logue <logue@hotmail.co.jp>
- * @copyright 2019 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
+ * @copyright 2019,2023 Masashi Yoshikawa <https://logue.dev/> All rights reserved.
  * @license   MIT
  */
 export default class MapleStory2Mml extends MakiMabiSequence {
@@ -49,22 +49,23 @@ export default class MapleStory2Mml extends MakiMabiSequence {
    * MML parse
    */
   parseTracks() {
-    /** @type {import('../midi_event.js').MidiEvent[][]} MIDIイベント */
+    /** @type {import('../midi_event').MidiEvent[][]} MIDIイベント */
     let track = [];
     /** @type {number[]} 終了時間比較用 */
     const endTimes = [];
 
-    for (const i of this.input) {
+    this.input.forEach(element => {
       /** @param {PSGConverter} */
       const mml2Midi = new PSGConverter({
         timeDivision: this.timeDivision,
         channel: 0,
-        mml: this.input[i].textContent.trim(),
+        timeOffset: 0,
+        mml: element.textContent.trim(),
         ignoreTempo: false,
       });
       track = track.concat(mml2Midi.events);
       endTimes.push(mml2Midi.endTime);
-    }
+    });
 
     // トラック終了
     track.concat(new MetaEvent('EndOfTrack', 0, Math.max(endTimes)));

@@ -26,7 +26,6 @@ export default class MabiIcco extends MakiMabiSequence {
     super(input, optParams);
     /** @type {Array<string>} 入力データ。行ごとに配列化 */
     this.input = this.source.split(/\r\n|\r|\n/) || [];
-    console.log(this.input);
     /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */

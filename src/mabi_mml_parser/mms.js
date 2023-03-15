@@ -153,10 +153,7 @@ export default class MakiMabiSequence {
       track.push(new ChannelEvent('ControlChange', 0, 154, ch, 10, panpot));
 
       // MMLの各チャンネルの処理
-      for (const chord in mmls) {
-        if (!Object.prototype.hasOwnProperty.call(mmls, chord)) {
-          continue;
-        }
+      mmls.forEach(chord => {
         /** @param {PSGConverter} */
         const mml2Midi = new PSGConverter({
           timeDivision: this.timeDivision,
@@ -167,7 +164,7 @@ export default class MakiMabiSequence {
         // トラックにマージ
         track = track.concat(mml2Midi.events);
         endTimes.push(mml2Midi.endTime);
-      }
+      });
       ch++;
       // トラック終了
       track.concat(new MetaEvent('EndOfTrack', 0, Math.max(endTimes)));
