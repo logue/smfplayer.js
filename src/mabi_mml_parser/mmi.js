@@ -83,17 +83,17 @@ export default class MabiIcco extends MakiMabiSequence {
 
     // MabiIccoはUTF-8フォーマットなので変換処理は挟まない
 
-    /** @param {string} タイトル */
+    /** @type {string} タイトル */
     this.title = ret.title;
-    /** @param {string} 著者情報 */
+    /** @type {string} 著者情報 */
     this.author = ret.author;
-    /** @param {number[]} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
+    /** @type {number[]} グローバルテンポ情報（テンポ変更のTickとテンポ？） */
     const mmiTempo = ret.tempo !== '' ? ret.tempo.split('T') : [0, 120];
-    /** @param {number} 分解能 */
+    /** @type {number} 分解能 */
     this.timeDivision = 96;
-    /** @param {number} テンポ */
+    /** @type {number} テンポ */
     this.tempo = parseInt(mmiTempo[1]) || 120;
-    /** @param {number[]} 拍子記号 */
+    /** @type {number[]} 拍子記号 */
     const timeSig = ret.time.split('/');
     /** @type {import('../midi_event.js').MidiEvent[]}  */
     const headerTrack = [];

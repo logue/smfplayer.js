@@ -37,7 +37,7 @@ export default class MakiMabiSequence {
     this.tracks = [];
     /** @type {Uint8Array[][]} WMLに送る生のMIDIイベント */
     this.plainTracks = [];
-    /** @param {number} トラック数 */
+    /** @type {number} トラック数 */
     this.numberOfTracks = 1;
     /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision
@@ -59,22 +59,15 @@ export default class MakiMabiSequence {
   parseHeader() {
     /** @type {object} インフォメーション情報 */
     const header = this.input.infomation || {}; // informationじゃない
-
-    // まきまびしーくは基本Shift_JIS
-
     /** @type {string} タイトル */
     this.title = header.title;
     /** @type {string} 著者情報 */
     this.author = header.auther; // authorじゃない。
-
     /** @type {number} 分解能 */
     this.timeDivision = header.timeBase ? parseInt(header.timeBase) : 96;
 
-    // 曲名と著者情報を付加
-
-    /** @type {MetaEvent[]}  */
+    /** @type {MetaEvent[]} 曲名と著者情報を付加 */
     const headerTrack = [];
-
     // GM Reset
     headerTrack.push(
       new SystemExclusiveEvent(
@@ -159,7 +152,7 @@ export default class MakiMabiSequence {
           timeDivision: this.timeDivision,
           channel: ch,
           timeOffset: 386,
-          mml: mmls[chord],
+          mml: chord,
         });
         // トラックにマージ
         track = track.concat(mml2Midi.events);
@@ -177,80 +170,48 @@ export default class MakiMabiSequence {
    * WebMidiLink信号に変換
    */
   toPlainTrack() {
+    /** @type {Record<string, number}>} チャンネルイベントの逆引きテーブル */
+    const channelEventRevTable = Object.fromEntries(
+      Object.entries(ChannelEvent.table).map(([key, value]) => [value, key])
+    );
+    /** @type {Record<string, number}>} メタイベントの逆引きテーブル */
+    const metaEventRevTable = Object.fromEntries(
+      Object.entries(MetaEvent.table).map(([key, value]) => [value, key])
+    );
+
     for (let i = 0; i < this.tracks.length; i++) {
-      /** @type {array} トラックのイベント */
+      /** @type {Uint8Array} トラックのイベント */
       let rawTrackEvents = [];
 
-      /** @type {array} 全イベント */
+      /** @type {Uint8Array} 全イベント */
       let rawEvents = [];
 
-      /** @type {array} */
-      const events = this.tracks[i];
-
-      for (const event of events) {
+      this.tracks[i].forEach(event => {
         /** @var {Uint8Array} WebMidiLink信号 */
         let raw;
 
         if (event instanceof ChannelEvent) {
-          switch (event.subtype) {
-            case 'NoteOn':
-              // console.log(event);
-              if (event.parameter2 === 0) {
-                raw = [
-                  0x80 | event.channel,
-                  event.parameter1,
-                  event.parameter2,
-                ];
-              } else {
-                raw = [
-                  0x90 | event.channel,
-                  event.parameter1,
-                  event.parameter2,
-                ];
-              }
-              break;
-            case 'NoteOff':
-              raw = [0x80 | event.channel, event.parameter1, event.parameter2];
-              break;
-            case 'ControlChange':
-              raw = [0xb0 | event.channel, event.parameter1, event.parameter2];
-              break;
-            case 'ProgramChange':
-              raw = [0xc0 | event.channel, event.parameter1];
-              break;
+          if (event.subtype === 'NoteOn') {
+            raw = [
+              (event.parameter2 === 0 ? 0x80 : 0x90) | event.channel,
+              event.parameter1,
+              event.parameter2,
+            ];
+          } else {
+            raw = [
+              channelEventRevTable[event.subtype] | event.channel,
+              event.parameter1,
+              event.parameter2,
+            ];
           }
         } else if (event instanceof MetaEvent) {
           // Metaイベントの内容は実際使われない。単なる配列の数合わせのためのプレースホルダ（音を鳴らすことには関係ない処理だから）
-          /** @type {Uint8Array} */
-          const data = event.data;
-          switch (event.subtype) {
-            case 'TextEvent':
-              raw = [0xff, 0x01].concat(data);
-              break;
-            case 'SequenceTrackName':
-              raw = [0xff, 0x03].concat(data);
-              break;
-            case 'CopyrightNotice':
-              raw = [0xff, 0x02].concat(data);
-              break;
-            case 'InsturumentName':
-              raw = [0xff, 0x04].concat(data);
-              break;
-            case 'SetTempo':
-              raw = [0xff, 0x51].concat(data);
-              break;
-            case 'TimeSignature':
-              raw = [0xff, 0x58].concat(data);
-              break;
-            case 'EndOfTrack':
-              raw = [0xff, 0x2f];
-              break;
-          }
+          raw = [0xff, metaEventRevTable[event.subtype]].concat(event.data);
         } else if (event instanceof SystemExclusiveEvent) {
           raw = [0xf0, 0x05].concat(event.data);
         }
         rawEvents = rawEvents.concat(new Uint8Array(raw));
-      }
+      });
       rawTrackEvents = rawTrackEvents.concat(rawEvents);
 
       this.plainTracks[i] = rawTrackEvents;

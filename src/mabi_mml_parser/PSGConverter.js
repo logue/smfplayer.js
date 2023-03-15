@@ -110,7 +110,7 @@ export default class PSGConverter {
     const events = [];
 
     // MMLを命令単位でパース
-    for (const message of mmls) {
+    mmls.forEach(message => {
       /** @type {number} すすめるtick数 */
       let tick = currentSoundLength | 0;
       /** @type {string} コマンド */
@@ -188,6 +188,7 @@ export default class PSGConverter {
 
         /** @type {number} 音階 */
         let note = 0;
+
         command = RegExp.$1.toLowerCase();
         value = RegExp.$3 | 0;
 
@@ -299,7 +300,7 @@ export default class PSGConverter {
       } else {
         console.warn('unknown signeture.', message);
       }
-    }
+    });
     // イベントを代入
     this.events = events;
     // 演奏完了時間を代入

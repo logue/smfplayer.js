@@ -28,14 +28,14 @@ class MidiEvent {
 class ChannelEvent extends MidiEvent {
   /** @type {Record<number, string>} Event Name */
   static table = {
-    0x8: 'NoteOff',
-    0x9: 'NoteOn',
-    0xa: 'PolyPressure',
-    0xb: 'ControllerChange',
-    0xc: 'ProgramChange',
-    0xd: 'ChannelPressure',
-    0xe: 'PitchBend',
-    0xf: 'SystemCommonMessage',
+    0x80: 'NoteOff',
+    0x90: 'NoteOn',
+    0xa0: 'PolyPressure',
+    0xb0: 'ControllerChange',
+    0xc0: 'ProgramChange',
+    0xd0: 'ChannelPressure',
+    0xe0: 'PitchBend',
+    0xf0: 'SystemCommonMessage',
   };
 
   /**
