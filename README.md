@@ -155,6 +155,6 @@ When reading an MML file (\*.ms2mml) from [MapleStory2](https://maplestory2.nexo
 
 ## License
 
-Copyright &copy; 2013 imaya / GREE Inc. / 2013-2022 by Logue.
+Copyright &copy; 2013 imaya / GREE Inc. / 2013-2023 by Logue.
 
 Licensed under the [MIT](LICENSE) License.

@@ -99,8 +99,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   playerCard.addEventListener(
     'drop',
     event => {
+      /** @type {DataTransfer} */
       const dt = event.dataTransfer;
-      console.log(dt);
       if (dt.files.length) {
         event.preventDefault();
         event.stopPropagation();
@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // 前に戻るボタン
   document.getElementById('prev').addEventListener('click', () => {
-    // 現在選択中の項目を取得
+    /** @type {HTMLSelectElement} 現在選択中の項目を取得 */
     const select = document.getElementById('files');
     const selected = select.selectedIndex;
     if (selected === select.options.length) {
@@ -244,6 +244,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 /**
  * ファイルを読み込む
+ *
+ * @param {File} file ファイル
  */
 function handleFile(file) {
   /** @type {HTMLDivElement} */
@@ -277,7 +279,7 @@ function handleFile(file) {
 
   reader.onprogress = e => {
     if (e.lengthComputable) {
-      const percentLoaded = (e.loaded / e.total) | (0 * 100);
+      const percentLoaded = (e.loaded / e.total) * 100;
       progress.style.width = percentLoaded + '%';
       progress.innerText = percentLoaded + ' %';
     }
@@ -371,6 +373,7 @@ async function loadSample(zipfile) {
     throw new Error('Network response was not ok.');
   }
 
+  /** @type {Response} */
   const clonedResponse = response.clone();
 
   if (cache) {
@@ -524,7 +527,6 @@ function randomArchive() {
  * IFRAMEから送られてくるwindow.postMessageを監視
  */
 window.onmessage = (/** @type {MessageEvent} */ e) => {
-  // console.log(e);
   const event = e.data; // Should work.
   /** @type {HTMLSelectElement} */
   const select = document.getElementById('files');
@@ -663,23 +665,3 @@ setInterval(() => {
     }
   }
 }, 600);
-
-if (import.meta.env.VITE_GOOGLE_ANALYTICS_ID) {
-  // Global site tag (gtag.js) - Google Analytics
-  ((w, d, s, l, i) => {
-    w[l] = w[l] || [];
-    w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
-    const f = d.getElementsByTagName(s)[0];
-    const j = d.createElement(s);
-    const dl = l != 'dataLayer' ? '&l=' + l : '';
-    j.async = true;
-    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-    f.parentNode.insertBefore(j, f);
-  })(
-    window,
-    document,
-    'script',
-    'dataLayer',
-    import.meta.env.VITE_GOOGLE_ANALYTICS_ID
-  );
-}
