@@ -100,36 +100,37 @@ For more details, please refer to the source code in [demo](./src/demo/). (Altho
 
 ## Methods
 
-| Method                                | Description                                           |
-| ------------------------------------- | ----------------------------------------------------- |
-| play()                                | Play Sequence                                         |
-| stop()                                | Stop Sequence                                         |
-| sendAllSoundOff()                     | Send AllSoundOff to WML                               |
-| sendGmReset()                         | Send GM Reset SysEx to WML                            |
-| load3MleFile(ArrayBuffer)             | Load 3MLE（\*.mml）format MML file.                   |
-| loadMakiMabiSequenceFile(ArrayBuffer) | Load MakiMabi Sequence（\*.mms）MML file.             |
-| loadMidiFile(ArrayBuffer)             | Load Standard MIDI file.(SMF1, SMF2 both supported)   |
-| loadMldFile(ArrayBuffer)              | Load Docomo Ringtone Melody（\*.mld）file.            |
-| loadMabiIccoFile(ArrayBuffer)         | Load MabiIcco（\*.mmi）MML file.                      |
-| loadMs2MmlFile(ArrayBuffer)           | Load MapleStory2 MML（\*.ms2mml）file.                |
-| setCC111Loop(boolean)                 | Enable loop by ControlChange No.111                   |
-| setFalcomLoop(boolean)                | Enable Falcom loop (Used MIDI text)                   |
-| setLoop(boolean)                      | Enable Loop                                           |
-| setMFiLoop(boolean)                   | Enable Mfi meta data loop.                            |
-| setMasterVolume(number)               | Set Master volume（0~1）                              |
-| setPosition(number)                   | Jump sequence position.                               |
-| setTempoRate(number)                  | Set Tempo Rate                                        |
-| setWebMidiLink(string)                | Set WML url.                                          |
-| getCopyright()                        | Get Copyright meta data.                              |
-| getLength()                           | Get Sequence Length.                                  |
-| getLyrics()                           | Get Lyrics meta data of current position. [^1]        |
-| getPosition()                         | Get current position.                                 |
-| getSequenceName()                     | Get Sequence name. (usually contains the song title.) |
-| getTextEvent()                        | Get the TextEvent of current position.                |
-| getWebMidiLink()                      | Get WebMidiLink URL                                   |
-| getTempo()                            | Get current tempo.                                    |
-| getTime(number)                       | Output current playing time (hh:mm:ss)                |
-| getTotalTime()                        | Output playing time of MIDI file.[^2]                 |
+| Method                                | Description                                                     |
+| ------------------------------------- | --------------------------------------------------------------- |
+| play()                                | Play Sequence                                                   |
+| stop()                                | Stop Sequence                                                   |
+| sendAllSoundOff()                     | Send AllSoundOff to WML                                         |
+| sendGmReset(`lv`)                     | Send GM Reset SysEx to WML. (Set `lv` to `true` for GM Level2.) |
+| sendRawMidiMessage()                  | Send Midi message directly (such as `F0,7E,7F.09.01,F7`)        |
+| load3MleFile(ArrayBuffer)             | Load 3MLE（\*.mml）format MML file.                             |
+| loadMakiMabiSequenceFile(ArrayBuffer) | Load MakiMabi Sequence（\*.mms）MML file.                       |
+| loadMidiFile(ArrayBuffer)             | Load Standard MIDI file.(SMF1, SMF2 both supported)             |
+| loadMldFile(ArrayBuffer)              | Load Docomo Ringtone Melody（\*.mld）file.                      |
+| loadMabiIccoFile(ArrayBuffer)         | Load MabiIcco（\*.mmi）MML file.                                |
+| loadMs2MmlFile(ArrayBuffer)           | Load MapleStory2 MML（\*.ms2mml）file.                          |
+| setCC111Loop(boolean)                 | Enable loop by ControlChange No.111                             |
+| setFalcomLoop(boolean)                | Enable Falcom loop (Used MIDI text)                             |
+| setLoop(boolean)                      | Enable Loop                                                     |
+| setMFiLoop(boolean)                   | Enable Mfi meta data loop.                                      |
+| setMasterVolume(number)               | Set Master volume（0~1）                                        |
+| setPosition(number)                   | Jump sequence position.                                         |
+| setTempoRate(number)                  | Set Tempo Rate                                                  |
+| setWebMidiLink(string)                | Set WML url.                                                    |
+| getCopyright()                        | Get Copyright meta data.                                        |
+| getLength()                           | Get Sequence Length.                                            |
+| getLyrics()                           | Get Lyrics meta data of current position. [^1]                  |
+| getPosition()                         | Get current position.                                           |
+| getSequenceName()                     | Get Sequence name. (usually contains the song title.)           |
+| getTextEvent()                        | Get the TextEvent of current position.                          |
+| getWebMidiLink()                      | Get WebMidiLink URL                                             |
+| getTempo()                            | Get current tempo.                                              |
+| getTime(number)                       | Output current playing time (hh:mm:ss)                          |
+| getTotalTime()                        | Output playing time of MIDI file.[^2]                           |
 
 [^1] This program does not parse karaoke data. ([KAR](http://gnese.free.fr/Projects/KaraokeTime/Fichiers/karfaq.html), [XF](https://jp.yamaha.com/files/download/other_assets/7/321757/xfspc.pdf), etc.)
 [^2] Since it is calculated based on the current tempo, if the tempo changes in the middle of the song, the value here will also change.

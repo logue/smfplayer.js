@@ -333,17 +333,18 @@ export default class Player {
   setMasterVolume(volume) {
     this.masterVolume = volume;
 
-    if (this.webMidiLink) {
-      this.webMidiLink.contentWindow.postMessage(
-        'midi,f0,7f,7f,04,01,' +
-          [
-            ('0' + (volume & 0x7f).toString(16)).substr(-2),
-            ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
-            '7f',
-          ].join(','),
-        this.targetOrigin
-      );
+    if (!this.webMidiLink) {
+      return;
     }
+    this.webMidiLink.contentWindow.postMessage(
+      'midi,f0,7f,7f,04,01,' +
+        [
+          ('0' + (volume & 0x7f).toString(16)).substr(-2),
+          ('0' + ((volume >> 7) & 0x7f).toString(16)).substr(-2),
+          '7f',
+        ].join(','),
+      this.targetOrigin
+    );
   }
 
   /**
@@ -748,27 +749,48 @@ export default class Player {
 
   /**
    * GMリセットを送信
+   * @param {boolean} lv GM Level2にしたい場合はtrue
    */
-  sendGmReset() {
-    if (this.webMidiLink) {
-      // F0 7E 7F 09 01 F7
-      this.webMidiLink.contentWindow.postMessage(
-        'midi,F0,7E,7F,09,01,F7',
-        this.targetOrigin
-      );
+  sendGmReset(lv = false) {
+    if (!this.webMidiLink) {
+      return;
     }
+    // GM Level1: F0 7E 7F 09 01 F7
+    // GM Level2: F0 7E 7F 09 03 F7
+    this.webMidiLink.contentWindow.postMessage(
+      `midi,F0,7E,7F,09,${lv ? '03' : '01'},F7'`,
+      this.targetOrigin
+    );
   }
 
   /**
    */
   sendAllSoundOff() {
-    if (this.webMidiLink) {
-      this.webMidiLink.contentWindow.postMessage(
-        'midi,b0,78,0',
-        this.targetOrigin
-      );
+    if (!this.webMidiLink) {
+      return;
     }
+    this.webMidiLink.contentWindow.postMessage(
+      'midi,b0,78,0',
+      this.targetOrigin
+    );
   }
+
+  /**
+   * 直接MIDIメッセージを送る
+   *
+   * @param {string} message カンマ区切りのMIDIメッセージ（F0,7E,7F.09.01,F7など）
+   */
+  sendRawMidiMessage(message) {
+    console.log(message);
+    if (!this.webMidiLink) {
+      return;
+    }
+    this.webMidiLink.contentWindow.postMessage(
+      'midi,' + message,
+      this.targetOrigin
+    );
+  }
+
   /**
    * 現在のテンポ
    * @return {number}

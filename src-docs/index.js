@@ -7,6 +7,95 @@ import './style.scss';
 
 formLock(true);
 
+/** @type {import('../src/player.js')} SMF Player */
+const player = new Player('#wml');
+
+/** @type {'auto'|'dark'|'light'|undefined} カラーモード */
+const getStoredTheme = () => localStorage.getItem('theme');
+/**
+ * テーマを変更
+ * @param {'auto'|'dark'|'light'|undefined} theme
+ */
+const setStoredTheme = theme => localStorage.setItem('theme', theme);
+
+/** @type {'dark'|'light'} 設定されたテーマを取得 */
+const getPreferredTheme = () => {
+  const storedTheme = getStoredTheme();
+  if (storedTheme) {
+    return storedTheme;
+  }
+
+  return window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+};
+
+/**
+ * テーマをセット
+ * @param {'auto'|'dark'|'light'|undefined} theme
+ */
+const setTheme = theme => {
+  if (
+    theme === 'auto' &&
+    window.matchMedia('(prefers-color-scheme: dark)').matches
+  ) {
+    document.documentElement.setAttribute('data-bs-theme', 'dark');
+  } else {
+    document.documentElement.setAttribute('data-bs-theme', theme);
+  }
+  if (theme === 'light') {
+    player.sendRawMidiMessage('F0,0A,7D,10,00,01,01,F7');
+  } else if (theme === 'dark') {
+    console.log(theme);
+    player.sendRawMidiMessage('F0,0A,7D,10,00,01,02,F7');
+  } else {
+    player.sendRawMidiMessage('F0,0A,7D,10,00,01,00,F7');
+  }
+};
+
+setTheme(getPreferredTheme());
+
+const showActiveTheme = (theme, focus = false) => {
+  const themeSwitcher = document.querySelector('#bd-theme');
+
+  if (!themeSwitcher) {
+    return;
+  }
+
+  const themeSwitcherText = document.querySelector('#bd-theme-text');
+  const activeThemeIcon = document.querySelector('.theme-icon-active use');
+  const btnToActive = document.querySelector(
+    `[data-bs-theme-value="${theme}"]`
+  );
+  const svgOfActiveBtn = btnToActive
+    .querySelector('svg use')
+    .getAttribute('href');
+
+  document.querySelectorAll('[data-bs-theme-value]').forEach(element => {
+    element.classList.remove('active');
+    element.setAttribute('aria-pressed', 'false');
+  });
+
+  btnToActive.classList.add('active');
+  btnToActive.setAttribute('aria-pressed', 'true');
+  activeThemeIcon.setAttribute('href', svgOfActiveBtn);
+  const themeSwitcherLabel = `${themeSwitcherText.textContent} (${btnToActive.dataset.bsThemeValue})`;
+  themeSwitcher.setAttribute('aria-label', themeSwitcherLabel);
+
+  if (focus) {
+    themeSwitcher.focus();
+  }
+};
+
+window
+  .matchMedia('(prefers-color-scheme: dark)')
+  .addEventListener('change', () => {
+    const storedTheme = getStoredTheme();
+    if (storedTheme !== 'light' && storedTheme !== 'dark') {
+      setTheme(getPreferredTheme());
+    }
+  });
+
 /** @type {NodeListOf<Element>} - Bootstrapのツールチップ */
 const tooltipTriggerList = document.querySelectorAll('*[title]');
 [...tooltipTriggerList].map(tooltipTriggerEl => new Tooltip(tooltipTriggerEl));
@@ -16,9 +105,6 @@ let isReady = false;
 
 /** @type {Record<string, any>} - QueryStrings */
 const params = QueryString.parse(window.location.hash);
-
-/** @type {import('../src/player.js')} SMF Player */
-const player = new Player('#wml');
 
 /** @type {string[]} - 利用可能な拡張子 */
 const availableExts = [
@@ -237,6 +323,18 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('synth').addEventListener('change', e => {
     player.stop();
     player.setWebMidiLink(e.target.value, 'wml');
+  });
+
+  // ダークモード
+  showActiveTheme(getPreferredTheme());
+
+  document.querySelectorAll('[data-bs-theme-value]').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const theme = toggle.getAttribute('data-bs-theme-value');
+      setStoredTheme(theme);
+      setTheme(theme);
+      showActiveTheme(theme, true);
+    });
   });
 
   formLock(false);

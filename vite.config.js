@@ -22,7 +22,7 @@ export default defineConfig(async ({ mode, command }) => {
         typescript: false,
         vueTsc: false,
         eslint: {
-          lintCommand: `eslint ./src --fix --cache --cache-location ./node_modules/.vite/vite-plugin-eslint`, // for example, lint .ts & .tsx
+          lintCommand: `eslint`, // for example, lint .ts & .tsx
         },
       }),
       // vite-plugin-banner
