@@ -9,6 +9,8 @@
 
 smfplayer.js is standard MIDI file player using a [WebMidiLink](http://www.g200kg.com/en/docs/webmidilink/) compatible synthesizer.
 
+This program is side of sequencer. Tone Generator side is [sf2synth.js](https://github.com/logue/sf2synth.js).
+
 ## Usage
 
 ```js
@@ -156,6 +158,9 @@ When reading an MML file (\*.ms2mml) from [MapleStory2](https://maplestory2.nexo
 
 ## License
 
-Copyright &copy; 2013 imaya / GREE Inc. / 2013-2023 by Logue.
+Copyright &copy; 2013 imaya / GREE Inc.
+Copyright &copy; 2013-2023 by Logue.
+
+[PSGConverter.js](https://github.com/logue/PSGConverter) Copyright &copy; 2006-2012 by Logue.
 
 Licensed under the [MIT](LICENSE) License.
