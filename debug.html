@@ -1,28 +1,17 @@
-<!DOCTYPE html>
-<html
-  lang="en"
-  xmlns="http://www.w3.org/1999/xhtml"
-  prefix="og: http://ogp.me/ns#"
-  class="h-100"
->
+<!doctype html>
+<html lang="en" class="h-100" data-bs-theme="auto">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css"
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"
-      integrity="sha256-KTPJY0ik6ufLv48oDKCYFYaptcCX75UrmWytfSjy+tA="
+      integrity="sha384-4bw+/aepP/YC94hEpVNVgiZdgIC5+VKNBQNGCHeKRQN+PtmoHDEXuppvnDJzQIu9"
       crossorigin="anonymous"
     />
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.9.1/font/bootstrap-icons.css"
-      integrity="sha256-8M+b2Hj+vy/2J5tZ9pYDHeuPD59KsaEZn1XXj3xVhjg="
-      crossorigin="anonymous"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css"
     />
     <!-- Global site tag (gtag.js) - Google Analytics -->
     <!-- Google Tag Manager -->
@@ -133,7 +122,7 @@
       </nav>
     </header>
 
-    <main role="main" class="flex-shrink-0 mt-4">
+    <main role="main" class="flex-shrink-0 mt-5">
       <div class="container">
         <h1 id="sftitle"></h1>
         <button class="btn btn-secondary" id="sfback">
@@ -171,7 +160,7 @@
       </div>
     </main>
 
-    <footer class="footer mt-auto py-3 mb-0 bg-light">
+    <footer class="footer mt-auto py-3 bg-body-tertiary">
       <address class="container mb-0">
         <a href="https://github.com/yoya/sf2.js">sf2.js</a>
         by yoya. / Modified by
@@ -180,19 +169,13 @@
       </address>
     </footer>
 
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
-      integrity="sha256-IUOUHAPazai08QFs7W4MbzTlwEWFo7z/4zw8YmxEiko="
-      crossorigin="anonymous"
-    />
-
     <script src="assets/sf2.js"></script>
     <script src="assets/debug.js"></script>
     <script>
       document.addEventListener('DOMContentLoaded', function () {
-        let url = location.search.substr(1).split('&')[0];
-        url = '../Yamaha XG Sound Set.sf2';
+        // let url = location.search.substr(1).split('&')[0];
+        let url =
+          'https://cdn.jsdelivr.net/npm/@logue/sf2synth@latest/dist/Yamaha XG Sound Set.sf2';
         //
         const xhr = new XMLHttpRequest();
         xhr.onreadystatechange = function () {
