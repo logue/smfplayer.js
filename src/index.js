@@ -24,8 +24,3 @@ const SMF = {
 };
 
 export default SMF;
-
-if (!window.SMF) {
-  // for CDN.
-  window.SMF = SMF;
-}

@@ -100,6 +100,18 @@ function loadSMF(url) {
 
 For more details, please refer to the source code in [demo](./src/demo/). (Although there are many [Bootstrap](https://getbootstrap.com/) dependent codes)
 
+### CDN
+
+Entry point is `SMF`.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/@logue/smfplayer@latest/dist/smfplayer.iife.min.js"></script>
+<script>
+  const player = new SMF.Player();
+  // ...
+</script>
+```
+
 ## Methods
 
 | Method                                | Description                                                     |
@@ -155,6 +167,10 @@ When reading an MML file (\*.ms2mml) from [MapleStory2](https://maplestory2.nexo
 - Google Chrome 7+
 - Safari 5.1+
 - Edge
+
+## TODO
+
+Recomposer file (\*.rcm) support.
 
 ## License
 
