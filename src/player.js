@@ -681,16 +681,16 @@ export default class Player {
       return a.time > b.time
         ? 1
         : a.time < b.time
-        ? -1
-        : a.track > b.track
-        ? 1
-        : a.track < b.track
-        ? -1
-        : a.eventId > b.eventId
-        ? 1
-        : a.eventId < b.eventId
-        ? -1
-        : 0;
+          ? -1
+          : a.track > b.track
+            ? 1
+            : a.track < b.track
+              ? -1
+              : a.eventId > b.eventId
+                ? 1
+                : a.eventId < b.eventId
+                  ? -1
+                  : 0;
     });
 
     // トータルの演奏時間

@@ -413,25 +413,26 @@ async function loadSample(zipfile) {
     const entries = await select.zip.getEntries({
       filenameEncoding: 'shift_jis',
     });
-    // セレクトボックスに流し込む
-    entries.forEach(
-      async (/** @type {import('@zip.js/zip.js').Entry}*/ entry) => {
-        const ext = entry.filename
-          .slice(entry.filename.lastIndexOf('.'))
-          .toLowerCase();
 
-        if (ext === '/' || !availableExts.includes(ext)) {
-          return;
-        }
-        const option = document.createElement('option');
-        // 項目名
-        option.textContent = entry.filename;
-        // 生のファイル名
-        option.value = entry.filename;
-        // selectタグに流し込む
-        select.appendChild(option);
+    // セレクトボックスに流し込む
+    entries.forEach((/** @type {import('@zip.js/zip.js').Entry}*/ entry) => {
+      const ext = entry.filename
+        .slice(entry.filename.lastIndexOf('.'))
+        .toLowerCase();
+
+      if (ext === '/' || !availableExts.includes(ext)) {
+        return;
       }
-    );
+
+      /** @type {HTMLOptionElement} */
+      const option = document.createElement('option');
+      // 項目名
+      option.textContent = entry.filename;
+      // 生のファイル名
+      option.value = entry.filename;
+      // selectタグに流し込む
+      select.appendChild(option);
+    });
 
     // 初期値が一番上の項目になるとつまらないのでランダム化
     const prev = select.selectedIndex;
@@ -467,6 +468,7 @@ async function loadSample(zipfile) {
     mode: 'no-cors',
     credentials: 'include',
   });
+
   if (!response.ok) {
     throw new Error('Network response was not ok.');
   }
@@ -526,10 +528,11 @@ async function handleSelect() {
   document.getElementById('copyright').value = player.getCopyright();
 
   // pushstateを使用
-  if (window.history && window.history.pushState) {
+  if (window.history?.pushState) {
     window.history.pushState(document.title, null, hash);
     return;
   }
+
   document
     .querySelector('link[rel="canonical"]')
     .setAttribute('href', `${location.href}/${hash}`);
@@ -681,6 +684,7 @@ window.onmessage = (/** @type {MessageEvent} */ e) => {
 let parentLyrics = '';
 let parentTextEvent = '';
 let lyric = '';
+
 /**
  * インターバル関数
  */

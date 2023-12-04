@@ -119,7 +119,7 @@ export default class PSGConverter {
       let value = 0;
 
       /** @type {string[]} 音長(L)、オクターブ(O<>)、テンポ（T）、ベロシティ（V）をパース */
-      const matches = message.match(/([lotv<>])([1-9]\d*|0?)(\.?)(&?)/);
+      const matches = RegExp(/([lotv<>])([1-9]\d*|0?)(\.?)(&?)/).exec(message);
 
       if (matches) {
         command = matches[1].toLowerCase();
@@ -183,7 +183,7 @@ export default class PSGConverter {
                 : currentOctave + 1;
             break;
         }
-      } else if (message.match(/([a-gn])([+#-]?)(\d*)(\.?)(&?)/)) {
+      } else if (RegExp(/([a-gn])([+#-]?)(\d*)(\.?)(&?)/).exec(message)) {
         // ノート命令（CDEFGAB）、絶対音階指定（N）をパース
 
         /** @type {number} 音階 */

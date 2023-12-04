@@ -604,12 +604,12 @@ export default class Mld {
         return a.time > b.time
           ? 1
           : a.time < b.time
-          ? -1
-          : a.id > b.id
-          ? 1
-          : a.id < b.id
-          ? -1
-          : 0;
+            ? -1
+            : a.id > b.id
+              ? 1
+              : a.id < b.id
+                ? -1
+                : 0;
       });
 
       // MIDI トラックに作成
