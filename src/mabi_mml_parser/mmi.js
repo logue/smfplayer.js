@@ -1,4 +1,5 @@
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '../midi_event';
+
 import PSGConverter from './PSGConverter';
 import MakiMabiSequence from './mms';
 
@@ -18,6 +19,7 @@ export default class MabiIcco extends MakiMabiSequence {
     'songProgram',
     'panpot',
   ];
+
   /**
    * @param {ArrayBuffer} input
    * @param {Object=} optParams
@@ -180,7 +182,7 @@ export default class MabiIcco extends MakiMabiSequence {
           // 複数の奏者でコーラスが指定されていた場合、男性女性用関係なく一番うしろのコーラスで指定された音色でマージされる。
           currentCh = 15;
         }
-        if (mmls[chord] === void 0) {
+        if (!mmls[chord]) {
           continue;
         }
 

@@ -128,6 +128,7 @@ class MetaEvent extends MidiEvent {
     0x59: 'KeySignature',
     0x7f: 'SequencerSpecific',
   };
+
   /**
    * @param {string} subtype
    * @param {number} deltaTime delta time.

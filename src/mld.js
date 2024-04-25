@@ -588,7 +588,7 @@ export default class Mld {
               id: pos,
               type: 'internal',
               subType: 'ProgramChange',
-              time: time,
+              time,
               part: mfiEvent.value.part,
               instrument:
                 (prevEvent.value.instrument << 6) | mfiEvent.value.instrument,
@@ -815,7 +815,7 @@ export default class Mld {
     /** @type {Array.<number>} */
     const table = [0, 12, -24, -12];
 
-    if (table[octaveShift] !== void 0) {
+    if (table[octaveShift]) {
       return key + table[octaveShift];
     }
 
@@ -878,7 +878,7 @@ export default class Mld {
       return array;
     }
 
-    if (this.dataInformation.copy !== void 0) {
+    if (this.dataInformation.copy) {
       /** @type {Array.<number>} */
       let copy = stringToArray(this.dataInformation.copy);
 

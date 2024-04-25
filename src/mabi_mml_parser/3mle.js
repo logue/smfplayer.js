@@ -1,4 +1,5 @@
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '../midi_event';
+
 import PSGConverter from './PSGConverter';
 import MakiMabiSequence from './mms';
 
@@ -17,6 +18,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
   constructor(input, optParams = {}) {
     super(input, optParams);
   }
+
   /**
    */
   parse() {
@@ -24,6 +26,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     this.parseTracks();
     this.toPlainTrack();
   }
+
   /**
    */
   parseHeader() {
@@ -119,7 +122,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
       if (!Object.prototype.hasOwnProperty.call(mmls, no)) {
         continue;
       }
-      if (settings[no] !== void 0) {
+      if (settings[no]) {
         data[no] = {
           mml: mmls[no],
           name: settings[no].name || '',

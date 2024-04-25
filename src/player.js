@@ -1,10 +1,10 @@
-import { MetaEvent } from './midi_event';
 import {
   MabiIcco,
   MakiMabiSequence,
   MapleStory2Mml,
   ThreeMacroLanguageEditor,
 } from './mabi_mml_parser';
+import { MetaEvent } from './midi_event';
 import Mld from './mld';
 import SMF from './smf';
 
@@ -19,7 +19,7 @@ export default class Player {
    * @param {string} targetOrigin CSP Origin
    */
   constructor(target = '#wml', targetOrigin = '*') {
-    /** @type {number} テンポ（マイクロ秒）*/
+    /** @type {number} テンポ（マイクロ秒） */
     this.tempo = 500000; // default = 0.5[ms] = 120[bpm]
     /** @type {HTMLIFrameElement} */
     this.webMidiLink = null;
@@ -416,7 +416,7 @@ export default class Player {
               switch (event.data[0]) {
                 case 'A':
                   mark[0] = {
-                    pos: pos,
+                    pos,
                   };
                   break;
                 case 'B':
@@ -438,7 +438,7 @@ export default class Player {
               if (match) {
                 if (match[1] === 'START') {
                   mark[match[2] | 0] = mark[match[2]] || {
-                    pos: pos,
+                    pos,
                     count: match[3] | 0,
                   };
                 } else if (match[1] === 'END' && player.enableMFiLoop) {
@@ -468,7 +468,7 @@ export default class Player {
         // CC#111 Loop
         if (event.subtype === 'ControlChange' && event.parameter1 === 111) {
           mark[0] = {
-            pos: pos,
+            pos,
           };
         }
 
@@ -798,6 +798,7 @@ export default class Player {
   getTempo() {
     return Math.floor(60 / (this.tempo / 1000000));
   }
+
   /**
    * Tick数を時間に変換
    *
@@ -830,6 +831,7 @@ export default class Player {
       Math.ceil(divisorForSeconds).toString().padStart(2, '0')
     );
   }
+
   /**
    * 現在の時間
    * @return {string}
@@ -837,6 +839,7 @@ export default class Player {
   getTime() {
     return this.tick2time(this.time);
   }
+
   /**
    * 演奏時間
    * @return {string}

@@ -1,8 +1,9 @@
-import QueryString from 'query-string';
-import Player from '@/player.js';
-import { Tab, Tooltip } from 'bootstrap';
-import { createWriteStream } from 'streamsaver';
 import * as zip from '@zip.js/zip.js';
+import { Tab, Tooltip } from 'bootstrap';
+import QueryString from 'query-string';
+import { createWriteStream } from 'streamsaver';
+
+import Player from '@/player.js';
 import './style.scss';
 
 formLock(true);
@@ -415,7 +416,7 @@ async function loadSample(zipfile) {
     });
 
     // セレクトボックスに流し込む
-    entries.forEach((/** @type {import('@zip.js/zip.js').Entry}*/ entry) => {
+    entries.forEach((/** @type {import('@zip.js/zip.js').Entry} */ entry) => {
       const ext = entry.filename
         .slice(entry.filename.lastIndexOf('.'))
         .toLowerCase();
@@ -437,7 +438,7 @@ async function loadSample(zipfile) {
     // 初期値が一番上の項目になるとつまらないのでランダム化
     const prev = select.selectedIndex;
     let next = prev;
-    while (prev == next) {
+    while (prev === next) {
       next = ~~(select.length * Math.random());
     }
     select.selectedIndex = next;
@@ -651,7 +652,7 @@ window.onmessage = (/** @type {MessageEvent} */ e) => {
         if (select.selectedIndex !== 0) {
           // ループで最初に戻った場合（player.positionがリセットされた場合）
           // 次の曲を選択
-          if (select.selectedIndex == files.options.length) {
+          if (select.selectedIndex === files.options.length) {
             // 末尾の場合最初に戻る
             files.selectedIndex = 0;
           } else {
@@ -756,7 +757,7 @@ setInterval(() => {
 
       /** @type {HTMLSelectElement} */
       const files = document.getElementById('files');
-      if (files.selectedIndex == files.options.length) {
+      if (files.selectedIndex === files.options.length) {
         // 末尾の場合最初に戻る
         files.selectedIndex = 0;
       } else {

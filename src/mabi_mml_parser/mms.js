@@ -1,7 +1,8 @@
-import { parse } from 'ini';
 import { convert } from 'encoding-japanese';
+import { parse } from 'ini';
 
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '../midi_event';
+
 import PSGConverter from './PSGConverter';
 
 /**
@@ -53,6 +54,7 @@ export default class MakiMabiSequence {
     this.parseTracks();
     this.toPlainTrack();
   }
+
   /**
    * ヘッダーメタ情報をパース
    */
@@ -100,6 +102,7 @@ export default class MakiMabiSequence {
     delete this.input.infomation;
     delete this.input['mms-file'];
   }
+
   /**
    * MML parse
    */

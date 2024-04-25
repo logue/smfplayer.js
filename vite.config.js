@@ -1,9 +1,10 @@
-import { checker } from 'vite-plugin-checker';
-import { defineConfig } from 'vite';
-import banner from 'vite-plugin-banner';
-
-import { fileURLToPath, URL } from 'url';
 import fs from 'fs';
+import { fileURLToPath, URL } from 'url';
+
+import { defineConfig } from 'vite';
+
+import banner from 'vite-plugin-banner';
+import { checker } from 'vite-plugin-checker';
 
 const pkg = require('./package.json');
 const build = new Date().toISOString();
@@ -21,9 +22,7 @@ export default defineConfig(async ({ mode, command }) => {
       checker({
         typescript: false,
         vueTsc: false,
-        eslint: {
-          lintCommand: `eslint`, // for example, lint .ts & .tsx
-        },
+        // eslint: { lintCommand: `eslint` }, // for example, lint .ts & .tsx
       }),
       // vite-plugin-banner
       // https://github.com/chengpeiquan/vite-plugin-banner

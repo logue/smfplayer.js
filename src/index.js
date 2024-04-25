@@ -1,6 +1,3 @@
-import Meta from './meta';
-import Player from './player';
-import Parser from './smf';
 import {
   MabiIcco,
   MakiMabiSequence,
@@ -8,6 +5,9 @@ import {
   ThreeMacroLanguageEditor,
   PSGConverter,
 } from './mabi_mml_parser';
+import Meta from './meta';
+import Player from './player';
+import Parser from './smf';
 
 const SMF = {
   Player,
