@@ -24,6 +24,7 @@ export default [
       'docs/',
       'src/**/*.generated.*',
       'eslint.config.js',
+      'pnpm-locl.yml',
     ],
   },
   { languageOptions: { globals: { ...globals.browser, ...globals.node } } },

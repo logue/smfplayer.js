@@ -3,3 +3,4 @@
 .yarn/
 dist/
 docs/
+pnpm-lock.yaml
