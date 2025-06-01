@@ -3,10 +3,10 @@ import {
   MakiMabiSequence,
   MapleStory2Mml,
   ThreeMacroLanguageEditor,
-} from './mabi_mml_parser';
-import { MetaEvent } from './midi_event';
-import Mld from './mld';
-import SMF from './smf';
+} from '@/mabi_mml_parser';
+import { MetaEvent } from '@/midi_event';
+import Mld from '@/mld';
+import SMF from '@/smf';
 
 /**
  * @classdesc Midi Player Class

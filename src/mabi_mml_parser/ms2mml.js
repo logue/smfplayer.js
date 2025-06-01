@@ -1,7 +1,7 @@
-import { MetaEvent } from '../midi_event';
-
 import PSGConverter from './PSGConverter';
 import MakiMabiSequence from './mms';
+
+import { MetaEvent } from '@/midi_event';
 
 /**
  * @classdesc MapleStory2 Mml Parser

@@ -14,7 +14,7 @@
       "url": "https://logue.dev"
     }
   ],
-  "version": "0.7.0",
+  "version": "0.7.2",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -47,17 +47,14 @@
   "unpkg": "dist/smfplayer.iife.js",
   "exports": {
     ".": {
-      "import": "./dist/smfplayer.es.js",
-      "require": "./dist/smfplayer.umd.js",
-      "jsdelivr": "./dist/smfplayer.iife.js",
-      "unpkg": "./dist/smfplayer.iife.js"
+      "import": "./dist/smfplayer.es.js"
     }
   },
   "engines": {
     "node": ">=22.7.4",
-    "pnpm": ">=9.11.0"
+    "pnpm": ">=10.3.0"
   },
-  "packageManager": "pnpm@9.11.0",
+  "packageManager": "pnpm@10.11.0",
   "scripts": {
     "dev": "vite --mode=docs",
     "clean": "rimraf node_modules/.vite",
@@ -73,34 +70,31 @@
     "ini": "^5.0.0"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3.1.0",
-    "@eslint/js": "^9.11.1",
+    "@eslint/eslintrc": "^3.3.1",
+    "@eslint/js": "^9.28.0",
     "@popperjs/core": "^2.11.8",
     "@types/ini": "^4.1.1",
-    "@zip.js/zip.js": "^2.7.52",
-    "bootstrap": "5.3.3",
-    "bootstrap-icons": "^1.11.3",
+    "@zip.js/zip.js": "^2.7.62",
+    "bootstrap": "5.3.6",
+    "bootstrap-icons": "^1.13.1",
     "buffer": "^6.0.3",
     "dseg": "^0.46.0",
-    "eslint": "^9.11.1",
-    "eslint-config-prettier": "^9.1.0",
-    "eslint-config-standard": "^17.1.0",
-    "eslint-import-resolver-alias": "^1.1.2",
-    "eslint-plugin-import": "^2.30.0",
-    "eslint-plugin-n": "^17.10.3",
-    "eslint-plugin-prettier": "^5.2.1",
-    "eslint-plugin-promise": "^7.1.0",
-    "globals": "^15.9.0",
-    "husky": "^9.1.6",
-    "lint-staged": "^15.2.10",
-    "prettier": "^3.3.3",
-    "query-string": "^9.1.0",
+    "eslint": "^9.28.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-import-resolver-custom-alias": "^1.3.2",
+    "eslint-import-resolver-typescript": "^4.4.2",
+    "eslint-plugin-import": "^2.31.0",
+    "globals": "^16.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.0",
+    "prettier": "^3.5.3",
+    "query-string": "^9.2.0",
     "rimraf": "^6.0.1",
-    "sass": "^1.79.4",
+    "sass": "^1.89.1",
     "streamsaver": "^2.0.6",
-    "vite": "^5.4.8",
-    "vite-plugin-banner": "^0.8.0",
-    "vite-plugin-checker": "^0.8.0"
+    "vite": "^6.3.5",
+    "vite-plugin-banner": "^0.8.1",
+    "vite-plugin-checker": "^0.9.3"
   },
   "husky": {
     "hooks": {
@@ -112,13 +106,7 @@
     "*": "prettier -w -u"
   },
   "resolutions": {
-    "get-func-name": ">=2.0.2",
-    "ip": ">=2.0.1",
     "json5": ">=2.2.3",
-    "lodash": ">=4.17.21",
-    "postcss": ">=8.4.31",
-    "semver": ">=7.5.3",
-    "tar": ">=6.2.1",
     "yaml": ">=2.3.2"
   }
 }

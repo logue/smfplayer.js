@@ -1,9 +1,9 @@
 import { convert } from 'encoding-japanese';
 import { parse } from 'ini';
 
-import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '../midi_event';
-
 import PSGConverter from './PSGConverter';
+
+import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '@/midi_event';
 
 /**
  * @classdesc MakiMabi Sequence File Parser

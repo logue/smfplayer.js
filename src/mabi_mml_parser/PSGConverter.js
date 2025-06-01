@@ -1,4 +1,4 @@
-import { ChannelEvent, MetaEvent } from '../midi_event';
+import { ChannelEvent, MetaEvent } from '@/midi_event';
 
 /**
  * @class     PSGConverter
@@ -86,7 +86,8 @@ export default class PSGConverter {
       // 小文字に変換した後正規表現で命令単位で分割する。
       mmls = this.mml.toLowerCase().match(PSGConverter.PATTERN);
     } catch (e) {
-      throw new MediaError('[PSGConverter] Could not parse MML.', this.mml);
+      console.error(e);
+      throw new Error('[PSGConverter] Could not parse MML.', this.mml);
     }
 
     if (!mmls) {

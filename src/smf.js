@@ -1,7 +1,7 @@
 import { convert } from 'encoding-japanese';
 
-import { ChannelEvent, SystemExclusiveEvent, MetaEvent } from './midi_event';
-import Riff from './riff';
+import { ChannelEvent, SystemExclusiveEvent, MetaEvent } from '@/midi_event';
+import Riff from '@/riff';
 
 /**
  * @classdesc Standard Midi File Parser class

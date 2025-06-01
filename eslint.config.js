@@ -1,19 +1,10 @@
 import globals from 'globals';
-import eslintConfigPrettier from 'eslint-config-prettier';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
 import pluginJs from '@eslint/js';
-import pluginImport from 'eslint-plugin-import';
+import eslintConfigPrettier from 'eslint-config-prettier';
+// @ts-ignore
+import importPlugin from 'eslint-plugin-import';
 
-// mimic CommonJS variables -- not needed if using CommonJS
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-  recommendedConfig: pluginJs.configs.recommended,
-});
-
+/** @type {import('eslint').Linter.Config[]} */
 export default [
   {
     ignores: [
@@ -24,20 +15,18 @@ export default [
       'docs/',
       'src/**/*.generated.*',
       'eslint.config.js',
-      'pnpm-locl.yml',
     ],
   },
-  { languageOptions: { globals: { ...globals.browser, ...globals.node } } },
-  ...compat.extends('standard'),
+  { languageOptions: { globals: globals.browser } },
+  pluginJs.configs.recommended,
+  importPlugin.flatConfigs.recommended,
   {
+    files: ['**/*.{js,mjs,cjs}'],
     languageOptions: {
       parserOptions: {
         ecmaVersion: 'latest',
         sourceType: 'module',
       },
-    },
-    plugins: {
-      import: pluginImport,
     },
     settings: {
       // This will do the trick
@@ -45,26 +34,24 @@ export default [
         espree: ['.js', '.cjs', '.mjs', '.jsx'],
       },
       'import/resolver': {
+        typescript: true,
         node: true,
-        alias: {
-          map: [
-            ['@', './src'],
-            ['~', './node_modules'],
-          ],
-          extensions: ['.js', '.jsx'],
+        'eslint-import-resolver-custom-alias': {
+          alias: {
+            '@': './src',
+            '~': './node_modules',
+          },
+          extensions: ['.js'],
         },
-      },
-      vite: {
-        configPath: './vite.config.ts',
       },
     },
     rules: {
-      camelcase: 'off',
-      'no-unused-vars': 'warn',
-      // Fix for Vue setup style
+      'no-unused-vars': 'off',
       'import/default': 'off',
-      // Fix for Vue setup style
+      'import/namespace': 'off',
       'import/no-default-export': 'off',
+      'import/no-named-as-default-member': 'off',
+      'import/no-named-as-default': 'off',
       // Sort Import Order.
       // see https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/order.md#importorder-enforce-a-convention-in-module-import-order
       'import/order': [
@@ -80,10 +67,8 @@ export default [
             'type',
           ],
           pathGroups: [
-            // Vue Core
             {
-              pattern:
-                '{vue,vue-router,vuex,@/stores,vue-i18n,pinia,vite,vitest,vitest/**,@vitejs/**,@vue/**}',
+              pattern: '{vite,vitest,vitest/**,@vitejs/**}',
               group: 'external',
               position: 'before',
             },
@@ -103,6 +88,5 @@ export default [
       ],
     },
   },
-  // ...pluginVue.configs['flat/recommended'],
   eslintConfigPrettier,
 ];

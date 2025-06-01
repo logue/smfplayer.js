@@ -175,7 +175,7 @@ Recomposer file (\*.rcm) support.
 ## License
 
 Copyright &copy; 2013 imaya / GREE Inc.
-Copyright &copy; 2013-2024 by Logue.
+Copyright &copy; 2013-2025 by Logue.
 
 [PSGConverter.js](https://github.com/logue/PSGConverter) Copyright &copy; 2006-2012 by Logue.
 
