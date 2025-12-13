@@ -48,23 +48,45 @@ export default class Riff {
     /** @type {number} */
     let size;
 
-    this.chunkList.push(
-      new RiffChunk(
-        String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
-        (size = this.bigEndian
-          ? ((input[ip++] << 24) |
-              (input[ip++] << 16) |
-              (input[ip++] << 8) |
-              input[ip++]) >>>
-            0
-          : (input[ip++] |
-              (input[ip++] << 8) |
-              (input[ip++] << 16) |
-              (input[ip++] << 24)) >>>
-            0),
-        ip
-      )
+    // Check if we have enough bytes to read the chunk header (4 bytes type + 4 bytes size)
+    if (ip + 8 > input.length) {
+      console.warn(
+        `Riff parser: not enough data for chunk header at offset ${ip}`
+      );
+      this.ip = input.length; // Move to end to stop parsing
+      return;
+    }
+
+    const chunkType = String.fromCharCode(
+      input[ip++],
+      input[ip++],
+      input[ip++],
+      input[ip++]
     );
+
+    size = this.bigEndian
+      ? ((input[ip++] << 24) |
+          (input[ip++] << 16) |
+          (input[ip++] << 8) |
+          input[ip++]) >>>
+        0
+      : (input[ip++] |
+          (input[ip++] << 8) |
+          (input[ip++] << 16) |
+          (input[ip++] << 24)) >>>
+        0;
+
+    // Check if chunk data fits within the buffer
+    if (ip + size > input.length) {
+      console.warn(
+        `Riff parser: chunk "${chunkType}" size ${size} exceeds buffer length at offset ${ip}, file may be corrupted. Stopping chunk parsing.`
+      );
+      // Don't add this corrupted chunk to the list
+      this.ip = input.length; // Move to end to stop parsing
+      return;
+    }
+
+    this.chunkList.push(new RiffChunk(chunkType, size, ip));
 
     ip += size;
 

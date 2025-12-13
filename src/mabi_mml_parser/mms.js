@@ -41,9 +41,11 @@ export default class MakiMabiSequence {
     /** @type {number} トラック数 */
     this.numberOfTracks = 1;
     /** @type {number} 分解能 */
-    this.timeDivision = optParams.timeDivision
+    const parsedTimeDivisionInit = optParams.timeDivision
       ? parseInt(optParams.timeDivision)
-      : 96;
+      : 0;
+    this.timeDivision =
+      parsedTimeDivisionInit > 0 ? parsedTimeDivisionInit : 96;
   }
 
   /**
@@ -66,7 +68,10 @@ export default class MakiMabiSequence {
     /** @type {string} 著者情報 */
     this.author = header.auther; // authorじゃない。
     /** @type {number} 分解能 */
-    this.timeDivision = header.timeBase ? parseInt(header.timeBase) : 96;
+    const parsedTimeDivision = header.timeBase
+      ? Number.parseInt(header.timeBase)
+      : 0;
+    this.timeDivision = parsedTimeDivision > 0 ? parsedTimeDivision : 96;
 
     /** @type {MetaEvent[]} 曲名と著者情報を付加 */
     const headerTrack = [];

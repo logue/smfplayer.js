@@ -35,9 +35,10 @@ export default class MabiIcco extends MakiMabiSequence {
     /** @type {number} トラック数 */
     this.numberOfTracks = 1;
     /** @type {number} 分解能 */
-    this.timeDivision = optParams.timeDivision
+    const parsedTimeDivision = optParams.timeDivision
       ? parseInt(optParams.timeDivision)
-      : 96;
+      : 0;
+    this.timeDivision = parsedTimeDivision > 0 ? parsedTimeDivision : 96;
   }
 
   /**

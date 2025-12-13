@@ -114,10 +114,27 @@ export default class Player {
     this.pause = true;
     this.resume = window.performance.now();
 
-    if (this.webMidiLink) {
+    // Clear any running timers
+    if (this.timer) {
+      this.window.clearTimeout(this.timer);
+      this.timer = 0;
+    }
+
+    if (this.webMidiLink && this.webMidiLink.contentWindow) {
       for (i = 0; i < 16; ++i) {
+        // All Sound Off (CC#120)
         this.webMidiLink.contentWindow.postMessage(
           'midi,b' + i.toString(16) + ',78,0',
+          this.targetOrigin
+        );
+        // All Notes Off (CC#123)
+        this.webMidiLink.contentWindow.postMessage(
+          'midi,b' + i.toString(16) + ',7b,0',
+          this.targetOrigin
+        );
+        // Reset All Controllers (CC#121)
+        this.webMidiLink.contentWindow.postMessage(
+          'midi,b' + i.toString(16) + ',79,0',
           this.targetOrigin
         );
       }
@@ -175,6 +192,12 @@ export default class Player {
   /**
    */
   initSequence() {
+    // Clear any running timers
+    if (this.timer) {
+      this.window.clearTimeout(this.timer);
+      this.timer = 0;
+    }
+
     this.tempo = 500000;
     this.position = 0;
 
@@ -362,7 +385,7 @@ export default class Player {
     /** @type {Player} */
     const player = this;
     /** @type {number} 分解能 */
-    const timeDivision = this.sequence.timeDivision;
+    const timeDivision = this.sequence.timeDivision || 480;
     /** @type {Array.<Object>} */
     const mergedTrack = this.track;
     /** @type {Window} */
@@ -531,13 +554,20 @@ export default class Player {
    * @param {Uint8Array} buffer
    */
   loadMidiFile(buffer) {
-    /** @type {SMF} */
-    const parser = new SMF(buffer);
-
     this.init();
-    parser.parse();
 
-    this.mergeMidiTracks(parser);
+    try {
+      /** @type {SMF} */
+      const parser = new SMF(buffer);
+      parser.parse();
+      this.mergeMidiTracks(parser);
+    } catch (error) {
+      console.error('Failed to parse MIDI file:', error);
+      // パースに失敗した場合はエラーを投げる
+      throw new Error(
+        `MIDI file parse error: ${error.message || 'Unknown error'}`
+      );
+    }
   }
 
   /**
@@ -696,6 +726,11 @@ export default class Player {
     // トータルの演奏時間
     this.timeTotal = mergedTrack.slice(-1)[0].time;
     this.sequence = midi;
+
+    // timeDivision が未定義の場合は GM 規格のデフォルト値 480 を設定
+    if (!this.sequence.timeDivision) {
+      this.sequence.timeDivision = 480;
+    }
   }
 
   /**
@@ -810,7 +845,7 @@ export default class Player {
     /** @type {number} １拍あたりの秒（T120 = 0.5s） */
     const s = this.tempo / 1000000;
     /** @type {number} 1Tickあたりの秒 */
-    const div = s / this.sequence.timeDivision;
+    const div = s / (this.sequence.timeDivision || 480);
     /** @type {number} トータル秒 */
     const seconds = parseInt(tick * div);
     /** @type {number} 分 */

@@ -37,7 +37,10 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
     /** @type {string} */
     this.author = header.Source;
     /** @type {number} */
-    this.timeDivision = header.TimeBase ? parseInt(header.TimeBase) : 32;
+    const parsedTimeDivision = header.TimeBase
+      ? Number.parseInt(header.TimeBase)
+      : 0;
+    this.timeDivision = parsedTimeDivision > 0 ? parsedTimeDivision : 32;
 
     // 曲名と著者情報を付加
     /** @type {import('../midi_event.js').MidiEvent[]}  */

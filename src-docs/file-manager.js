@@ -1,4 +1,5 @@
 import * as zip from '@zip.js/zip.js';
+import { convert } from 'encoding-japanese';
 import { createWriteStream } from 'streamsaver';
 
 import { CONSTANTS, FILE_LOADERS } from './constants.js';
@@ -24,9 +25,11 @@ export class FileManager {
 
     if (!filename) return;
 
-    const entries = await this.currentZip.getEntries({
-      filenameEncoding: 'shift_jis',
-    });
+    // Stop and reset player before loading new file
+    this.player.stop();
+    this.player.init();
+
+    const entries = await this.currentZip.getEntries();
 
     const entry = entries.find(e => e.filename === filename);
     const writer = new zip.Uint8ArrayWriter();
@@ -44,9 +47,9 @@ export class FileManager {
    * Handle file input (load and play)
    */
   handleInput(filename, buffer) {
-    this.player.stop();
+    // Note: stop() and init() are called by the loader methods (e.g., loadMidiFile)
+    // but we ensure all sounds are stopped here
     this.player.sendAllSoundOff();
-    this.player.sendGmReset();
 
     this.clearMetadata();
 
@@ -54,9 +57,19 @@ export class FileManager {
     const loaderMethod = FILE_LOADERS[ext];
 
     if (loaderMethod && typeof this.player[loaderMethod] === 'function') {
-      this.player[loaderMethod](buffer);
+      try {
+        this.player[loaderMethod](buffer);
+      } catch (error) {
+        console.error(`Failed to load file "${filename}":`, error);
+        UIManager.updateInfo(
+          `Error: Failed to load "${filename}". File may be corrupted or invalid.`,
+          false
+        );
+        return;
+      }
     } else {
       console.error(`Unsupported file extension: ${ext}`);
+      UIManager.updateInfo(`Error: Unsupported file type "${ext}".`, false);
       return;
     }
 
@@ -167,11 +180,24 @@ export class FileManager {
       select.removeChild(select.firstChild);
     }
 
-    this.currentZip = new zip.ZipReader(new zip.BlobReader(blob));
-
-    const entries = await this.currentZip.getEntries({
-      filenameEncoding: 'shift_jis',
+    this.currentZip = new zip.ZipReader(new zip.BlobReader(blob), {
+      filenameEncoding: 'Shift_JIS',
+      decodeText: (value, encoding) => {
+        // encoding-japaneseを使用してShift_JISをデコード
+        if (encoding === 'Shift_JIS' || encoding === 'shift_jis') {
+          const decoded = convert(value, {
+            to: 'UNICODE',
+            from: 'SJIS',
+            type: 'string',
+          });
+          return decoded;
+        }
+        // その他のエンコーディングはzip.jsのデフォルト処理に任せる
+        return undefined;
+      },
     });
+
+    const entries = await this.currentZip.getEntries();
 
     entries.forEach(entry => {
       const ext = entry.filename
@@ -214,9 +240,7 @@ export class FileManager {
     const option = select.querySelectorAll('option')[select.selectedIndex];
     const filename = option.value;
 
-    const entries = await this.currentZip.getEntries({
-      filenameEncoding: 'shift_jis',
-    });
+    const entries = await this.currentZip.getEntries();
 
     const entry = entries.find(e => e.filename === filename);
     const bytes = await entry.getData(new zip.Uint8ArrayWriter());

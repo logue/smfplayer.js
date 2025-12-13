@@ -33,7 +33,10 @@ export default class MapleStory2Mml extends MakiMabiSequence {
     /** @param {number} トラック数 */
     this.numberOfTracks = 1;
     /** @type {number} 解像度 */
-    this.timeDivision = optParams.timeDivision || 96;
+    const parsedTimeDivision = optParams.timeDivision
+      ? Number.parseInt(optParams.timeDivision)
+      : 0;
+    this.timeDivision = parsedTimeDivision > 0 ? parsedTimeDivision : 96;
   }
 
   /**

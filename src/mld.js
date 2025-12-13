@@ -14,7 +14,10 @@ export default class Mld {
     /** @type {number} */
     this.ip = optParams.index || 0;
     /** @type {number} */
-    this.timeDivision = optParams.timeDivision || 48;
+    const parsedTimeDivision = optParams.timeDivision
+      ? Number.parseInt(optParams.timeDivision)
+      : 0;
+    this.timeDivision = parsedTimeDivision > 0 ? parsedTimeDivision : 48;
     /** @type {object} */
     this.header = {};
     /** @type {object} */

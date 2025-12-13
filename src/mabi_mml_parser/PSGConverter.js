@@ -39,9 +39,10 @@ export default class PSGConverter {
     }
   ) {
     /** @type {number} 分解能 */
-    this.timeDivision = optParams.timeDivision
+    const parsedTimeDivision = optParams.timeDivision
       ? parseInt(optParams.timeDivision)
-      : 96;
+      : 0;
+    this.timeDivision = parsedTimeDivision > 0 ? parsedTimeDivision : 96;
     /** @type {number} チャンネル（0～15） */
     this.channel = optParams.channel ? parseInt(optParams.channel) : 0;
     /** @type {number} 演奏開始までのオフセット時間 */
