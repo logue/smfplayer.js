@@ -845,7 +845,7 @@ export default class Player {
     /** @type {number} １拍あたりの秒（T120 = 0.5s） */
     const s = this.tempo / 1000000;
     /** @type {number} 1Tickあたりの秒 */
-    const div = s / (this.sequence.timeDivision || 480);
+    const div = s / (this.sequence?.timeDivision || 480);
     /** @type {number} トータル秒 */
     const seconds = parseInt(tick * div);
     /** @type {number} 分 */
