@@ -1,7 +1,7 @@
 import { convert } from 'encoding-japanese';
 
 import { ChannelEvent, SystemExclusiveEvent, MetaEvent } from '@/midi_event';
-import Riff from '@/riff';
+import { Riff } from '@/riff';
 
 // Constants
 const EVENT_TYPE_MASK = 0xf0;
@@ -246,7 +246,7 @@ export default class Parser {
     const eventOffset = ip;
 
     // Read status byte
-    let status = data[ip++];
+    let status = data[ip];
     let eventType = (status >> EVENT_TYPE_SHIFT) & CHANNEL_MASK;
     let channel = status & CHANNEL_MASK;
 
@@ -255,7 +255,8 @@ export default class Parser {
       eventType = prevEventType;
       channel = prevChannel;
       status = (prevEventType << EVENT_TYPE_SHIFT) | prevChannel;
-      ip--;
+    } else {
+      ip++;
     }
 
     let event;
