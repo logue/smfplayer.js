@@ -15,7 +15,7 @@ export default defineConfig(async ({ mode, command }) => {
   /** @type {UserConfig} https://vitejs.dev/config/ */
   const config = {
     // https://vitejs.dev/config/#base
-    base: './',
+    base: mode === 'docs' ? '/smfplayer.js/' : './',
     plugins: [
       // vite-plugin-checker
       // https://github.com/fi3ework/vite-plugin-checker

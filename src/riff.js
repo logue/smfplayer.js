@@ -1,32 +1,40 @@
 /**
- * @classdesc Riff Parser class
- * @author    imaya
- * @license   MIT
+ * Riff Parser class
+ *
+ * @author imaya
  */
-export default class Riff {
+export class Riff {
+  // Constants
+  static CHUNK_ID_SIZE = 4;
+  static CHUNK_SIZE_BYTES = 4;
+  static SHIFT_8_BITS = 8;
+  static SHIFT_16_BITS = 16;
+  static SHIFT_24_BITS = 24;
+  static UNSIGNED_32_BIT_MASK = 0;
+
   /**
-   * @param {Uint8Array} input input buffer.
-   * @param {object} optParams option parameters.
+   * @param {Uint8Array | ArrayBuffer} input Input buffer.
+   * @param {Object} [optParams] Option parameters.
    */
   constructor(input, optParams = {}) {
     /** @type {Uint8Array} */
-    this.input = input;
+    this.input = input instanceof Uint8Array ? input : new Uint8Array(input);
     /** @type {number} */
     this.ip = optParams.index || 0;
     /** @type {number} */
-    this.length = optParams.length || input.length - this.ip;
+    this.length = optParams.length || input.byteLength - this.ip;
     /** @type {RiffChunk[]} */
     this.chunkList = [];
     /** @type {number} */
     this.offset = this.ip;
     /** @type {boolean} */
-    this.padding = optParams.padding ? optParams.padding : true;
+    this.padding = optParams.padding !== undefined ? optParams.padding : true;
     /** @type {boolean} */
-    this.bigEndian = optParams.bigEndian ? optParams.bigEndian : false;
+    this.bigEndian =
+      optParams.bigEndian !== undefined ? optParams.bigEndian : false;
   }
 
-  /**
-   */
+  /** @returns {void} */
   parse() {
     /** @type {number} */
     const length = this.length + this.offset;
@@ -39,36 +47,63 @@ export default class Riff {
   }
 
   /**
+   * Read 4-byte chunk ID
+   * @private
+   * @param {Uint8Array} data Data array
+   * @param {number} offset Offset position
+   * @returns {string} Chunk ID
    */
-  parseChunk() {
-    /** @type {Uint8Array} */
-    const input = this.input;
-    /** @type {number} */
-    let ip = this.ip;
-    /** @type {number} */
-    let size;
-
-    this.chunkList.push(
-      new RiffChunk(
-        String.fromCharCode(input[ip++], input[ip++], input[ip++], input[ip++]),
-        (size = this.bigEndian
-          ? ((input[ip++] << 24) |
-              (input[ip++] << 16) |
-              (input[ip++] << 8) |
-              input[ip++]) >>>
-            0
-          : (input[ip++] |
-              (input[ip++] << 8) |
-              (input[ip++] << 16) |
-              (input[ip++] << 24)) >>>
-            0),
-        ip
-      )
+  readChunkId(data, offset) {
+    return String.fromCharCode(
+      data[offset],
+      data[offset + 1],
+      data[offset + 2],
+      data[offset + 3]
     );
+  }
+
+  /**
+   * Read 32-bit unsigned integer
+   * @private
+   * @param {Uint8Array} data Data array
+   * @param {number} offset Offset position
+   * @returns {number} 32-bit unsigned integer
+   */
+  readUInt32(data, offset) {
+    if (this.bigEndian) {
+      return (
+        ((data[offset] << Riff.SHIFT_24_BITS) |
+          (data[offset + 1] << Riff.SHIFT_16_BITS) |
+          (data[offset + 2] << Riff.SHIFT_8_BITS) |
+          data[offset + 3]) >>>
+        Riff.UNSIGNED_32_BIT_MASK
+      );
+    }
+    return (
+      (data[offset] |
+        (data[offset + 1] << Riff.SHIFT_8_BITS) |
+        (data[offset + 2] << Riff.SHIFT_16_BITS) |
+        (data[offset + 3] << Riff.SHIFT_24_BITS)) >>>
+      Riff.UNSIGNED_32_BIT_MASK
+    );
+  }
+
+  /** @returns {void} */
+  parseChunk() {
+    const input = this.input;
+    let ip = this.ip;
+
+    const chunkId = this.readChunkId(input, ip);
+    ip += Riff.CHUNK_ID_SIZE;
+
+    const size = this.readUInt32(input, ip);
+    ip += Riff.CHUNK_SIZE_BYTES;
+
+    this.chunkList.push(new RiffChunk(chunkId, size, ip));
 
     ip += size;
 
-    // padding
+    // Apply padding if necessary (align to 2-byte boundary)
     if (this.padding && ((ip - this.offset) & 1) === 1) {
       ip++;
     }
@@ -77,18 +112,17 @@ export default class Riff {
   }
 
   /**
-   * @param {number} index chunk index.
-   * @return {RiffChunk | null}
+   * @param {number} index Chunk index.
+   * @returns {RiffChunk | null}
    */
   getChunk(index) {
     /** @type {RiffChunk} */
     const chunk = this.chunkList[index];
+
     return chunk !== undefined ? chunk : null;
   }
 
-  /**
-   * @return {number}
-   */
+  /** @returns {number} */
   getNumberOfChunks() {
     return this.chunkList.length;
   }
@@ -96,9 +130,10 @@ export default class Riff {
 
 /**
  * Riff Chunk Structure
+ *
  * @interface
  */
-class RiffChunk {
+export class RiffChunk {
   /**
    * @param {string} type
    * @param {number} size
