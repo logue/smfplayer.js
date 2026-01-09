@@ -281,7 +281,17 @@ export default class Player {
     if (typeof port === 'string') {
       // Clear self
       if (this.webMidiLink) {
+        // Send All Sound Off and GM Reset before removing the iframe
+        try {
+          this.sendAllSoundOff();
+          this.sendGmReset();
+        } catch (e) {
+          console.warn('Failed to cleanup previous synth:', e);
+        }
+
+        // Remove the previous iframe
         this.webMidiLink.parentNode.removeChild(this.webMidiLink);
+        this.webMidiLink = null;
       }
 
       // Clear parent DOM
