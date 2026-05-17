@@ -1,5 +1,12 @@
 allowBuilds:
+  '@parcel/watcher': true
   unrs-resolver: true
+overrides:
+  flat-cache@4.0.1>flatted: 3.4.2
+  minimatch@3.1.5>brace-expansion: 1.1.13
+  micromatch@4.0.8>picomatch: 2.3.2
+  tinyglobby@0.2.15>picomatch: 4.0.4
+  fdir@6.5.0>picomatch: 4.0.4
 minimumReleaseAgeExclude:
   - ajv@8.18.0
   - flatted@3.4.2
