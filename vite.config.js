@@ -15,6 +15,8 @@ export default defineConfig(async ({ mode }) => {
   const config = {
     // https://vitejs.dev/config/shared-options.html#base
     base: './',
+    // docsビルド時のみ public ディレクトリをコピーする。
+    publicDir: mode === 'docs' ? 'public' : false,
     // https://vitejs.dev/config/shared-options.html#define
     define: {
       'process.env': {},
