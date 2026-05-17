@@ -1,9 +1,17 @@
 {
   "$schema": "https://json.schemastore.org/jsconfig",
   "compilerOptions": {
-    "module": "es6",
-    "target": "esnext",
-    "lib": ["DOM"]
+    "module": "ESNext",
+    "target": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "checkJs": true,
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "types": ["node"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
+  "include": ["env.d.ts", "src/**/*.js"],
   "exclude": ["node_modules"]
 }

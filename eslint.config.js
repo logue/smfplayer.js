@@ -1,15 +1,13 @@
 import globals from 'globals';
 import pluginJs from '@eslint/js';
 import eslintConfigPrettier from 'eslint-config-prettier';
-// @ts-ignore
-import importPlugin from 'eslint-plugin-import';
+import importPlugin from 'eslint-plugin-import-x';
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
   {
     ignores: [
       '.vscode/',
-      '.yarn/',
       'dist/',
       'public/',
       'docs/',
@@ -17,7 +15,15 @@ export default [
       'eslint.config.js',
     ],
   },
-  { languageOptions: { globals: globals.browser } },
+  {
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        __APP_VERSION__: 'readonly',
+        __BUILD_DATE__: 'readonly',
+      },
+    },
+  },
   pluginJs.configs.recommended,
   importPlugin.flatConfigs.recommended,
   {
@@ -28,12 +34,11 @@ export default [
         sourceType: 'module',
       },
     },
-    settings: {
-      // This will do the trick
-      'import/parsers': {
-        espree: ['.js', '.cjs', '.mjs', '.jsx'],
-      },
-      'import/resolver': {
+    rules: {
+      'no-unused-vars': 'off',
+      'import-x/resolver': {
+        // You will also need to install and configure the TypeScript resolver
+        // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
         typescript: true,
         node: true,
         'eslint-import-resolver-custom-alias': {
@@ -41,20 +46,17 @@ export default [
             '@': './src',
             '~': './node_modules',
           },
-          extensions: ['.js'],
+          extensions: ['.js', '.ts', '.jsx', '.tsx', '.vue'],
         },
       },
-    },
-    rules: {
-      'no-unused-vars': 'off',
-      'import/default': 'off',
-      'import/namespace': 'off',
-      'import/no-default-export': 'off',
-      'import/no-named-as-default-member': 'off',
-      'import/no-named-as-default': 'off',
+      'import-x/default': 'off',
+      'import-x/namespace': 'off',
+      'import-x/no-default-export': 'off',
+      'import-x/no-named-as-default-member': 'off',
+      'import-x/no-named-as-default': 'off',
       // Sort Import Order.
       // see https://github.com/import-js/eslint-plugin-import/blob/main/docs/rules/order.md#importorder-enforce-a-convention-in-module-import-order
-      'import/order': [
+      'import-x/order': [
         'error',
         {
           groups: [

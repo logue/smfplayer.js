@@ -1,7 +1,5 @@
-/.yarn/*
-!/.yarn/releases
+.DS_Store
 /node_modules
 /dist
-/src/meta.js
 /docs
 .env

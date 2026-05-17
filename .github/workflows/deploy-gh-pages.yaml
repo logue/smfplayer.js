@@ -2,9 +2,9 @@ name: NodeJS with Vite
 
 on:
   push:
-    branches: ['master']
+    branches: ["master"]
   pull_request:
-    branches: ['master']
+    branches: ["master"]
 
 permissions:
   contents: write
@@ -15,15 +15,15 @@ jobs:
 
     steps:
       - name: Checkout  ✔
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         name: Install pnpm 📦
 
       - name: Install Node.js ⚡️
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Build 🔧
         run: |
@@ -31,7 +31,7 @@ jobs:
           pnpm build:docs
 
       - name: Deploy to gh-pages 🚀
-        uses: JamesIves/github-pages-deploy-action@v4.6.4
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages # The branch the action should deploy to.
           folder: docs # The folder the action should deploy.
