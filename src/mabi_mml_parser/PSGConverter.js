@@ -10,9 +10,9 @@ import { ChannelEvent, MetaEvent } from '@/midi_event';
  * @license   MIT
  */
 export default class PSGConverter {
-  /** @type {string} MMLのチャンネルごとのマッチパターン */
+  /** @type {RegExp} MMLのチャンネルごとのマッチパターン */
   static PATTERN = /[a-glnortv<>][+#-]?\d*\.?&?/g;
-  /** @type {Array<string, number>} ノートのマッチングテーブル */
+  /** @type {Record<string, number>} ノートのマッチングテーブル */
   static NOTE_TABLE = {
     c: 0,
     d: 2,
@@ -27,33 +27,47 @@ export default class PSGConverter {
   static VELOCITY_MAGNIFICATION = 7; // 127÷15≒8.4
 
   /**
+   * @typedef {object} PSGConverterOptions
+   * @property {number|string=} timeDivision
+   * @property {number|string=} channel
+   * @property {number|string=} timeOffset
+   * @property {string=} mml
+   * @property {boolean=} igonreTempo
+   * @property {number=} maxOctave
+   * @property {number=} minOctave
+   * @property {number=} octaveMode
+   * @property {number=} minNote
+   * @property {number=} maxNote
+   */
+
+  /**
    * Constructor
-   * @param {object} optParams
+   * @param {PSGConverterOptions} optParams
    */
   constructor(
     optParams = {
       timeDivision: 96,
       channel: 0,
       timeOffset: 0,
-      mml: [],
+      mml: '',
     }
   ) {
     /** @type {number} 分解能 */
     this.timeDivision = optParams.timeDivision
-      ? parseInt(optParams.timeDivision)
+      ? Number(optParams.timeDivision)
       : 96;
     /** @type {number} チャンネル（0～15） */
-    this.channel = optParams.channel ? parseInt(optParams.channel) : 0;
+    this.channel = optParams.channel ? Number(optParams.channel) : 0;
     /** @type {number} 演奏開始までのオフセット時間 */
-    this.timeOffset = optParams.timeOffset ? parseInt(optParams.timeOffset) : 0;
+    this.timeOffset = optParams.timeOffset ? Number(optParams.timeOffset) : 0;
 
     /** @type {number} １拍（Tick連動） */
     this.MINIM = this.timeDivision * 2;
     /** @type {number} 1小節 */
     this.SEMIBREVE = this.timeDivision * 4;
 
-    /** @type {string[]} MMLデータ */
-    this.mml = optParams.mml;
+    /** @type {string} MMLデータ */
+    this.mml = optParams.mml || '';
     /** @type {import('../midi_event.js').MidiEvent[]} イベント */
     this.events = [];
     /** @type {number} 終了時間 */
@@ -71,7 +85,7 @@ export default class PSGConverter {
     /** @type {number} 最低音階（octaveModeが0の場合は無視されます。デフォルトはピアノの音階。GM音源で再生するとき用） */
     this.minNote = optParams.minNote || 12;
     /** @type {number} 最高音階（octaveModeが0の場合は無視されます。デフォルトはピアノの音階。GM音源で再生するとき用） */
-    this.maxNote = optParams.minNote || 98;
+    this.maxNote = optParams.maxNote || 98;
     // 変換実行
     this.parse();
   }
@@ -80,14 +94,16 @@ export default class PSGConverter {
    * Parse MML
    */
   parse() {
-    /** @type {string[]} MMLストリーム */
-    let mmls = [];
+    /** @type {RegExpMatchArray | null} MMLストリーム */
+    let mmls;
     try {
       // 小文字に変換した後正規表現で命令単位で分割する。
       mmls = this.mml.toLowerCase().match(PSGConverter.PATTERN);
     } catch (e) {
       console.error(e);
-      throw new Error('[PSGConverter] Could not parse MML.', this.mml);
+      throw new Error(`[PSGConverter] Could not parse MML: ${this.mml}`, {
+        cause: e,
+      });
     }
 
     if (!mmls) {
@@ -108,7 +124,7 @@ export default class PSGConverter {
     /** @type {boolean} タイ記号 */
     let tieEnabled = false;
 
-    /** @type {ChannelEvent[]} MIDIイベント */
+    /** @type {import('../midi_event.js').MidiEvent[]} MIDIイベント */
     const events = [];
 
     // MMLを命令単位でパース
@@ -116,11 +132,11 @@ export default class PSGConverter {
       /** @type {number} すすめるtick数 */
       let tick = currentSoundLength | 0;
       /** @type {string} コマンド */
-      let command = '';
+      let command;
       /** @type {number} 値 */
-      let value = 0;
+      let value;
 
-      /** @type {string[]} 音長(L)、オクターブ(O<>)、テンポ（T）、ベロシティ（V）をパース */
+      /** @type {RegExpExecArray | null} 音長(L)、オクターブ(O<>)、テンポ（T）、ベロシティ（V）をパース */
       const matches = /([lotv<>])([1-9]\d*|0?)(\.?)(&?)/.exec(message);
 
       if (matches) {
@@ -192,7 +208,7 @@ export default class PSGConverter {
         let note = 0;
 
         command = RegExp.$1.toLowerCase();
-        value = RegExp.$3 | 0;
+        value = Number(RegExp.$3 || 0);
 
         if (command === 'n') {
           // Nn：絶対音階指定 Lで指定した長さに設定
@@ -286,7 +302,7 @@ export default class PSGConverter {
         }
       } else if (message.match(/R(\d*)(\.?)/i)) {
         // 休符設定 R[n][.] (n=1～64)
-        value = RegExp.$1 | 0;
+        value = Number(RegExp.$1 || 0);
 
         if (value >= 1 && value <= this.MINIM) {
           // L1 -> 128tick .. L64 -> 2tick

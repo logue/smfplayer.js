@@ -9,6 +9,22 @@ import Mld from '@/mld';
 import SMF from '@/smf';
 
 /**
+ * @typedef {object} PlayerSequence
+ * @property {number} timeDivision
+ * @property {any[][]} tracks
+ * @property {(number[] | Uint8Array)[][]} plainTracks
+ */
+
+/**
+ * @typedef {object} MergedTrackItem
+ * @property {number} track
+ * @property {number} eventId
+ * @property {number} time
+ * @property {any} event
+ * @property {string} webMidiLink
+ */
+
+/**
  * @classdesc Midi Player Class
  * @author    imaya
  * @license   MIT
@@ -31,12 +47,16 @@ export default class Player {
     this.ready = false;
     /** @type {number} */
     this.position = 0;
-    /** @type {import('./midi_event').MidiEvent[]} */
+    /** @type {MergedTrackItem[] | null} */
     this.track = [];
     /** @type {number} */
     this.timer = 0;
-    /** @type {object} TODO: 最低限のプロパティは記述する */
-    this.sequence = {};
+    /** @type {PlayerSequence | null} */
+    this.sequence = {
+      timeDivision: 96,
+      tracks: [],
+      plainTracks: [],
+    };
     /** @type {boolean} */
     this.enableCC111Loop = false;
     /** @type {boolean} */
@@ -57,8 +77,8 @@ export default class Player {
     this.copyright = '';
     /** @type {string} */
     this.lyrics = '';
-    /** @type {HTMLIFrameElement | Worker} */
-    this.webMidiLink = undefined;
+    /** @type {HTMLIFrameElement | Worker | null} */
+    this.webMidiLink = null;
     /** @type {number} */
     this.length = 0;
     /** @type {number} */
@@ -69,7 +89,7 @@ export default class Player {
     this.loaded = 0;
     /** @type {Window} */
     this.window = window;
-    /** @type {HTMLElement} */
+    /** @type {HTMLElement | null} */
     this.target = this.window.document.querySelector(target);
     /** @type {string} */
     this.targetOrigin = targetOrigin;
@@ -125,7 +145,7 @@ export default class Player {
   }
 
   /**
-   * @return {HTMLIframeElement}
+   * @return {HTMLIFrameElement | Worker | null}
    */
   getWebMidiLink() {
     return this.webMidiLink;
@@ -137,14 +157,17 @@ export default class Player {
     this.stop();
     this.initSequence();
     this.pause = true;
-    this.track = null;
+    this.track = [];
     this.resume = -1;
-    this.text = null;
-    this.sequence = null;
-    this.sequenceName = null;
-    this.copyright = null;
-    this.lyrics = null;
-    this.textEvent = null;
+    this.sequence = {
+      timeDivision: 96,
+      tracks: [],
+      plainTracks: [],
+    };
+    this.sequenceName = '';
+    this.copyright = '';
+    this.lyrics = '';
+    this.textEvent = '';
     this.length = 0;
     this.position = 0;
     this.time = 0;
@@ -372,9 +395,9 @@ export default class Player {
     /** @type {Player} */
     const player = this;
     /** @type {number} 分解能 */
-    const timeDivision = this.sequence.timeDivision;
-    /** @type {Array.<Object>} */
-    const mergedTrack = this.track;
+    const timeDivision = this.sequence ? this.sequence.timeDivision : 96;
+    /** @type {MergedTrackItem[]} */
+    const mergedTrack = this.track || [];
     /** @type {Window} */
     const webMidiLink = this.webMidiLink.contentWindow;
     /** @type {number} */
@@ -621,12 +644,12 @@ export default class Player {
   }
 
   /**
-   * @param {Object} midi
+   * @param {PlayerSequence} midi
    */
   mergeMidiTracks(midi) {
-    /** @type {import('./midi_event').MidiEvent[]} */
+    /** @type {MergedTrackItem[]} */
     const mergedTrack = (this.track = []);
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {import('./midi_event').MidiEvent[][]} */
     const tracks = midi.tracks;
     /** @type {Array.<number>} */
     const trackPosition = new Array(tracks.length);

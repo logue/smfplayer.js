@@ -6,6 +6,8 @@
 class MidiEvent {
   /** @type {Record<number, string>} Event Name */
   static events = {};
+  /** @type {Array<number | Uint8Array | ArrayBuffer | string>} */
+  data = [];
   /**
    * @param {string} subtype event subtype name.
    * @param {number} deltaTime delta time.
@@ -51,8 +53,8 @@ class ChannelEvent extends MidiEvent {
     deltaTime,
     time,
     channel,
-    optParameter1 = undefined,
-    optParameter2 = undefined
+    optParameter1 = 0,
+    optParameter2 = 0
   ) {
     super(subtype, deltaTime, time);
     /** @type {number} */
@@ -69,22 +71,22 @@ class ChannelEvent extends MidiEvent {
  * @extends {MidiEvent}
  */
 class SystemExclusiveEvent extends MidiEvent {
-  /** @type {Record<number, string>} Event Name */
+  /** @type {Record<number, string?>} Event Name */
   static table = {
     0x0: 'SystemExclusive',
     0x1: 'TimeCode',
     0x2: 'SongPosition',
     0x3: 'SongSelect',
-    0x4: undefined,
-    0x5: undefined,
+    0x4: null,
+    0x5: null,
     0x6: 'TuneRequest',
     0x7: 'SystemExclusive(F7)',
     0x8: 'TimingClock',
-    0x9: undefined,
+    0x9: null,
     0xa: 'Start',
     0xb: 'Continue',
     0xc: 'Stop',
-    0xd: undefined,
+    0xd: null,
     0xe: 'ActiveSensing',
   };
 
@@ -92,11 +94,10 @@ class SystemExclusiveEvent extends MidiEvent {
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @param {Uint8Array} data
+   * @param {Array<number | Uint8Array | ArrayBuffer | string>} data
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
-    /** @type {Uint8Array} */
     this.data = data;
   }
 }
@@ -133,11 +134,11 @@ class MetaEvent extends MidiEvent {
    * @param {string} subtype
    * @param {number} deltaTime delta time.
    * @param {number} time time.
-   * @param {Uint8Array[]} data meta data.
+   * @param {Array<number | Uint8Array | ArrayBuffer | string>} data meta data.
    */
   constructor(subtype, deltaTime, time, data) {
     super(subtype, deltaTime, time);
-    /** @type {Uint8Array[]} */
+    /** @type {Array<number | Uint8Array | ArrayBuffer | string>} */
     this.data = data;
   }
 }

@@ -20,7 +20,7 @@ const SMF = {
   },
   PSGConverter,
   version: Meta.version,
-  build: Meta.build,
+  build: Meta.date,
 };
 
 export default SMF;

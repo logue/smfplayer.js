@@ -8,7 +8,7 @@ import { checker } from 'vite-plugin-checker';
 import pkg from './package.json';
 
 // Export vite config
-export default defineConfig(async ({ mode, command }) => {
+export default defineConfig(async ({ mode }) => {
   // Hook production build.
   const buildDate = new Date().toISOString();
   /** @type {import('vite').UserConfig} https://vitejs.dev/config/ */

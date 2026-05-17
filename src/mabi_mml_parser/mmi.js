@@ -11,6 +11,20 @@ import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '@/midi_event';
  * @license   MIT
  */
 export default class MabiIcco extends MakiMabiSequence {
+  /**
+   * @typedef {object} MabiIccoOptions
+   * @property {number|string=} timeDivision
+   */
+
+  /**
+   * @typedef {object} MabiIccoTrack
+   * @property {string} mml
+   * @property {string} name
+   * @property {number} program
+   * @property {number} songProgram
+   * @property {number} panpot
+   */
+
   /** @type {string[]} 各トラックごと複数存在する変数名 */
   static multipleKeys = [
     'mml-track',
@@ -22,13 +36,13 @@ export default class MabiIcco extends MakiMabiSequence {
 
   /**
    * @param {ArrayBuffer} input
-   * @param {Object=} optParams
+   * @param {MabiIccoOptions=} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
     /** @type {Array<string>} 入力データ。行ごとに配列化 */
     this.input = this.source.split(/\r\n|\r|\n/) || [];
-    /** @type {Array.<Array.<Object>>} 全トラックの演奏情報 */
+    /** @type {import('../midi_event.js').MidiEvent[][]} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Array.<Array.<Uint8Array>>} WMLに送る生のMIDIイベント */
     this.plainTracks = [];
@@ -144,7 +158,7 @@ export default class MabiIcco extends MakiMabiSequence {
     const endTimes = [];
 
     for (let ch = 0; ch < this.input.length; ch++) {
-      /** @type {array} 現在のチャンネルの情報 */
+      /** @type {MabiIccoTrack} 現在のチャンネルの情報 */
       const current = this.input[ch];
       /** @type {string[]} */
       const mml = current.mml.match(/^(?:MML@)(.*)/gm);

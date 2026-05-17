@@ -12,8 +12,13 @@ import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '@/midi_event';
  */
 export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
   /**
+   * @typedef {object} ThreeMleOptions
+   * @property {number|string=} timeDivision
+   */
+
+  /**
    * @param {Uint8Array} input
-   * @param {object} optParams
+   * @param {ThreeMleOptions} optParams
    */
   constructor(input, optParams = {}) {
     super(input, optParams);
@@ -114,7 +119,7 @@ export default class ThreeMacroLanguageEditor extends MakiMabiSequence {
       }
     }
 
-    /** @type {array} 整形済みデータ */
+    /** @type {Array<{mml: string, name: string, instrument: number, panpot: number}>} 整形済みデータ */
     const data = [];
 
     // データを整形

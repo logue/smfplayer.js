@@ -10,8 +10,15 @@ import { Riff } from '@/riff';
  */
 export default class Parser {
   /**
+   * @typedef {object} ParserOptions
+   * @property {number=} index
+   * @property {boolean=} padding
+   * @property {boolean=} bigEndian
+   */
+
+  /**
    * @param {Uint8Array} input input buffer.
-   * @param {object} optParams option parameters.
+   * @param {ParserOptions} optParams option parameters.
    */
   constructor(input, optParams = {}) {
     optParams.padding = false;
@@ -47,9 +54,9 @@ export default class Parser {
    */
   parse() {
     /** @type {number} */
-    let i = 0;
+    let i;
     /** @type {number} */
-    let il = 0;
+    let il;
 
     // parse riff chunks
     this.riffParser_.parse();
@@ -68,18 +75,19 @@ export default class Parser {
   parseHeaderChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
-    /** @type {Uint8Array} */
-    const data = this.input;
-    /** @type {number} */
-    let ip = chunk.offset;
 
     if (!chunk || chunk.type !== 'MThd') {
       throw new Error('invalid header signature');
     }
 
+    /** @type {Uint8Array} */
+    const data = this.input;
+    /** @type {number} */
+    let ip = chunk.offset;
+
     this.formatType = (data[ip++] << 8) | data[ip++];
     this.numberOfTracks = (data[ip++] << 8) | data[ip++];
-    this.timeDivision = (data[ip++] << 8) | data[ip++];
+    this.timeDivision = (data[ip] << 8) | data[ip + 1];
   }
 
   /**
@@ -87,18 +95,23 @@ export default class Parser {
   parseTrackChunk() {
     /** @type {?{type: string, size: number, offset: number}} */
     const chunk = this.riffParser_.getChunk(this.chunkIndex++);
+
+    if (!chunk || chunk.type !== 'MTrk') {
+      throw new Error('invalid header signature');
+    }
+
     /** @type {Uint8Array} */
     const data = this.input;
     /** @type {number} */
     let ip = chunk.offset;
     /** @type {number} */
-    let size = 0;
+    let size;
     /** @type {number} */
-    let deltaTime = 0;
+    let deltaTime;
     /** @type {number} */
-    let eventType = 0;
+    let eventType;
     /** @type {number} */
-    let channel = 0;
+    let channel;
     /** @type {number} */
     let prevEventType = -1;
     /** @type {number} */
@@ -108,11 +121,11 @@ export default class Parser {
     /** @type {number} */
     let totalTime = 0;
     /** @type {number} */
-    let offset = 0;
+    let offset;
     /** @type {number} */
-    let length = 0;
+    let length;
     /** @type {number} */
-    let status = 0;
+    let status;
     /** @type {import('./midi_event').MidiEvent} */
     let event;
     /** @type {Uint8Array} */
@@ -132,10 +145,6 @@ export default class Parser {
 
       return result;
     };
-
-    if (!chunk || chunk.type !== 'MTrk') {
-      throw new Error('invalid header signature');
-    }
 
     size = chunk.offset + chunk.size;
     const eventQueue = [];

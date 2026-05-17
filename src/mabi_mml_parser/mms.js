@@ -6,6 +6,20 @@ import PSGConverter from './PSGConverter';
 import { MetaEvent, ChannelEvent, SystemExclusiveEvent } from '@/midi_event';
 
 /**
+ * @typedef {object} MakiMabiSequenceOptions
+ * @property {number|string=} timeDivision
+ */
+
+/**
+ * @typedef {object} MmsInformation
+ * @property {string=} title
+ * @property {string=} auther
+ * @property {string=} timeBase
+ * @property {string=} rythmNum
+ * @property {string=} rythmBase
+ */
+
+/**
  * @classdesc MakiMabi Sequence File Parser
  *
  * @author    Logue <logue@hotmail.co.jp>
@@ -21,7 +35,7 @@ export default class MakiMabiSequence {
 
   /**
    * @param {Uint8Array} input
-   * @param {object} optParams
+   * @param {MakiMabiSequenceOptions} optParams
    */
   constructor(input, optParams = {}) {
     /** @type {TextEncoder} */
@@ -32,9 +46,9 @@ export default class MakiMabiSequence {
       from: 'AUTO',
       type: 'string',
     });
-    /** @type {Record<{[key: string]: any}>} MMSファイルをパースしたもの */
+    /** @type {Record<string, Record<string, string>>} MMSファイルをパースしたもの */
     this.input = parse(this.source) || {};
-    /** @type {object[][]} 全トラックの演奏情報 */
+    /** @type {import('../midi_event.js').MidiEvent[][]} 全トラックの演奏情報 */
     this.tracks = [];
     /** @type {Uint8Array[][]} WMLに送る生のMIDIイベント */
     this.plainTracks = [];
@@ -59,7 +73,7 @@ export default class MakiMabiSequence {
    * ヘッダーメタ情報をパース
    */
   parseHeader() {
-    /** @type {object} インフォメーション情報 */
+    /** @type {MmsInformation} インフォメーション情報 */
     const header = this.input.infomation || {}; // informationじゃない
     /** @type {string} タイトル */
     this.title = header.title;
@@ -107,9 +121,9 @@ export default class MakiMabiSequence {
    * MML parse
    */
   parseTracks() {
-    /** @type {ChannelEvent[]} MIDIイベント */
+    /** @type {import('../midi_event.js').MidiEvent[]} MIDIイベント */
     let track = [];
-    /** @type {array} 終了時間比較用 */
+    /** @type {number[]} 終了時間比較用 */
     const endTimes = [];
     /** @type {number} チャンネル */
     let ch = 0;
@@ -150,7 +164,7 @@ export default class MakiMabiSequence {
 
       // MMLの各チャンネルの処理
       mmls.forEach(chord => {
-        /** @param {PSGConverter} */
+        /** @type {PSGConverter} */
         const mml2Midi = new PSGConverter({
           timeDivision: this.timeDivision,
           channel: ch,

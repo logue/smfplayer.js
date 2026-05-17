@@ -3,10 +3,57 @@
  * @author    imaya
  * @license   MIT
  */
+
+/**
+ * @typedef {object} MldParseOptions
+ * @property {number=} index
+ * @property {number=} timeDivision
+ */
+
+/**
+ * @typedef {object} MldHeader
+ * @property {number} fileLength
+ * @property {number} trackOffset
+ * @property {number} dataMajorType
+ * @property {number} dataMinorType
+ * @property {number} numberOfTracks
+ */
+
+/**
+ * @typedef {object} MldDataInformation
+ * @property {string|null} copy
+ * @property {string|null} date
+ * @property {Uint8Array|null} exst
+ * @property {number|null} note
+ * @property {string|null} prot
+ * @property {number|null} sorc
+ * @property {string|null} titl
+ * @property {Uint8Array|null} trac
+ * @property {string|null} vers
+ * @property {string|number|Uint8Array|null} [key]
+ */
+
+/**
+ * @typedef {object} MfiMessage
+ * @property {number} deltaTime
+ * @property {'note'|'meta'|'internal'|null} type
+ * @property {string|null} subType
+ * @property {number|null} key
+ * @property {number|null} length
+ * @property {number|null} octaveShift
+ * @property {number|null} velocity
+ * @property {number|null} voice
+ * @property {unknown} value
+ * @property {number=} id
+ * @property {number=} time
+ * @property {number=} part
+ * @property {number=} instrument
+ */
+
 export default class Mld {
   /**
    * @param {Uint8Array} input
-   * @param {object} optParams
+   * @param {MldParseOptions} optParams
    */
   constructor(input, optParams = {}) {
     /** @type {Uint8Array} */
@@ -15,11 +62,11 @@ export default class Mld {
     this.ip = optParams.index || 0;
     /** @type {number} */
     this.timeDivision = optParams.timeDivision || 48;
-    /** @type {object} */
-    this.header = {};
-    /** @type {object} */
-    this.dataInformation = {};
-    /** @type {import('../midi_event.js').MidiEvent[][]} */
+    /** @type {MldHeader} */
+    this.header = /** @type {MldHeader} */ ({});
+    /** @type {MldDataInformation} */
+    this.dataInformation = /** @type {MldDataInformation} */ ({});
+    /** @type {MfiMessage[][]} */
     this.tracks = [];
   }
 
@@ -38,8 +85,8 @@ export default class Mld {
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
-    /** @type {object} */
-    const header = (this.header = {});
+    /** @type {MldHeader} */
+    const header = (this.header = /** @type {MldHeader} */ ({}));
     /** @type {string} */
     const signature = String.fromCharCode(
       input[ip++],
@@ -75,7 +122,7 @@ export default class Mld {
     const input = this.input;
     /** @type {number} */
     let ip = this.ip;
-    /** @type {object} */
+    /** @type {MldDataInformation} */
     const dataInformation = (this.dataInformation = {
       copy: null,
       date: null,
@@ -153,25 +200,25 @@ export default class Mld {
     let extendStatus;
     /** @type {import('../midi_event.js').MidiEvent} */
     let message;
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {MfiMessage[][]} */
     const tracks = (this.tracks = []);
-    /** @type {Array.<Object>} */
+    /** @type {MfiMessage[]} */
     let track;
     /** @type {number} */
     let i;
     /** @type {number} */
     let il;
     /**
-     * @return {Array.<Object>}
+     * @return {Array.<{part: number, modulator: Record<string, number>, carrier: Record<string, number>, octaveSelect: number}>}
      */
     const parseEditInstrument = () => {
       /** @type {number} */
       const length = (input[ip++] << 8) | input[ip++];
       /** @type {number} */
       const limit = ip + length;
-      /** @type {Array.<Object>} */
+      /** @type {Array.<{part: number, modulator: Record<string, number>, carrier: Record<string, number>, octaveSelect: number}>} */
       const result = [];
-      /** @type {Object} */
+      /** @type {{part?: number, modulator?: Record<string, number>, carrier?: Record<string, number>, octaveSelect?: number}} */
       let info;
 
       // const
@@ -495,29 +542,29 @@ export default class Mld {
   }
 
   /**
-   * @return {Object}
+   * @return {{timeDivision: number, trac: unknown[], tracks: MfiMessage[][], plainTracks: number[][][]}}
    */
   convertToMidiTracks() {
-    /** @type {Object} */
+    /** @type {{timeDivision: number, trac: unknown[], tracks: MfiMessage[][], plainTracks: number[][][]}} */
     const result = {
       timeDivision: this.timeDivision,
       trac: [],
       tracks: [],
       plainTracks: [],
     };
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {MfiMessage[][]} */
     const tracks = result.tracks;
     /** @type {Array.<Array.<Array.<number>>>} */
     const plainTracks = result.plainTracks;
-    /** @type {Array.<Array.<Object>>} */
+    /** @type {MfiMessage[][]} */
     const mfiTracks = this.tracks;
-    /** @type {Array.<Object>} */
+    /** @type {MfiMessage[]} */
     let mfiTrack;
-    /** @type {Object} */
+    /** @type {MfiMessage} */
     let mfiEvent;
-    /** @type {Object} */
+    /** @type {MfiMessage} */
     let prevEvent;
-    /** @type {Array.<Object>} */
+    /** @type {MfiMessage[]} */
     let tmpTrack;
     /** @type {number} */
     let time;
@@ -614,7 +661,7 @@ export default class Mld {
 
       // MIDI トラックに作成
       tracks[i] = [];
-      for (time = j = 0, jl = tmpTrack.length; j < jl; ++j) {
+      for (j = 0, jl = tmpTrack.length; j < jl; ++j) {
         mfiEvent = tmpTrack[j];
         time = mfiEvent.time;
 

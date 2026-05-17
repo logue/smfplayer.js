@@ -28,17 +28,9 @@ export default [
   importPlugin.flatConfigs.recommended,
   {
     files: ['**/*.{js,mjs,cjs}'],
-    languageOptions: {
-      parserOptions: {
-        ecmaVersion: 'latest',
-        sourceType: 'module',
-      },
-    },
-    rules: {
-      'no-unused-vars': 'off',
+    settings: {
       'import-x/resolver': {
-        // You will also need to install and configure the TypeScript resolver
-        // See also https://github.com/import-js/eslint-import-resolver-typescript#configuration
+        // See https://github.com/import-js/eslint-import-resolver-typescript#configuration
         typescript: true,
         node: true,
         'eslint-import-resolver-custom-alias': {
@@ -49,6 +41,15 @@ export default [
           extensions: ['.js', '.ts', '.jsx', '.tsx', '.vue'],
         },
       },
+    },
+    languageOptions: {
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': 'off',
       'import-x/default': 'off',
       'import-x/namespace': 'off',
       'import-x/no-default-export': 'off',
