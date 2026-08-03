@@ -5,7 +5,7 @@ import { AppState } from './state.js';
 import { UIManager } from './ui-manager.js';
 
 import './style.scss';
-import Player from '@/player.js';
+import Player from '@/Sequencer.js';
 
 // Initialize global instances
 const player = new Player('#wml');

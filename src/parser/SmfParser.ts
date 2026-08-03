@@ -1,88 +1,49 @@
 import { convert } from 'encoding-japanese';
 
-import { ChannelEvent, SystemExclusiveEvent, MetaEvent } from '@/midi_event';
-import { Riff } from '@/riff';
+import AbstractParser from './AbstractParser';
+
+import type { RiffOptions } from '@/interfaces/RiffOptions';
+
+import {
+  ChannelEvent,
+  SystemExclusiveEvent,
+  MetaEvent,
+  MidiEvent,
+} from '@/MidiEvent';
+import { Riff } from '@/Riff';
+import SmfFormat, { type SmfFormatType } from '@/types/SmfFormat';
 
 /**
  * @classdesc Standard Midi File Parser class
  * @author    imaya, Logue
  * @license   MIT
  */
-export default class Parser {
-  /**
-   * @typedef {object} ParserOptions
-   * @property {number=} index
-   * @property {boolean=} padding
-   * @property {boolean=} bigEndian
-   */
+export default class SmfParser extends AbstractParser<
+  Partial<RiffOptions>,
+  MidiEvent
+> {
+  protected chunkIndex: number = 0;
+  protected formatType: SmfFormatType = SmfFormat.SMF_0;
 
-  /**
-   * @param {Uint8Array} input input buffer.
-   * @param {ParserOptions} optParams option parameters.
-   */
-  constructor(input, optParams = {}) {
-    optParams.padding = false;
-    optParams.bigEndian = true;
+  /** Riffパーサー */
+  protected parser: Riff;
 
-    /** @type {Uint8Array} */
-    this.input = input;
-    /** @type {number} */
-    this.ip = optParams.index || 0;
-    /** @type {number} */
-    this.chunkIndex = 0;
-    /**
-     * @type {Riff}
-     * @private
-     */
-    this.riffParser_ = new Riff(input, optParams);
+  constructor(input: Uint8Array, options?: Partial<RiffOptions>) {
+    options!.padding = false;
+    options!.bigEndian = true;
 
-    // MIDI File Information
-
-    /** @type {number} */
-    this.formatType = 0;
-    /** @type {number} */
-    this.numberOfTracks = 0;
-    /** @type {number} */
-    this.timeDivision = 480;
-    /** @type {import('./midi_event').MidiEvent[][]} */
-    this.tracks = [];
-    /** @type {Uint8Array[][]} */
-    this.plainTracks = [];
+    super(input, options);
+    this.parser = new Riff(input, options);
   }
 
-  /**
-   */
-  parse() {
-    /** @type {number} */
-    let i;
-    /** @type {number} */
-    let il;
+  protected parseHeader(): void {
+    const chunk = this.parser.getChunk(this.chunkIndex++);
 
-    // parse riff chunks
-    this.riffParser_.parse();
-
-    // parse header chunk
-    this.parseHeaderChunk();
-
-    // parse track chunks
-    for (i = 0, il = this.numberOfTracks; i < il; ++i) {
-      this.parseTrackChunk();
-    }
-  }
-
-  /**
-   */
-  parseHeaderChunk() {
-    /** @type {?{type: string, size: number, offset: number}} */
-    const chunk = this.riffParser_.getChunk(this.chunkIndex++);
-
-    if (!chunk || chunk.type !== 'MThd') {
-      throw new Error('invalid header signature');
+    if (chunk?.type !== 'MThd') {
+      throw new Error('[smfplayer.js] invalid header signature');
     }
 
-    /** @type {Uint8Array} */
     const data = this.input;
-    /** @type {number} */
     let ip = chunk.offset;
 
     this.formatType = (data[ip++] << 8) | data[ip++];
@@ -90,80 +51,51 @@ export default class Parser {
     this.timeDivision = (data[ip] << 8) | data[ip + 1];
   }
 
-  /**
-   */
-  parseTrackChunk() {
-    /** @type {?{type: string, size: number, offset: number}} */
-    const chunk = this.riffParser_.getChunk(this.chunkIndex++);
+  parseTracks(): void {
+    const chunk = this.parser.getChunk(this.chunkIndex++);
 
-    if (!chunk || chunk.type !== 'MTrk') {
-      throw new Error('invalid header signature');
+    if (chunk?.type !== 'MTrk') {
+      throw new Error('[smfplayer.js] invalid header signature');
     }
 
-    /** @type {Uint8Array} */
     const data = this.input;
-    /** @type {number} */
     let ip = chunk.offset;
-    /** @type {number} */
-    let size;
-    /** @type {number} */
-    let deltaTime;
-    /** @type {number} */
-    let eventType;
-    /** @type {number} */
-    let channel;
-    /** @type {number} */
+    let deltaTime: number;
+    let eventType: number;
+    let channel: number;
     let prevEventType = -1;
-    /** @type {number} */
     let prevChannel = -1;
-    /** @type {number} */
     let tmp = 0;
-    /** @type {number} */
     let totalTime = 0;
-    /** @type {number} */
-    let offset;
-    /** @type {number} */
-    let length;
-    /** @type {number} */
-    let status;
-    /** @type {import('./midi_event').MidiEvent} */
-    let event;
-    /** @type {Uint8Array} */
-    let plainBytes;
+    let offset: number;
+    let length: number;
+    let status: number;
+    let event: MidiEvent;
+    let plainBytes: Uint8Array;
 
-    /** @return {number} */
-    const readNumber = () => {
-      /** @type {number} */
+    const readNumber = (): number => {
       let result = 0;
-
       tmp = 0;
-
       do {
         tmp = data[ip++];
         result = (result << 7) | (tmp & 0x7f);
       } while ((tmp & 0x80) !== 0);
-
       return result;
     };
 
-    size = chunk.offset + chunk.size;
-    const eventQueue = [];
-    const plainQueue = [];
+    const size = chunk.offset + chunk.size;
+    const eventQueue: MidiEvent[] = [];
+    const plainQueue: Uint8Array[] = [];
 
     while (ip < size) {
-      // delta time
       deltaTime = readNumber();
       totalTime += deltaTime;
-
-      // offset
       offset = ip;
 
-      // event type value, midi channel
       status = data[ip++];
       eventType = (status >> 4) & 0xf;
       channel = status & 0xf;
 
-      // run status rule
       if (eventType < 8) {
         eventType = prevEventType;
         channel = prevChannel;
@@ -175,7 +107,6 @@ export default class Parser {
         prevChannel = channel;
       }
 
-      // Channel Event
       if (eventType !== 0xf) {
         event = new ChannelEvent(
           ChannelEvent.table[eventType],
@@ -189,59 +120,55 @@ export default class Parser {
         if (channel !== 0xf) {
           tmp = readNumber();
           if (channel === 0x0 && data[ip + tmp - 1] !== 0xf7) {
-            throw new Error('invalid SysEx event');
+            throw new Error('[smfplayer.js] invalid SysEx event');
           }
           event = new SystemExclusiveEvent(
-            SystemExclusiveEvent.table[channel],
+            SystemExclusiveEvent.table[channel] ?? '',
             deltaTime,
             totalTime,
-            data.subarray(ip, (ip += tmp) - 1)
+            Array.from(data.subarray(ip, (ip += tmp) - 1))
           );
         } else {
           eventType = data[ip++];
           tmp = readNumber();
           switch (eventType) {
-            case 0x00: // sequence number
+            case 0x00:
               event = new MetaEvent('SequenceNumber', deltaTime, totalTime, [
                 data[ip++],
                 data[ip++],
               ]);
               break;
-            case 0x01: // text event
-            case 0x02: // copyright notice
-            case 0x03: // sequence/track name
-            case 0x04: // instrument name
-            case 0x05: // lyrics
-            case 0x06: // marker
+            case 0x01:
+            case 0x02:
+            case 0x03:
+            case 0x04:
+            case 0x05:
+            case 0x06:
             case 0x07: {
-              // cue point
               const buffer = data.subarray(ip, (ip += tmp));
-
               event = new MetaEvent(
                 MetaEvent.table[eventType],
                 deltaTime,
                 totalTime,
                 [
-                  // UTF-8にして登録
                   convert(buffer, {
                     to: 'UTF-8',
                     from: 'AUTO',
                     type: 'arraybuffer',
-                  }),
+                  }) as ArrayBuffer,
                 ]
               );
-
               break;
             }
-            case 0x2f: // end of track
+            case 0x2f:
               event = new MetaEvent('EndOfTrack', deltaTime, totalTime, []);
               break;
-            case 0x51: // set tempo
+            case 0x51:
               event = new MetaEvent('SetTempo', deltaTime, totalTime, [
                 (data[ip++] << 16) | (data[ip++] << 8) | data[ip++],
               ]);
               break;
-            case 0x54: // smpte offset
+            case 0x54:
               event = new MetaEvent('SmpteOffset', deltaTime, totalTime, [
                 data[ip++],
                 data[ip++],
@@ -250,7 +177,7 @@ export default class Parser {
                 data[ip++],
               ]);
               break;
-            case 0x58: // time signature
+            case 0x58:
               event = new MetaEvent('TimeSignature', deltaTime, totalTime, [
                 data[ip++],
                 data[ip++],
@@ -258,19 +185,18 @@ export default class Parser {
                 data[ip++],
               ]);
               break;
-            case 0x59: // key signature
+            case 0x59:
               event = new MetaEvent('KeySignature', deltaTime, totalTime, [
                 data[ip++],
                 data[ip++],
               ]);
               break;
-            case 0x7f: // sequencer specific
+            case 0x7f:
               event = new MetaEvent('SequencerSpecific', deltaTime, totalTime, [
                 data.subarray(ip, (ip += tmp)),
               ]);
               break;
             default:
-              // unknown
               event = new MetaEvent(
                 MetaEvent.table[eventType],
                 deltaTime,
@@ -281,26 +207,22 @@ export default class Parser {
         }
       }
 
-      // plain queue
       length = ip - offset;
       plainBytes = data.subarray(offset, offset + length);
       plainBytes[0] = status;
       if (
         event instanceof ChannelEvent &&
-        event.subtype === 'NoteOn' &&
-        /** @type {ChannelEvent} */
-        (event).parameter2 === 0
+        event.subType === 'NoteOn' &&
+        event.parameter2 === 0
       ) {
-        event.subtype = ChannelEvent.table[8];
+        event.subType = ChannelEvent.table[8];
         plainBytes = new Uint8Array([
           0x80 | event.channel,
           event.parameter1,
-          event.parameter2,
+          event.parameter2 ?? 0,
         ]);
       }
       plainQueue.push(plainBytes);
-
-      // event queue
       eventQueue.push(event);
     }
 
